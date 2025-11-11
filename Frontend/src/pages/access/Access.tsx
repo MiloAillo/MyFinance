@@ -3,7 +3,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircleIcon, FormInput } from "lucide-react";
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { email, z } from "zod"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -13,6 +13,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 export function Access(): JSX.Element {
+    const [show, setShow] = useState<boolean>(false)
+
     const loginSchema = z.object({
         email: z.email(),
         password: z.string()
@@ -25,6 +27,8 @@ export function Access(): JSX.Element {
             password: ""
         }
     })
+
+
 
     const login = async (values: z.infer<typeof loginSchema>): Promise<void> => {
         console.log(values)
@@ -68,12 +72,12 @@ export function Access(): JSX.Element {
                                             control={form.control}
                                             name="password"
                                             render={( field ) => (
-                                                <FormItem>
+                                                <FormItem className="select-none">
                                                     <FormLabel>Password:</FormLabel>
                                                     <FormControl>
                                                         <div className="flex items-center justify-end">
-                                                            <Input type="password" {...field} />
-                                                            <FontAwesomeIcon icon={faEyeSlash} className="absolute pr-3 text-neutral-700" />
+                                                            <Input type={`${show ? "text" : "password"}`} {...field} />
+                                                            <FontAwesomeIcon icon={faEyeSlash} onClick={() => setShow(!show)} className="absolute pr-3 text-neutral-700" />
                                                         </div>
                                                     </FormControl>
                                                     <FormMessage />
