@@ -87,7 +87,7 @@ export function Access(): JSX.Element {
                                     </div>
                                     <p className="font-medium text-sm text-blue-500 hover:text-blue-400">Forgot password?</p>
                                 </div>
-                                <Button type="submit" className="text-neutral-800 font-semibold bg-[linear-gradient(356deg,rgba(55,255,182,1)_30%,rgba(255,248,55,1)_100%)]">Sign in</Button>
+                                <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)]">Sign in</Button>
                             </div>
                         </form>
                     </Form>
