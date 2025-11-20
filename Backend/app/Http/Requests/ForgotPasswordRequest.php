@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Symfony\Component\HttpFoundation\Response;
 
 class ForgotPasswordRequest extends FormRequest
 {
@@ -29,16 +29,16 @@ class ForgotPasswordRequest extends FormRequest
         ];
     }
 
+    public function messages()
+    {
+        return [];
+    }
+
 
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(
-            response()->json([
-                'response_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                'status' => 'error',
-                'errors' => $validator->errors()
-
-            ], Response::HTTP_UNPROCESSABLE_ENTITY)
+            ResponseHelper::validationErrorResponse($validator)
         );
     }
 }

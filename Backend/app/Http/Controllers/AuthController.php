@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ResponseHelper;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
@@ -10,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use Illuminate\Cache\RateLimiter;
@@ -35,9 +35,25 @@ class AuthController extends Controller
 
             $token = $user->createToken('authToken')->plainTextToken;
 
-            return $this->authResponse('user successfully registered', $user, $token, Response::HTTP_CREATED);
+            return ResponseHelper::successResponse(
+                [
+                    'user_info' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => config('sanctum.expiration'),
+                ],
+                'user successfully registered',
+                Response::HTTP_CREATED
+            );
+            // return $this->authResponse('user successfully registered', $user, $token, Response::HTTP_CREATED);
 
         } catch (\Exception $e) {
+
+            return ResponseHelper::logAndErrorResponse($e, 'registration error', 'registration failed');
             // Log::error('registration error : ' . $e->getMessage());
 
             // return response()->json([
@@ -46,7 +62,7 @@ class AuthController extends Controller
             //     'message' => 'registration failed',
             // ], Response::HTTP_INTERNAL_SERVER_ERROR);
 
-            return $this->execptionResponse($e, 'registration error', 'registration failed');
+            // return $this->execptionResponse($e, 'registration error', 'registration failed');
         }
     }
 
@@ -59,20 +75,36 @@ class AuthController extends Controller
             $credentials = $request->validated();
 
             if (!Auth::attempt($credentials)) {
-                return response()->json([
-                    'response_code' => Response::HTTP_UNAUTHORIZED,
-                    'status' => 'error',
-                    'message' => 'invalid credentials',
-                ], Response::HTTP_UNAUTHORIZED);
+                return ResponseHelper::unauthorizedResponse('invalid credentials');
+                // return response()->json([
+                //     'response_code' => Response::HTTP_UNAUTHORIZED,
+                //     'status' => 'error',
+                //     'message' => 'invalid credentials',
+                // ], Response::HTTP_UNAUTHORIZED);
             }
 
             $user = Auth::user();
 
             $token = $user->createToken('authToken')->plainTextToken;
 
-            return $this->authResponse('login successful', $user,  $token);
+            return ResponseHelper::successResponse(
+                [
+                    'user_info' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => config('sanctum.expiration'),
+                ],
+                'login successful',
+                Response::HTTP_OK
+            );
+            // return $this->authResponse('login successful', $user,  $token);
 
         } catch (\Exception $e) {
+            return ResponseHelper::logAndErrorResponse($e, 'login error', 'login failed');
             // Log::error('login error : ' . $e->getMessage());
 
             // return response()->json([
@@ -81,7 +113,7 @@ class AuthController extends Controller
             //     'message' => 'login failed',
             // ], Response::HTTP_INTERNAL_SERVER_ERROR);
             
-            return $this->execptionResponse($e, 'login error', 'login failed');
+            // return $this->execptionResponse($e, 'login error', 'login failed');
         }
     }
 
@@ -94,18 +126,26 @@ class AuthController extends Controller
             $user = $request->user();
 
             if (!$user) {
-                return response()->json([
-                    'response_code' => Response::HTTP_UNAUTHORIZED,
-                    'status' => 'error',
-                    'message' => 'user not authenticated'
-                ], Response::HTTP_UNAUTHORIZED);
+                return ResponseHelper::unauthorizedResponse('user not authenticated');
+                // return response()->json([
+                //     'response_code' => Response::HTTP_UNAUTHORIZED,
+                //     'status' => 'error',
+                //     'message' => 'user not authenticated'
+                // ], Response::HTTP_UNAUTHORIZED);
             }
 
             $user->currentAccessToken()->delete();
 
-            return $this->authResponse('user successfully logged out');
+            return ResponseHelper::successResponse(
+                null,
+                'user successfully logged out',
+                Response::HTTP_OK
+            );
+
+            // return $this->authResponse('user successfully logged out');
 
         } catch (\Exception $e) {
+            return ResponseHelper::logAndErrorResponse($e, 'logout error', 'logout failed');
             // Log::error('logout error : ' . $e->getMessage());
 
             // return response()->json([
@@ -114,7 +154,7 @@ class AuthController extends Controller
             //     'message' => 'an error occured during logout',
             // ], Response::HTTP_INTERNAL_SERVER_ERROR);
 
-            return $this->execptionResponse($e, 'logout error', 'logout failed');
+            // return $this->execptionResponse($e, 'logout error', 'logout failed');
         }
     }
 
@@ -129,13 +169,21 @@ class AuthController extends Controller
             );
 
             if ($status !== Password::RESET_LINK_SENT) {
-                return $this->errorResponse('Unable to send password reset link', Response::HTTP_BAD_REQUEST);
+                return ResponseHelper::errorResponse('Unable to send password reset link', Response::HTTP_BAD_REQUEST);
+                // return $this->errorResponse('Unable to send password reset link', Response::HTTP_BAD_REQUEST);
             }
 
-            return $this->authResponse('Password reset link sent to your email address');
+            return ResponseHelper::successResponse(
+                null,
+                // Token will be expired in (60) minutes as config and it (request) delays for (60) in seconds
+                'Password reset link sent to your email address',
+                Response::HTTP_OK
+            );
+            // return $this->authResponse('Password reset link sent to your email address');
             
         } catch (\Exception $e) {
-            return $this->execptionResponse($e, 'forgot password error', 'unable to process password reset request');
+            return ResponseHelper::logAndErrorResponse($e, 'forgot password error', 'unable to process password reset request');
+            // return $this->execptionResponse($e, 'forgot password error', 'unable to process password reset request');
         }
     }
 
@@ -145,8 +193,9 @@ class AuthController extends Controller
             $throttleKey = 'reset-password:' . $request->email;
             $maxAttempts = 5;
 
-            if (app(RateLimiter::class)->tooManyAttempts($key, $maxAttempts)) {
-                return $this->errorResponse('Too many password reset attempts. Please try again later.', Response::HTTP_TOO_MANY_REQUESTS);
+            if (app(RateLimiter::class)->tooManyAttempts($throttleKey, $maxAttempts)) {
+                return ResponseHelper::errorResponse('Too many password reset attempts. Please try again later.', Response::HTTP_TOO_MANY_REQUESTS);
+                // return $this->errorResponse('Too many password reset attempts. Please try again later.', Response::HTTP_TOO_MANY_REQUESTS);
             };
 
             app(RateLimiter::class)->hit($throttleKey, 3600);
@@ -164,66 +213,73 @@ class AuthController extends Controller
             );
 
             if ($status !== Password::PASSWORD_RESET) {
-                return $this->errorResponse('Invalid or expired reset token', Response::HTTP_BAD_REQUEST);
+                return ResponseHelper::errorResponse('Invalid or expired reset token', Response::HTTP_BAD_REQUEST);
+                // return $this->errorResponse('Invalid or expired reset token', Response::HTTP_BAD_REQUEST);
             }
 
-            return $this->authResponse('Password has been reset successfully');
+            return ResponseHelper::successResponse(
+                null,
+                'Password has been reset successfully',
+                Response::HTTP_OK
+            );
+            // return $this->authResponse('Password has been reset successfully');
 
         } catch (\Exception $e) {
-            return $this->execptionResponse($e, 'reset password error', 'unable to reset password');
+            return ResponseHelper::logAndErrorResponse($e, 'reset password error', 'unable to reset password');
+            // return $this->execptionResponse($e, 'reset password error', 'unable to reset password');
         }
     }
     /**
      * Success response helper method
      */
-    private function authResponse($message, $user = null, $token = null, $statusCode = Response::HTTP_OK)
-    {
-         $response = [
-            'response_code' => $statusCode,
-            'status' => 'success',
-            'message' => $message,
-        ];
+    // private function authResponse($message, $user = null, $token = null, $statusCode = Response::HTTP_OK)
+    // {
+    //      $response = [
+    //         'response_code' => $statusCode,
+    //         'status' => 'success',
+    //         'message' => $message,
+    //     ];
 
-        if ($user) {
-            $response['user_info'] = [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ];
-        }
+    //     if ($user) {
+    //         $response['user_info'] = [
+    //             'id' => $user->id,
+    //             'name' => $user->name,
+    //             'email' => $user->email,
+    //         ];
+    //     }
 
-        if ($token) {
-            $response['token'] = $token;
-            $response['token_type'] = 'bearer';
-            $response['expires_in'] = config('sanctum.expiration');
-        }
+    //     if ($token) {
+    //         $response['token'] = $token;
+    //         $response['token_type'] = 'bearer';
+    //         $response['expires_in'] = config('sanctum.expiration');
+    //     }
 
-        return response()->json($response, $statusCode);
-    }
+    //     return response()->json($response, $statusCode);
+    // }
 
     /**
      * Error response helper method
      */
-    private function errorResponse($message, $statusCode)
-    {
-        return response()->json([
-            'response_code' => $statusCode,
-            'status' => 'error',
-            'message' => $message,
-        ], $statusCode);
-    }
+    // private function errorResponse($message, $statusCode)
+    // {
+    //     return response()->json([
+    //         'response_code' => $statusCode,
+    //         'status' => 'error',
+    //         'message' => $message,
+    //     ], $statusCode);
+    // }
 
     /**
      * Exception response helper method
      */
-    private function execptionResponse(Exception $e, $context, $message, $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR)
-    {
-        Log::error($context . ' : ' . $e->getMessage());
+    // private function execptionResponse(Exception $e, $context, $message, $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR)
+    // {
+    //     Log::error($context . ' : ' . $e->getMessage());
 
-        return response()->json([
-            'response_code' => $statusCode,
-            'status' => 'error',
-            'message' => $message,
-        ], $statusCode);
-    }
+    //     return response()->json([
+    //         'response_code' => $statusCode,
+    //         'status' => 'error',
+    //         'message' => $message,
+    //     ], $statusCode);
+    // }
 }
