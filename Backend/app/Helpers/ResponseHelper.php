@@ -28,11 +28,13 @@ class ResponseHelper
     }
 
     // Standard error JSON response
-    public static function errorResponse(string $message = 'Error',
-                                         int $statusCode = Response::HTTP_BAD_REQUEST,
-                                         $errors = null):JsonResponse
-    {
-        $response = [
+    public static function errorResponse(
+        string $message = 'Error',
+        int $statusCode = Response::HTTP_BAD_REQUEST,
+        $errors = null,
+        array $extra = []
+    ): JsonResponse {
+        $payload = [
             'response_code' => $statusCode,
             'status' => 'error',
             'message' => $message,
@@ -40,10 +42,14 @@ class ResponseHelper
         ];
 
         if (!is_null($errors)) {
-            $response['errors'] = $errors;
+            $payload['errors'] = $errors;
         }
 
-        return response()->json($response, $statusCode);
+        if (!empty($extra)) {
+            $payload = array_merge($payload, $extra);
+        }
+
+        return response()->json($payload, $statusCode);
     }
 
     // Standard validation error JSON response
@@ -100,6 +106,8 @@ class ResponseHelper
                                                 string $message = 'An error occurred'):JsonResponse
     {
         Log::error("{$context}: {$e->getMessage()}", [
+            'exception' => get_class($e),
+            'message' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
             'trace' => $e->getTraceAsString()
