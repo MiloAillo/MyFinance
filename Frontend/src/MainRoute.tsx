@@ -6,6 +6,10 @@ import access from "./routes/AccessRoute";
 import transfer from "./routes/TransferRoute";
 import signup from "./routes/SignupRoute";
 import signupLocal from "./routes/SignupLocal";
+import tracker from "./routes/TrackerRoute";
+import trackerHistory from "./routes/TrackerHistoryRoute";
+import editProfile from "./routes/EditProfile";
+import report from "./routes/ReportRoute";
 
 const routes = createBrowserRouter([
     {path: "/app", element: <MainPage />, children: [
@@ -13,7 +17,11 @@ const routes = createBrowserRouter([
         access,
         transfer,
         signup,
-        signupLocal
+        signupLocal,
+        tracker,
+        trackerHistory,
+        editProfile,
+        report
     ]},
     notFound
 ])
