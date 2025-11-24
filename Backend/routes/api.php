@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('user')->group(function () {
         Route::put('/avatar', [AvatarController::class, 'update'])->middleware('throttle:api')->name('profile-avatar-update');
+        Route::delete('/avatar', [AvatarController::class, 'delete'])->middleware('throttle:api')->name('profile-avatar-delete');
     });
 
     // Route::get('search/trackers', [TrackerController::class, 'search'])->middleware('throttle:api');
