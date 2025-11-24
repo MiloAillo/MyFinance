@@ -40,11 +40,17 @@ class RegisterRequest extends FormRequest
         ];
     }
 
+    /**
+     * Get custom messages for validator errors.
+     */
     public function messages()
     {
         return [];
     }
 
+    /**
+     * Handle a failed validation attempt.
+     */
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(

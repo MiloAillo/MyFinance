@@ -18,15 +18,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->middleware('throttle:api')->name('logout');
     });
 
-    Route::apiResource('trackers', TrackerController::class)->middleware('throttle:api');
-    Route::apiResource('transactions', TransactionController::class)->middleware('throttle:api');
+    // Route::apiResource('trackers', TrackerController::class)->middleware('throttle:api');
+    // Route::apiResource('transactions', TransactionController::class)->middleware('throttle:api');
 
     Route::prefix('user')->group(function () {
         Route::put('/avatar', [AvatarController::class, 'update'])->middleware('throttle:api')->name('profile-avatar-update');
     });
 
-    Route::get('search/trackers', [TrackerController::class, 'search'])->middleware('throttle:api');
-    Route::get('search/transactions', [TransactionController::class, 'search'])->middleware('throttle:api');
+    // Route::get('search/trackers', [TrackerController::class, 'search'])->middleware('throttle:api');
+    // Route::get('search/transactions', [TransactionController::class, 'search'])->middleware('throttle:api');
 });
 
 Route::fallback(function () {
