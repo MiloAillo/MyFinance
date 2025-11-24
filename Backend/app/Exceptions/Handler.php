@@ -82,19 +82,6 @@ class Handler extends ExceptionHandler
         return parent::render($request, $exception);
     }
 
-    // Handle unauthenticated exceptions
-    // protected function unauthenticated($request, AuthenticationException $exception)
-    // {
-    //     if ($request->expectsJson() || $request->is('api/*')) {
-    //         return ResponseHelper::errorResponse(
-    //             message: 'Unauthenticated',
-    //             statusCode: 401
-    //         );
-    //     }
-
-    //     // return redirect()->guest(route('login'));
-    // }
-
     /**
      * Get the appropriate status code for the exception.
      */
@@ -116,13 +103,13 @@ class Handler extends ExceptionHandler
     private function getExceptionMessage(Throwable $exception, int $statusCode): string
     {
         return match (true) {
-            $exception instanceof AuthenticationException => 'Unauthorized',
-            $exception instanceof ValidationException => 'Validation failed',
-            $exception instanceof ModelNotFoundException => 'Resource not found',
-            $exception instanceof NotFoundHttpException => 'Endpoint not found',
-            $exception instanceof MethodNotAllowedHttpException => 'Method not allowed',
-            $statusCode === 500 => 'Internal server error occurred',
-            default => $exception->getMessage() ?: 'An error occurred'
+            $exception instanceof AuthenticationException => 'Unauthorized.',
+            $exception instanceof ValidationException => 'Validation failed.',
+            $exception instanceof ModelNotFoundException => 'Resource not found.',
+            $exception instanceof NotFoundHttpException => 'Endpoint not found.',
+            $exception instanceof MethodNotAllowedHttpException => 'Method not allowed.',
+            $statusCode === 500 => 'Internal server error occurred.',
+            default => $exception->getMessage() ?: 'An error occurred.'
         };
     }
 }
