@@ -26,7 +26,7 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|min:3|max:50|unique:users',
+            'name' => 'required|string|min:3|max:50',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => [
                 'required',
@@ -40,11 +40,17 @@ class RegisterRequest extends FormRequest
         ];
     }
 
+    /**
+     * Get custom messages for validator errors.
+     */
     public function messages()
     {
         return [];
     }
 
+    /**
+     * Handle a failed validation attempt.
+     */
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(

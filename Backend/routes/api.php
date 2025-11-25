@@ -1,9 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\TrackerController;
-use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\TrackerController;
+use App\Http\Controllers\API\TransactionController;
+use App\Http\Controllers\API\AvatarController;
+use App\Http\Controllers\API\ProfileController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:api')->name('register');
@@ -17,11 +19,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->middleware('throttle:api')->name('logout');
     });
 
-    Route::apiResource('trackers', TrackerController::class)->middleware('throttle:api');
-    Route::apiResource('transactions', TransactionController::class)->middleware('throttle:api');
+    // Route::apiResource('trackers', TrackerController::class)->middleware('throttle:api');
+    // Route::apiResource('transactions', TransactionController::class)->middleware('throttle:api');
 
-    Route::get('search/trackers', [TrackerController::class, 'search'])->middleware('throttle:api');
-    Route::get('search/transactions', [TransactionController::class, 'search'])->middleware('throttle:api');
+    Route::prefix('user')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'get'])->middleware('throttle:api')->name('profile-fetch');
+        Route::patch('/profile', [ProfileController::class, 'patch'])->middleware('throttle:api')->name('profile-update');
+        Route::put('/avatar', [AvatarController::class, 'update'])->middleware('throttle:api')->name('profile-avatar-update');
+        Route::delete('/avatar', [AvatarController::class, 'delete'])->middleware('throttle:api')->name('profile-avatar-delete');
+    });
+
+    // Route::get('search/trackers', [TrackerController::class, 'search'])->middleware('throttle:api');
+    // Route::get('search/transactions', [TransactionController::class, 'search'])->middleware('throttle:api');
 });
 
 Route::fallback(function () {

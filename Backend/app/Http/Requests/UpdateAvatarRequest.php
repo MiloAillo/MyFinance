@@ -7,14 +7,14 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ForgotPasswordRequest extends FormRequest
+class UpdateAvatarRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     /**
@@ -25,7 +25,12 @@ class ForgotPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email|exists:users,email',
+            'avatar' => [
+                'required',
+                'image',
+                'mimes:jpeg,png,jpg,webp',
+                'max:2048', // max file size in kilobytes (2 MB)
+            ],
         ];
     }
 
@@ -34,7 +39,12 @@ class ForgotPasswordRequest extends FormRequest
      */
     public function messages()
     {
-        return [];
+        return [
+            'avatar.required' => 'Please upload an avatar image.',
+            'avatar.image'    => 'The uploaded file must be an image.',
+            'avatar.mimes'    => 'Allowed image formats: :values.',
+            'avatar.max'      => 'Avatar must not exceed :max kilobytes (2 MB).',
+        ];
     }
 
     /**

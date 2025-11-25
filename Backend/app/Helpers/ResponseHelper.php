@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\Log;
 class ResponseHelper
 {
     // Standard success JSON response
-    public static function successResponse( $data = null,
-                                            string $message = 'Success',
-                                            int $statusCode = Response::HTTP_OK):JsonResponse
-    {
+    public static function successResponse(
+        $data = null,
+        string $message = 'Success',
+        int $statusCode = Response::HTTP_OK
+    ): JsonResponse {
+
         $response = [
             'response_code' => $statusCode,
             'status' => 'success',
@@ -34,6 +36,7 @@ class ResponseHelper
         $errors = null,
         array $extra = []
     ): JsonResponse {
+
         $payload = [
             'response_code' => $statusCode,
             'status' => 'error',
@@ -63,48 +66,56 @@ class ResponseHelper
     }
 
     // Resource created JSON response
-    public static function createdResponse($data = null,
-                                           string $message = 'Resource created successfully'):JsonResponse
-    {
+    public static function createdResponse(
+        $data = null,
+        string $message = 'Resource created successfully.'
+    ): JsonResponse {
         return self::successResponse($data, $message, Response::HTTP_CREATED);
     }
 
     // Resource updated JSON response
-    public static function updatedResponse($data = null,
-                                           string $message = 'Resource updated successfully'):JsonResponse
-    {
+    public static function updatedResponse(
+        $data = null,
+        string $message = 'Resource updated successfully.'
+    ): JsonResponse {
         return self::successResponse($data, $message, Response::HTTP_OK);
     }
 
     // Resource deleted JSON response
-    public static function deletedResponse(string $message = 'Resource deleted successfully'):JsonResponse
-    {
+    public static function deletedResponse(
+        string $message = 'Resource deleted successfully.'
+    ): JsonResponse {
         return self::successResponse(null, $message, Response::HTTP_OK);
     }
 
     // Not found JSON response
-    public static function notFoundResponse(string $message = 'Resource not found'):JsonResponse
-    {
+    public static function notFoundResponse(
+        string $message = 'Resource not found.'
+    ): JsonResponse {
         return self::errorResponse($message, Response::HTTP_NOT_FOUND);
     }
 
     // Not authorized JSON response
-    public static function unauthorizedResponse(string $message = 'Unauthorized access'):JsonResponse
-    {
+    public static function unauthorizedResponse(
+        string $message = 'Unauthorized access.'
+    ): JsonResponse {
         return self::errorResponse($message, Response::HTTP_UNAUTHORIZED);
     }
 
     // Forbidden JSON response
-    public static function forbiddenResponse(string $message = 'Forbidden access'):JsonResponse
-    {
+    public static function forbiddenResponse(
+        string $message = 'Forbidden access.'
+    ): JsonResponse {
         return self::errorResponse($message, Response::HTTP_FORBIDDEN);
     }
 
     // Log error and return internal server error response
-    public static function logAndErrorResponse(\Exception $e,
-                                                string $context,
-                                                string $message = 'An error occurred'):JsonResponse
-    {
+    public static function logAndErrorResponse(
+        \Exception $e,
+        string $context,
+        string $message = 'An error occurred.'
+    ): JsonResponse {
+        
         Log::error("{$context}: {$e->getMessage()}", [
             'exception' => get_class($e),
             'message' => $e->getMessage(),
