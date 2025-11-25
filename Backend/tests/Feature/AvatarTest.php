@@ -281,8 +281,8 @@ class AvatarTest extends TestCase
 
         // Paths should be different (different user folders + timestamps/random)
         $this->assertNotEquals($path1, $path2);
-        $this->assertStringContains($user1->id, $path1);
-        $this->assertStringContains($user2->id, $path2);
+        $this->assertStringContainsString($user1->id, $path1);
+        $this->assertStringContainsString($user2->id, $path2);
     }
 
     public function test_avatar_url_is_accessible(): void
