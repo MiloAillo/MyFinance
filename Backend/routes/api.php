@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TrackerController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\AvatarController;
+use App\Http\Controllers\API\ProfileController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:api')->name('register');
@@ -22,6 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::apiResource('transactions', TransactionController::class)->middleware('throttle:api');
 
     Route::prefix('user')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'get'])->middleware('throttle:api')->name('profile-fetch');
+        Route::patch('/profile', [ProfileController::class, 'patch'])->middleware('throttle:api')->name('profile-update');
         Route::put('/avatar', [AvatarController::class, 'update'])->middleware('throttle:api')->name('profile-avatar-update');
         Route::delete('/avatar', [AvatarController::class, 'delete'])->middleware('throttle:api')->name('profile-avatar-delete');
     });
