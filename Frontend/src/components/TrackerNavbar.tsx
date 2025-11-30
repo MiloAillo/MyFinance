@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRightFromBracket, faLock, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { userData } from "@/lib/userData";
 import { XIcon } from "lucide-react";
+import { useRouteLoaderData } from "react-router-dom";
 
 interface trackerNavbarInterface {
     isOut: boolean,
@@ -14,6 +15,9 @@ interface trackerNavbarInterface {
 }
 
 export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName }: trackerNavbarInterface): JSX.Element {
+    const userData = useRouteLoaderData("main")
+    console.log("userdata", userData)
+    
     const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
 
     return (

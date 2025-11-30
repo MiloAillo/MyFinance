@@ -1,33 +1,96 @@
 import { Input } from "@/components/ui/input";
 import { userData } from "@/lib/userData";
-import { faArrowRightFromBracket, faLock, faMagnifyingGlass, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightFromBracket, faLock, faMagnifyingGlass, faMoneyBill, faMoneyBillWave, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlusIcon, XIcon } from "lucide-react";
-import { useRef, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import { motion, AnimatePresence, spring } from "motion/react";
+import { useLoaderData, useRouteLoaderData } from "react-router-dom";
+import { faUser } from "@fortawesome/free-regular-svg-icons";
+import ApiUrl, { StorageUrl } from "@/lib/variable";
+import axios, { isAxiosError } from "axios";
 
 export function Dashboard(): JSX.Element {
+    const mainLoaderData = useRouteLoaderData("main")
+    const loaderData = useLoaderData<[any]>()
+    
+    const [ trackers, setTrackers ] = useState<any[]>([])
     const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ isCreateBoxOpen, setIsCreateBoxOpen ] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
-
+    const [ initialBalance, setInitialBalance ] = useState<string>("")
+    
     const createBoxTitle = useRef<HTMLInputElement | null>(null)
     const createBoxDescription = useRef<HTMLInputElement | null>(null)
+    
+    useEffect(() => {
+        setTrackers(loaderData)
+    }, [])
 
-    const decideCreateBox = () => {
-        console.log("clicked");
-        if(createBoxTitle.current?.value === "" || createBoxDescription.current?.value === "" || createBoxTitle.current === null || createBoxDescription === null) {
+    // useEffect(() => {
+    //     console.log("initial balance useState", initialBalance)
+    // }, [initialBalance])
+
+    const modifyInitialBalance = (value: string) => {
+        const cleaned = value.replace(/[^0-9.]/g, "")
+        setInitialBalance(cleaned)
+    }
+
+    const decideCreateBox = async () => {
+        if(createBoxTitle.current?.value === "" || createBoxDescription.current?.value === "" || initialBalance === "") {
             setIsCreateBoxOpen(false)
             console.log("not created!")
             return
+        }
+
+        // clean the dot in balance
+        const cleanedBalance = initialBalance.replace(/[.]/g, "")
+        const name = createBoxTitle.current?.value
+        const desc = createBoxDescription.current?.value
+
+        try {
+            const res = await axios.post(`${ApiUrl}/api/trackers`, {
+                name: name,
+                description: desc,
+                initial_balance: cleanedBalance
+            }, {
+                headers: {
+                    Authorization: `Bearer ${window.localStorage.getItem("Authorization")}`
+                }
+            })
+
+            console.log(res)
+        } catch(err) {
+            if(isAxiosError(err)) {
+                console.log(err)
+            }
         }
 
         setIsCreateBoxOpen(false)
         console.log("created!")
     }
 
+    const signout = async () => {
+        try {
+            const res = await axios.post(`${ApiUrl}/api/auth/logout`, {}, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+                }
+            })
+            localStorage.removeItem("Authorization")
+            setIsOut(true)
+            setTimeout(() => {
+                window.location.href = "/access"
+            }, 500)
+        } catch(err) {
+            if(isAxiosError(err)) {
+                console.log(err)
+            }
+        }
+    }
+
     return (
-        <section onClick={() => decideCreateBox()} className="flex flex-col items-center gap-5">
+        <section onClick={() => decideCreateBox()} className="flex flex-col items-center gap-5 min-h-screen">
             <div className="flex justify-center">
                 <AnimatePresence>
                     {!isOut && <motion.div
@@ -62,15 +125,17 @@ export function Dashboard(): JSX.Element {
                                     <motion.div
                                         key="accountDetailsClosed"
                                         onClick={() => setIsAccountOpen(true)}
-                                        style={{backgroundImage: `url(${userData.userImages})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}}
-                                        className="w-10 h-10 rounded-full"
+                                        style={{backgroundImage: `url(${StorageUrl}${mainLoaderData.avatar}`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
+                                        className={`w-10 h-10 rounded-full shadow ring ring-input ${mainLoaderData.avatar === null ? "flex justify-center items-center bg-white border" : ""}`}
                                         initial={{
                                             opacity: 0
                                         }}
                                         animate={{
                                             opacity: 100
                                         }}
-                                    />}
+                                    >
+                                        {!mainLoaderData.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-800" />}
+                                    </motion.div>}
                                 {isAccountOpen &&
                                     <motion.div
                                         key="accountDetailsOpen"
@@ -122,10 +187,12 @@ export function Dashboard(): JSX.Element {
                                     }}
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <motion.div style={{backgroundImage: `url(${userData.userImages})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}} className="w-10 h-10 rounded-full"></motion.div>
+                                        <motion.div style={{backgroundImage: `url(${StorageUrl}${mainLoaderData.avatar}`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full ${mainLoaderData.avatar === null ? "flex justify-center items-center border" : ""}`}>
+                                            {!mainLoaderData.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700" />}
+                                        </motion.div>
                                         <div>
-                                            <h3 className="font-medium text-[15px]">{userData.username}</h3>
-                                            <p className="font-medium text-xs">{userData.email}</p>
+                                            <h3 className="font-medium text-[15px]">{mainLoaderData.name}</h3>
+                                            <p className="font-medium text-xs">{mainLoaderData.email}</p>
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-2 w-full">
@@ -141,10 +208,15 @@ export function Dashboard(): JSX.Element {
                                             <FontAwesomeIcon icon={faLock} />
                                             <p className="font-medium text-[15px]">Change Password</p>
                                         </div>
-                                        <div className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full">
+                                        <motion.div 
+                                            className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full"
+                                            whileTap={{
+                                                scale: 0.95
+                                            }}
+                                        >
                                             <FontAwesomeIcon icon={faArrowRightFromBracket} />
-                                            <p className="font-medium text-[15px]">Signout</p>
-                                        </div>
+                                            <p onClick={() => signout()} className="font-medium text-[15px]">Signout</p>
+                                        </motion.div>
                                     </div>
                                 </motion.div>}
                             </AnimatePresence>
@@ -161,7 +233,7 @@ export function Dashboard(): JSX.Element {
                         <motion.div
                             key={"createBox"}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white w-full flex-1 px-4 py-3 rounded-xl h-full"
+                            className="bg-white w-full flex-1 px-4 py-3 rounded-xl h-full z-10"
                             initial={{
                                 x: -50,
                                 opacity: 0,
@@ -179,15 +251,21 @@ export function Dashboard(): JSX.Element {
                             }}
                         >
                             <div className="flex flex-col gap-3.5">
-                                <div className="flex flex-col gap-0.5">
-                                    <Input ref={createBoxTitle}  className="border-0 shadow-none font-semibold text-base p-0 m-0 focus-visible:ring-0" placeholder="Put your tittle here..." />
-                                    <Input ref={createBoxDescription}  className="text-base font-normal p-0 m-0 border-0 shadow-none focus-visible:ring-0" placeholder="Put your description here..." />
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-0.5">
+                                        <Input ref={createBoxTitle}  className="border-0 shadow-none font-semibold text-base p-0 m-0 focus-visible:ring-0" placeholder="Put your tittle here..." />
+                                        <Input ref={createBoxDescription}  className="text-base font-normal p-0 m-0 border-0 shadow-none focus-visible:ring-0" placeholder="Put your description here..." />
+                                    </div>
+                                    <div className="flex items-center">
+                                        <p className="font-medium text-neutral-500 mr-1">Rp.</p>
+                                        <Input value={initialBalance} onChange={(e) => {modifyInitialBalance(e.target.value)}} type="text" className="px-0 focus-visible:ring-0 focus-visible:border-none border-none shadow-none font-regular font-[Inter] text-base text-neutral-800" placeholder="Put your initial balance here..."/>
+                                    </div>
                                 </div>
                             </div>
                     </motion.div>}
                 </AnimatePresence>
                 <AnimatePresence>
-                    {!isOut && userData.tracker.map((item, i) => (
+                    {!isOut && trackers?.map((item: any, i: any) => (
                         <motion.div
                             key={i}
                             className="bg-white w-full flex-1 px-5 py-4 rounded-xl z-0"
@@ -233,7 +311,7 @@ export function Dashboard(): JSX.Element {
                                     <p className="text-base font-normal">{item.desc}</p>
                                 </div>
                                 <div>
-                                    {item.history.map(item => (
+                                    {item.history.map((item: any) => (
                                         <p className="text-sm font-normal">
                                             {item.type === "pengeluaran" ? "-" : "+"} Rp. {item.harga.toLocaleString("ID")}
                                         </p>
@@ -242,6 +320,39 @@ export function Dashboard(): JSX.Element {
                             </div>
                         </motion.div>
                     ))}
+                    {!trackers?.length && !isCreateBoxOpen && !isOut &&
+                        <motion.div 
+                            className="absolute left-[50%] translate-x-[-50%] top-25 z-0 flex flex-col items-center gap-4 w-[60%]"
+                            key={"intro"}
+                            onClick={(e) => e.stopPropagation()}
+                            initial={{
+                                x: 50,
+                                opacity: 0,
+                                filter: "blur(5px)"
+                            }}
+                            animate={{
+                                x: 0,
+                                opacity: 100,
+                                filter: "blur(0px)",
+                                transition: {
+                                    delay: 0.4
+                                }
+                            }}
+                            exit={{
+                                x: 50,
+                                opacity: 0,
+                                filter: "blur(5px)"
+                            }}
+                        >
+                            <motion.div>
+                                <FontAwesomeIcon icon={faMoneyBillWave} className="text-5xl text-neutral-300" />
+                            </motion.div>
+                            <motion.div className="text-center text-neutral-400">
+                                <p className="font-medium">Its a bit empty here eh?</p>
+                                <p>Start making your tracker by clicking the + sign below!</p>
+                            </motion.div>
+                        </motion.div>
+                    }
                 </AnimatePresence>
             </motion.div>
             <AnimatePresence>

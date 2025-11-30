@@ -6,8 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>myfinance</title>
   </head>
-  <body>
+  <body style="background-color: #F7F7F7;">
     <div id="root"></div>
+  <script>
+    const theme = localStorage.getItem('theme')
+    if(!theme) {
+      localStorage.setItem("theme", "light")
+      document.body.style.backgroundColor = '#F7F7F7';
+    } else {
+      document.body.style.backgroundColor = theme === "dark" ? "#000000" : "#F7F7F7"
+    }
+  </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

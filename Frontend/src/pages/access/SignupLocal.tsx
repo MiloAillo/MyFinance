@@ -146,7 +146,7 @@ export function SignupLocal(): JSX.Element {
                                     <motion.div className="w-full flex justify-center items-center self-center " whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}>
                                         <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Create local account</Button>
                                     </motion.div>
-                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/access", 700) }} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
+                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access", 700) }} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
                                     </div>
                                 </div>
                             </form>

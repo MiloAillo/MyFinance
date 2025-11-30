@@ -3,7 +3,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircleIcon, FormInput } from "lucide-react";
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { email, z } from "zod"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -11,10 +11,15 @@ import { faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AnimatePresence, motion, spring } from "motion/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios, { isAxiosError } from "axios";
+import ApiUrl from "@/lib/variable";
 
 export function Access(): JSX.Element {
     const [show, setShow] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
+    const [ isInvalidCredentials, setIsInvalidCredentials ] = useState<boolean>(false)
+    const [ isInternalServerError, setIsInternalServerError ] = useState<boolean>(false)
+    const [ isError, setIsError ] = useState<boolean>(false)
 
     const loginSchema = z.object({
         email: z.email(),
@@ -29,10 +34,35 @@ export function Access(): JSX.Element {
         }
     })
 
-
-
     const login = async (values: z.infer<typeof loginSchema>): Promise<void> => {
         console.log(values)
+        setIsInternalServerError(false)
+        setIsInvalidCredentials(false)
+        setIsError(false)
+        try {
+            const res = await axios.post(`${ApiUrl}/api/auth/login`, {
+                email: values.email,
+                password: values.password
+            })
+    
+            const data = await res.data
+            localStorage.setItem("Authorization", data.data.token)
+            setIsOut(true)
+            setTimeout(() => {
+                window.location.href = "/app"
+            }, 500)
+        } catch(err) {
+            if(isAxiosError(err)) {
+                console.log("error", err)
+                if(err.response?.status === 401) {
+                    setIsInvalidCredentials(true)
+                    setIsError(true)
+                } else {
+                    setIsError(true)
+                    setIsInternalServerError(true)
+                }
+            }
+        }
     }
 
     return (
@@ -103,16 +133,45 @@ export function Access(): JSX.Element {
                         }
                     }}
                 >
-                    <Alert variant="destructive" className="w-full bg-background-primary hidden">
-                        <AlertCircleIcon />
-                        <AlertTitle className="font-semibold tracking-normal">Sign In Failed</AlertTitle>
-                        <AlertDescription>
-                            Your attempt to sign in has failed due to reasons below
-                            <ul className="list-inside list-disc text-sm">
-                                <li>Email or password is wrong</li>
-                            </ul>
-                        </AlertDescription>
-                    </Alert>
+                    <AnimatePresence>
+                        {isError &&
+                            <motion.div
+                                initial={{
+                                    x: 30,
+                                    opacity: 0
+                                }}
+                                animate={{
+                                    x: 0,
+                                    opacity: 100,
+                                    transition: {
+                                        delay: 0.1
+                                    }
+                                }}
+                                exit={{
+                                    x: -30,
+                                    opacity: 0,
+                                    transition: {
+                                        delay: 0.1
+                                    }
+                                }}
+                            >
+                                <Alert variant="destructive" className="w-full bg-background-primary">
+                                    <AlertCircleIcon />
+                                    <AlertTitle className="font-semibold tracking-normal">Sign In Failed</AlertTitle>
+                                    <AlertDescription>
+                                        <ul className="list-inside list-disc text-sm">
+                                        {isInvalidCredentials && 
+                                            <li>Email or password is wrong.</li>
+                                        }
+                                        {isInternalServerError && 
+                                            <li>Internal server error. Please wait and try again.</li>
+                                        }
+                                        </ul>
+                                    </AlertDescription>
+                                </Alert>
+                            </motion.div>
+                        }
+                    </AnimatePresence>
                     <div className="w-full flex flex-col gap-4">
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(login)} className="w-full">
@@ -165,8 +224,8 @@ export function Access(): JSX.Element {
                             <p className="absolute bg-background-primary w-fit h-fit px-2 font-medium text-sm text-neutral-600">or</p>
                         </div>
                         <div className="flex flex-col justify-center gap-5 w-full">
-                            <motion.div className="w-full self-center" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/access/signup", 700) }} whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}><Button className="bg-transparent border-3 border-neutral-800 text-neutral-800 font-semibold text-[14px] hover:text-neutral-100 tracking-normal py-4 w-full">Create account</Button></motion.div>
-                            <p onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/access/signup/local", 700)}} className="text-center font-medium text-sm text-blue-500 hover:text-blue-400 w-full">Sign in without an account</p>
+                            <motion.div className="w-full self-center" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup", 700) }} whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}><Button className="bg-transparent border-3 border-neutral-800 text-neutral-800 font-semibold text-[14px] hover:text-neutral-100 tracking-normal py-4 w-full">Create account</Button></motion.div>
+                            <p onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup/local", 700)}} className="text-center font-medium text-sm text-blue-500 hover:text-blue-400 w-full">Sign in without an account</p>
                         </div>
                     </div>
                 </motion.div>}

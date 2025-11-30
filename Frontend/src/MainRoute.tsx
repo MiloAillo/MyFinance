@@ -10,20 +10,21 @@ import tracker from "./routes/TrackerRoute";
 import trackerHistory from "./routes/TrackerHistoryRoute";
 import editProfile from "./routes/EditProfile";
 import report from "./routes/ReportRoute";
+import appLoader from "./loader/appLoader";
 
 const routes = createBrowserRouter([
-    {path: "/app", element: <MainPage />, children: [
+    {path: "/app", element: <MainPage />, id: "main", loader: appLoader, children: [
         dashboard,
-        access,
         transfer,
-        signup,
-        signupLocal,
         tracker,
         trackerHistory,
         editProfile,
         report
     ]},
-    notFound
+    access,
+    signup,
+    signupLocal,
+    notFound,
 ])
 
 export default routes

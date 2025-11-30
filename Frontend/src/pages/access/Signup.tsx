@@ -13,11 +13,22 @@ import { AnimatePresence, motion } from "motion/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { spring } from "motion-dom";
+import axios, { isAxiosError } from "axios";
+import { OrbitProgress } from "react-loading-indicators";
 
 
 export function Signup(): JSX.Element {
     const [show, setShow] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
+
+    // error 
+    const [ isPasswordError, setIsPasswordError ] = useState<boolean>(false)
+    const [ isNameError, setIsNameError ] = useState<boolean>(false)
+    const [ isEmailError, setIsEmailError ] = useState<boolean>(false)
+    const [ isError, setIsError ] = useState<boolean>(false)
+    const [ isUnknownError, setIsUnknownError ] = useState<boolean>(false)
+    const [ isLoading, setIsLoading ] = useState<boolean>(false)
+
     const signupSchema = z.object({
         username: z.string(),
         email: z.email(),
@@ -36,7 +47,62 @@ export function Signup(): JSX.Element {
 
 
     const login = async (values: z.infer<typeof signupSchema>): Promise<void> => {
-        console.log(values)
+        console.log("login values:", values)
+        // reset error
+        setIsError(false)
+        setIsPasswordError(false)
+        setIsUnknownError(false)
+        setIsEmailError(false)
+        setIsNameError(false)
+
+        try {
+            setIsLoading(true)
+            const res = await axios.post("http://127.0.0.1:8000/api/auth/register", {
+                name: values.username,
+                email: values.email,
+                password: values.password,
+                password_confirmation: values.password
+            })
+
+            const data = await res.data
+            console.log(data.data.token)
+            if(data.data.token) {
+                localStorage.setItem("Authorization", data.data.token)
+                setIsOut(true)
+                setTimeout(() => {
+                    window.location.href = "/app"
+                }, 600)
+            } else {
+                setIsUnknownError(true)
+            }
+        } catch(err) {
+            setIsError(true)
+
+            if(isAxiosError(err)) {
+                const status = err.status
+
+                if(status === 422) {
+                    const errors = err.response?.data.errors
+                    console.log(err.response?.data.errors)
+                    if (errors.password) {
+                        setIsPasswordError(true)
+                    }
+                    if(errors.name) {
+                        setIsNameError(true)
+                    }
+                    if(errors.email) {
+                        setIsEmailError(true)
+                    }
+                } else {
+                    setIsUnknownError(true)
+                }
+                
+            } else {
+                setIsUnknownError(true)
+            }
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -107,16 +173,51 @@ export function Signup(): JSX.Element {
                         }
                     }}
                 >
-                    <Alert variant="destructive" className="w-full hidden">
-                        <AlertCircleIcon />
-                        <AlertTitle className="font-semibold tracking-normal">Sign In Failed</AlertTitle>
-                        <AlertDescription>
-                            Your attempt to sign in has failed due to reasons below
-                            <ul className="list-inside list-disc text-sm">
-                                <li>Email or password is wrong</li>
-                            </ul>
-                        </AlertDescription>
-                    </Alert>
+                    <AnimatePresence>
+                        {isError &&
+                            <motion.div
+                                initial={{
+                                    x: 30,
+                                    opacity: 0
+                                }}
+                                animate={{
+                                    x: 0,
+                                    opacity: 100,
+                                    transition: {
+                                        delay: 0.1
+                                    }
+                                }}
+                                exit={{
+                                    x: -30,
+                                    opacity: 0,
+                                    transition: {
+                                        delay: 0.1
+                                    }
+                                }}
+                            >
+                                <Alert variant="destructive" className="w-full bg-background-primary">
+                                    <AlertCircleIcon />
+                                    <AlertTitle className="font-semibold tracking-normal">Sign In Failed</AlertTitle>
+                                    <AlertDescription>
+                                        <ul className="list-inside list-disc text-sm">
+                                        {isNameError && 
+                                            <li>Username must be 3+ characters and no more than 50.</li>
+                                        }
+                                        {isPasswordError && 
+                                            <li>Password needs 8+ characters, uppercase, lowercase, a letter, and a symbol.</li>
+                                        }
+                                        {isEmailError &&
+                                            <li>Email already exist.</li>
+                                        }
+                                        {isUnknownError &&
+                                            <li>Received an unknown error. Please try again in a few moment.</li>
+                                        }
+                                        </ul>
+                                    </AlertDescription>
+                                </Alert>
+                            </motion.div>
+                        }
+                    </AnimatePresence>
                     <div className="w-full flex flex-col gap-4">
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(login)}>
@@ -180,10 +281,32 @@ export function Signup(): JSX.Element {
                                             <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline">Terms of Services</span></label>
                                         </div>
                                     </div>
-                                    <motion.div className="w-full flex justify-center items-center self-center " whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}>
-                                        <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Create account</Button>
-                                    </motion.div>
-                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/access", 700) }} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
+                                    <AnimatePresence mode="popLayout">
+                                        {!isLoading &&
+                                            <motion.div 
+                                                key={"button register"}
+                                                className="w-full flex justify-center items-center self-center " 
+                                                whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} 
+                                                initial={{ x: 30, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 100 }}
+                                                exit={{ x: -30, opacity: 0 }}
+                                            >
+                                                <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Create account</Button>
+                                            </motion.div>
+                                        }
+                                        {isLoading &&
+                                            <motion.div
+                                                key={"loading"}
+                                                className="w-full flex justify-center items-center self-center" 
+                                                initial={{ x: 30, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 100 }}
+                                                exit={{ x: -30, opacity: 0 }}
+                                            >
+                                                <OrbitProgress variant="track-disc" speedPlus={2} easing="ease-in-out" style={{fontSize: 5}} />
+                                            </motion.div>
+                                        }
+                                    </AnimatePresence>
+                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access", 700) }} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
                                 </div>
                             </form>
                         </Form>
