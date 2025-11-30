@@ -44,6 +44,6 @@ class Tracker extends Model
             ->where('type', 'expense')
             ->sum('amount');
 
-        return $this->initial_balance + $totalIncome + $totalExpense;
+        return $this->initial_balance + $totalIncome - $totalExpense;
     }
 }
