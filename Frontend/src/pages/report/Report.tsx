@@ -9,7 +9,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { TrackerNavbar } from "@/components/TrackerNavbar";
 import { useParams } from "react-router-dom";
 import { DBgetalltransactions, DBgetonetracker } from "@/lib/db";
-
+ 
 export function Report(): JSX.Element {
     const { id } = useParams()
 
