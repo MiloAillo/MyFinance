@@ -1,6 +1,5 @@
 import { useState, type JSX } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { Key } from "lucide-react";
+import { motion } from "motion/react";
 
 interface transferTrackerItemInterface {
     tittle: string,

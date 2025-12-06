@@ -2,11 +2,10 @@ import { AnimatePresence, spring } from "motion/react";
 import { useEffect, useState, type JSX } from "react";
 import { motion } from "motion/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faArrowRightFromBracket, faLock, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faSun } from "@fortawesome/free-solid-svg-icons";
 import { XIcon } from "lucide-react";
 import { useRouteLoaderData } from "react-router-dom";
 import { faUser } from "@fortawesome/free-regular-svg-icons";
-import { DBgetalltransactions } from "@/lib/db";
 
 interface trackerNavbarInterface {
     isOut: boolean,
