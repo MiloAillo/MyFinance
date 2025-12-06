@@ -12,8 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { faCamera } from "@fortawesome/free-regular-svg-icons";
 import { Card } from "@/components/ui/card";
+import { useRouteLoaderData } from "react-router-dom";
+import { DBchangename } from "@/lib/db";
 
 export function EditProfile(): JSX.Element {
+    const userData = useRouteLoaderData("main")
+
     const [ isOut, setIsOut ] = useState<boolean>(false)
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
     const [isChangePhoto, setIsChangePhoto] = useState<boolean>(false)
@@ -22,16 +26,26 @@ export function EditProfile(): JSX.Element {
     const [ usernameUsestate, setUsernameUsestate ] = useState<string>(userData.username)
     const [ emailUsestate, setEmailUsestate ] = useState<string>(userData.email)
     const [ isCredentialDifferent, setIsCredentialDifferent ] = useState<boolean>(false)
+    const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
+    const [ failed, setFailed ] = useState<boolean>(false)
 
     const username = useRef<HTMLInputElement | null>(null)
     const email = useRef<HTMLInputElement | null>(null)
 
     useEffect(() => {
-        if(username.current && email.current) {
+        const session = localStorage.getItem("session")
+        if(session === null) window.location.href = "/access"
+        setSession(session as "cloud" | "local")
+
+        if(session === "cloud" && username.current && email.current) {
             // set the initial input
-            username.current.value = userData.username
+            username.current.value = userData.name
             email.current.value = userData.email
-        } 
+        }
+
+        if(session === "local" && username.current) {
+            username.current.value = userData.name
+        }
     }, [])
 
     useEffect(() => {
@@ -45,6 +59,20 @@ export function EditProfile(): JSX.Element {
 
         setIsCredentialDifferent(true)
     }, [usernameUsestate, emailUsestate])
+
+    const edit = async () => {
+        if(session === "local" && username.current?.value) {
+            try {
+                const res = await DBchangename(username.current.value)
+                setIsOut(true)
+                setTimeout(() => {
+                    window.location.href = "/app/editProfile"
+                }, 400)
+            } catch(err) {
+                setFailed(true)
+            }
+        }
+    }
 
     return (
         <section className="flex flex-col items-center">
@@ -74,7 +102,7 @@ export function EditProfile(): JSX.Element {
                     <div className="flex justify-between items-center gap-2 mt-5 w-[85%] z-10 fixed">
                         <FontAwesomeIcon onClick={() => {setIsOut(true); setTimeout(() => {window.location.href = "/app"}, 400)}} icon={faArrowLeft} className="w-10 h-10 text-xl text-neutral-800" />
                         <h1 className={`font-medium text-base text-neutral-500 ${!isCredentialDifferent && "mr-5"} ${isCredentialDifferent && "mr-[-5px]"}`}>Edit Profile</h1>
-                        {isCredentialDifferent && <FontAwesomeIcon icon={faCheck} className="text-xl" />}
+                        {isCredentialDifferent && <FontAwesomeIcon onClick={() => edit()} icon={faCheck} className="text-xl" />}
                         {!isCredentialDifferent && <div/>}
                     </div>
                 </motion.div>}
@@ -102,7 +130,7 @@ export function EditProfile(): JSX.Element {
                         }
                     }}
                 >
-                    <Dialog>
+                    {session === "cloud" && <Dialog>
                         <DialogTrigger
                             onClick={() => setIsDialogOpen(true)}
                         >
@@ -279,16 +307,21 @@ export function EditProfile(): JSX.Element {
                                 </motion.div> : null}
                             </motion.div>
                         </DialogContent>
-                    </Dialog>
+                    </Dialog>}
                     <div className="flex flex-col gap-3 w-full sm:w-90">
                         <div className="border px-4 py-3 rounded-2xl">
                             <p className="text-base font-normal text-neutral-500">Username</p>
                             <Input className="font-semibold text-base p-0 m-0 border-0 shadow-none focus-visible:ring-0" ref={username} onChange={(e) => {setUsernameUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your username..."></Input>
                         </div>
-                        <div className="border px-4 py-3 rounded-2xl">
-                            <p className="text-base font-normal text-neutral-500">Email</p>
-                            <Input className="font-semibold text-base p-0 m-0 border-0 shadow-none focus-visible:ring-0" ref={email} onChange={(e) => {setEmailUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your email..."></Input>
-                        </div>
+                        {session === "cloud" &&
+                            <div className="border px-4 py-3 rounded-2xl">
+                                <p className="text-base font-normal text-neutral-500">Email</p>
+                                <Input className="font-semibold text-base p-0 m-0 border-0 shadow-none focus-visible:ring-0" ref={email} onChange={(e) => {setEmailUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your email..."></Input>
+                            </div>
+                        }
+                        {failed &&
+                            <p className="font-medium text-sm text-center self-center text-black/50">{session === "local" ? "Attempt failed, reopen the app and try again" : "Internal server error. Try again later"}</p>
+                        }
                     </div>
                 </motion.div>}
             </AnimatePresence>

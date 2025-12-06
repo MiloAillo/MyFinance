@@ -1,4 +1,4 @@
-import ApiUrl from "@/lib/variable"
+import { ApiUrl } from "@/lib/variable"
 import axios, { isAxiosError } from "axios"
 
 const dashboardLoader = async () => {

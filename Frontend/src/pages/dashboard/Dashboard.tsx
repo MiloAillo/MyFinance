@@ -1,35 +1,70 @@
 import { Input } from "@/components/ui/input";
 import { userData } from "@/lib/userData";
-import { faArrowRightFromBracket, faLock, faMagnifyingGlass, faMoneyBill, faMoneyBillWave, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightFromBracket, faCloud, faLock, faMagnifyingGlass, faMoneyBill, faMoneyBillWave, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { motion, AnimatePresence, spring } from "motion/react";
 import { useLoaderData, useRouteLoaderData } from "react-router-dom";
 import { faUser } from "@fortawesome/free-regular-svg-icons";
-import ApiUrl, { StorageUrl } from "@/lib/variable";
+import { ApiUrl, StorageUrl } from "@/lib/variable";
 import axios, { isAxiosError } from "axios";
+import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
 
 export function Dashboard(): JSX.Element {
     const mainLoaderData = useRouteLoaderData("main")
     const loaderData = useLoaderData<[any]>()
     
     const [ trackers, setTrackers ] = useState<any[]>([])
+    const [ user, setUser ] = useState<any[]>([])
     const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ isCreateBoxOpen, setIsCreateBoxOpen ] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ initialBalance, setInitialBalance ] = useState<string>("")
+    const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     
     const createBoxTitle = useRef<HTMLInputElement | null>(null)
     const createBoxDescription = useRef<HTMLInputElement | null>(null)
+
+    const cloudGetTrackers = async () => {
+        const authToken = localStorage.getItem("Authorization")
+
+        try {
+            const res = await axios.get(`${ApiUrl}/api/trackers`, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+
+            const data = await res.data
+            setTrackers(data.trackers)
+        } catch(err) {
+            if(isAxiosError(err)) {
+                console.log("dashboardLoader", err)
+                // error catcher required
+            }
+        }
+    }
+
+    const localGetTrackers = async () => {
+        try {
+            const res = await DBgetalltrackers()
+            console.log(res)
+            setTrackers(res as [any])
+        } catch(err) {
+            console.log(err)
+        }
+    }
     
     useEffect(() => {
-        setTrackers(loaderData)
-    }, [])
+        setUser(mainLoaderData)
 
-    // useEffect(() => {
-    //     console.log("initial balance useState", initialBalance)
-    // }, [initialBalance])
+        const session = localStorage.getItem("session")
+        if(session === null) window.location.href = "/access"
+        if(session === "cloud") cloudGetTrackers()
+        if(session === "local") localGetTrackers()
+        setSession(session as "cloud" | "local")
+    }, [])
 
     const modifyInitialBalance = (value: string) => {
         const cleaned = value.replace(/[^0-9.]/g, "")
@@ -37,37 +72,59 @@ export function Dashboard(): JSX.Element {
     }
 
     const decideCreateBox = async () => {
+        // not created output
         if(createBoxTitle.current?.value === "" || createBoxDescription.current?.value === "" || initialBalance === "") {
             setIsCreateBoxOpen(false)
             console.log("not created!")
             return
         }
 
-        // clean the dot in balance
-        const cleanedBalance = initialBalance.replace(/[.]/g, "")
-        const name = createBoxTitle.current?.value
-        const desc = createBoxDescription.current?.value
+        if(createBoxTitle.current && createBoxDescription.current) {
+            // clean the dot in balance
+            const cleanedBalance = parseInt(initialBalance.replace(/[.]/g, ""), 10)
+            const name = createBoxTitle.current.value
+            const desc = createBoxDescription.current.value
 
-        try {
-            const res = await axios.post(`${ApiUrl}/api/trackers`, {
-                name: name,
-                description: desc,
-                initial_balance: cleanedBalance
-            }, {
-                headers: {
-                    Authorization: `Bearer ${window.localStorage.getItem("Authorization")}`
+            console.log(name, desc, cleanedBalance)
+    
+            if(session === "local") {
+                try {
+                    const res = await DBcreatetracker(name, desc, cleanedBalance)
+                    setIsCreateBoxOpen(false)
+                    console.log("created!")
+                    // get the tracker and render!
+                } catch(err) {
+                    setIsCreateBoxOpen(false)
+                    console.log(err)
                 }
-            })
 
-            console.log(res)
-        } catch(err) {
-            if(isAxiosError(err)) {
-                console.log(err)
+                try {
+                    const res = await DBgetalltrackers()
+                    console.log(res)
+                    setTrackers(res as [any])
+                } catch(err) {
+                    console.log(err)
+                }
             }
         }
 
-        setIsCreateBoxOpen(false)
-        console.log("created!")
+        // try {
+        //     const res = await axios.post(`${ApiUrl}/api/trackers`, {
+        //         name: name,
+        //         description: desc,
+        //         initial_balance: cleanedBalance
+        //     }, {
+        //         headers: {
+        //             Authorization: `Bearer ${window.localStorage.getItem("Authorization")}`
+        //         }
+        //     })
+
+        //     console.log(res)
+        // } catch(err) {
+        //     if(isAxiosError(err)) {
+        //         console.log(err)
+        //     }
+        // }
     }
 
     const signout = async () => {
@@ -87,6 +144,13 @@ export function Dashboard(): JSX.Element {
                 console.log(err)
             }
         }
+    }
+
+    const signup = async () => {
+        setIsOut(true)
+        setTimeout(() => {
+            window.location.href = "/access/signup"
+        }, 500)
     }
 
     return (
@@ -125,8 +189,8 @@ export function Dashboard(): JSX.Element {
                                     <motion.div
                                         key="accountDetailsClosed"
                                         onClick={() => setIsAccountOpen(true)}
-                                        style={{backgroundImage: `url(${StorageUrl}${mainLoaderData.avatar}`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
-                                        className={`w-10 h-10 rounded-full shadow ring ring-input ${mainLoaderData.avatar === null ? "flex justify-center items-center bg-white border" : ""}`}
+                                        style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
+                                        className={`w-10 h-10 rounded-full shadow ring ring-input ${mainLoaderData?.avatar === null || mainLoaderData?.avatar === undefined  ? "flex justify-center items-center bg-white border" : ""}`}
                                         initial={{
                                             opacity: 0
                                         }}
@@ -134,7 +198,7 @@ export function Dashboard(): JSX.Element {
                                             opacity: 100
                                         }}
                                     >
-                                        {!mainLoaderData.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-800" />}
+                                        {!mainLoaderData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-800" />}
                                     </motion.div>}
                                 {isAccountOpen &&
                                     <motion.div
@@ -187,36 +251,68 @@ export function Dashboard(): JSX.Element {
                                     }}
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <motion.div style={{backgroundImage: `url(${StorageUrl}${mainLoaderData.avatar}`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full ${mainLoaderData.avatar === null ? "flex justify-center items-center border" : ""}`}>
-                                            {!mainLoaderData.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700" />}
+                                        <motion.div 
+                                            style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full ${mainLoaderData.avatar === null || mainLoaderData.avatar === undefined ? "flex justify-center items-center border" : ""}`}>
+                                            {!mainLoaderData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700" />}
                                         </motion.div>
                                         <div>
-                                            <h3 className="font-medium text-[15px]">{mainLoaderData.name}</h3>
-                                            <p className="font-medium text-xs">{mainLoaderData.email}</p>
+                                            <h3 className="font-medium text-[15px]">{mainLoaderData?.name}</h3>
+                                            <p className="font-medium text-xs">{mainLoaderData?.email}</p>
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-2 w-full">
-                                        <div className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full">
-                                            <FontAwesomeIcon icon={faSun}/>
-                                            <p className="font-medium text-[15px]">Switch theme</p>
-                                        </div>
-                                        <div onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/editProfile", 500)}} className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full">
-                                            <FontAwesomeIcon icon={faUserPen} />
-                                            <p className="font-medium text-[15px]">Edit Profile</p>
-                                        </div>
-                                        <div className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full">
-                                            <FontAwesomeIcon icon={faLock} />
-                                            <p className="font-medium text-[15px]">Change Password</p>
-                                        </div>
+                                        {session === "local" &&
+                                            <motion.div
+                                                className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full"
+                                                whileTap={{
+                                                    scale: 0.95
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faCloud} />
+                                                <p onClick={() => {signup()}} className="font-medium text-[15px]">Signup</p>
+                                            </motion.div>
+                                        }
                                         <motion.div 
                                             className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full"
                                             whileTap={{
                                                 scale: 0.95
                                             }}
                                         >
-                                            <FontAwesomeIcon icon={faArrowRightFromBracket} />
-                                            <p onClick={() => signout()} className="font-medium text-[15px]">Signout</p>
+                                            <FontAwesomeIcon icon={faSun}/>
+                                            <p className="font-medium text-[15px]">Switch theme</p>
                                         </motion.div>
+                                        <motion.div 
+                                            onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/editProfile", 500)}} 
+                                            className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full"
+                                            whileTap={{
+                                                scale: 0.95
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={faUserPen} />
+                                            <p className="font-medium text-[15px]">Edit Profile</p>
+                                        </motion.div>
+                                        {session === "cloud" && 
+                                            <motion.div 
+                                                className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full"
+                                                whileTap={{
+                                                    scale: 0.95
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faLock} />
+                                                <p className="font-medium text-[15px]">Change Password</p>
+                                            </motion.div>
+                                        }
+                                        {session === "cloud" &&
+                                            <motion.div 
+                                                className="flex items-center gap-2.5 bg-green-500/20 rounded-full py-2 px-4 w-full"
+                                                whileTap={{
+                                                    scale: 0.95
+                                                }}
+                                            >
+                                                <FontAwesomeIcon icon={faArrowRightFromBracket} />
+                                                <p onClick={() => signout()} className="font-medium text-[15px]">Signout</p>
+                                            </motion.div>
+                                        }
                                     </div>
                                 </motion.div>}
                             </AnimatePresence>
@@ -301,23 +397,42 @@ export function Dashboard(): JSX.Element {
                                 }
                             }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={(e) => {!isCreateBoxOpen && e.stopPropagation(); {!isCreateBoxOpen && setIsOut(true) }; {!isCreateBoxOpen && setTimeout(() => window.location.href = "/app/tracker", 500)}}}
+                            onClick={(e) => {!isCreateBoxOpen && e.stopPropagation(); {!isCreateBoxOpen && setIsOut(true) }; {!isCreateBoxOpen && setTimeout(() => window.location.href = `/app/tracker/${item.id}`, 500)}}}
                             layout='position'
                             layoutId={i.toString()}
                         >
-                            <div className="flex flex-col gap-3.5">
-                                <div className="flex flex-col gap-0.5">
-                                    <h2 className="font-semibold text-base">{item.tittle}</h2>
-                                    <p className="text-base font-normal">{item.desc}</p>
+                            {session === "cloud" &&
+                                <div className="flex flex-col gap-3.5">
+                                    <div className="flex flex-col gap-0.5">
+                                        <h2 className="font-semibold text-base">{item.tittle}</h2>
+                                        <p className="text-base font-normal">{item.desc}</p>
+                                    </div>
+                                    <div>
+                                        {item.history.map((item: any) => (
+                                            <p className="text-sm font-normal">
+                                                {item.type === "pengeluaran" ? "-" : "+"} Rp. {item.harga.toLocaleString("ID")}
+                                            </p>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div>
-                                    {item.history.map((item: any) => (
-                                        <p className="text-sm font-normal">
-                                            {item.type === "pengeluaran" ? "-" : "+"} Rp. {item.harga.toLocaleString("ID")}
-                                        </p>
-                                    ))}
+                            }
+                            {session === "local" &&
+                                <div className="flex flex-col gap-3.5">
+                                    <div className="flex flex-col gap-0.5">
+                                        <h2 className="font-semibold text-base">{item.name}</h2>
+                                        <p className="text-base font-normal">{item.description}</p>
+                                    </div>
+                                    <div>
+                                        {/* {item.history?.map((item: any) => (
+                                            <p className="text-sm font-normal">
+                                                {item.type === "pengeluaran" ? "-" : "+"} Rp. {item.harga.toLocaleString("ID")}
+                                            </p>
+                                        ))} */}
+                                        {/* Not yet implemented */}
+                                        {<p className="font-medium text-sm text-black/50">{(item.name).toLowerCase()} last transactions will apear here.</p>}
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         </motion.div>
                     ))}
                     {!trackers?.length && !isCreateBoxOpen && !isOut &&

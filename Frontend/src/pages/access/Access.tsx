@@ -12,7 +12,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AnimatePresence, motion, spring } from "motion/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { isAxiosError } from "axios";
-import ApiUrl from "@/lib/variable";
+import { ApiUrl } from "@/lib/variable";
+import { DBSupportCheck } from "@/lib/db";
 
 export function Access(): JSX.Element {
     const [show, setShow] = useState<boolean>(false)
@@ -20,6 +21,7 @@ export function Access(): JSX.Element {
     const [ isInvalidCredentials, setIsInvalidCredentials ] = useState<boolean>(false)
     const [ isInternalServerError, setIsInternalServerError ] = useState<boolean>(false)
     const [ isError, setIsError ] = useState<boolean>(false)
+    const [ isLocalSupported, setIsLocalSupported ] = useState<boolean>(false)
 
     const loginSchema = z.object({
         email: z.email(),
@@ -64,6 +66,13 @@ export function Access(): JSX.Element {
             }
         }
     }
+    
+    useEffect(() => {
+        (async () => {
+            const status = await DBSupportCheck()
+            setIsLocalSupported(status)
+        })()
+    }, [])
 
     return (
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5">
@@ -225,7 +234,13 @@ export function Access(): JSX.Element {
                         </div>
                         <div className="flex flex-col justify-center gap-5 w-full">
                             <motion.div className="w-full self-center" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup", 700) }} whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}><Button className="bg-transparent border-3 border-neutral-800 text-neutral-800 font-semibold text-[14px] hover:text-neutral-100 tracking-normal py-4 w-full">Create account</Button></motion.div>
-                            <p onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup/local", 700)}} className="text-center font-medium text-sm text-blue-500 hover:text-blue-400 w-full">Sign in without an account</p>
+                            {isLocalSupported && <p onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup/local", 700)}} className="text-center font-medium text-sm text-blue-500 hover:text-blue-400 w-full">Sign in without an account</p>}
+                            {!isLocalSupported && 
+                                <div>
+                                    <p className="text-center font-medium text-sm text-red-500/60 line-through w-full">Sign in without an account</p>
+                                    <p className="font-medium text-sm text-black/50 text-center">Your browser doesnt support this feature, for more information please read our <span className="font-medium text-sm text-blue-500/60 hover:text-blue-400/60 underline">FAQ</span></p>
+                                </div>
+                            }
                         </div>
                     </div>
                 </motion.div>}

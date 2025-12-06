@@ -15,12 +15,12 @@ import appLoader from "./loader/appLoader";
 const routes = createBrowserRouter([
     {path: "/app", element: <MainPage />, id: "main", loader: appLoader, children: [
         dashboard,
-        transfer,
         tracker,
         trackerHistory,
         editProfile,
         report
     ]},
+    transfer,
     access,
     signup,
     signupLocal,

@@ -13,6 +13,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { spring } from "motion-dom";
+import { DBcreate } from "@/lib/db";
 
 export function SignupLocal(): JSX.Element {
     const [show, setShow] = useState<boolean>(false)
@@ -32,7 +33,15 @@ export function SignupLocal(): JSX.Element {
 
 
     const login = async (values: z.infer<typeof signupSchema>): Promise<void> => {
-        console.log(values)
+        try {
+            const res = await DBcreate(values.username)
+            if(res) {
+                setIsOut(true)
+                setTimeout(() => {window.location.href = "/app"}, 550)
+            }
+        } catch(err) {
+            console.log(err)
+        }
     }
 
     return (

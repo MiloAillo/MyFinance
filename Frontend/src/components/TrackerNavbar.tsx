@@ -1,11 +1,12 @@
 import { AnimatePresence, spring } from "motion/react";
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { motion } from "motion/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRightFromBracket, faLock, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
-import { userData } from "@/lib/userData";
 import { XIcon } from "lucide-react";
 import { useRouteLoaderData } from "react-router-dom";
+import { faUser } from "@fortawesome/free-regular-svg-icons";
+import { DBgetalltransactions } from "@/lib/db";
 
 interface trackerNavbarInterface {
     isOut: boolean,
@@ -15,8 +16,25 @@ interface trackerNavbarInterface {
 }
 
 export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName }: trackerNavbarInterface): JSX.Element {
-    const userData = useRouteLoaderData("main")
-    console.log("userdata", userData)
+    const [ session, setSession ] = useState<"local" | "cloud" | null>(null)
+    const [ userData, setUserData ] = useState<any>()
+    const user = useRouteLoaderData("main")
+    const WindowSession = localStorage.getItem("session")
+
+    useEffect(() => {
+
+        if(WindowSession === null) window.location.href = "/access"
+        
+        // for locl
+        if(WindowSession === "local") {
+            console.log("navbar", user)
+            setUserData(user)
+        }
+
+        //for cloud
+
+        setSession(WindowSession as "cloud" | "local")
+    }, [])
     
     const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
 
@@ -55,15 +73,17 @@ export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName }: tracke
                                             <motion.div
                                                 key="accountDetailsClosed"
                                                 onClick={() => setIsAccountOpen(true)}
-                                                style={{backgroundImage: `url(${userData.userImages})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}}
-                                                className="w-8 h-8 rounded-full"
+                                                style={{backgroundImage: `url(${session === "local" ? "" : ""})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}}
+                                                className={`w-8 h-8 rounded-full ${session === "local" ? "flex justify-center items-center border" : ""}`}
                                                 initial={{
                                                     opacity: 0
                                                 }}
                                                 animate={{
                                                     opacity: 100
                                                 }}
-                                            />}
+                                            >
+                                                {!userData?.avatar && <FontAwesomeIcon icon={faUser} className="text-sm text-neutral-700" />}
+                                            </motion.div>}
                                         {isAccountOpen &&
                                             <motion.div
                                                 key="accountDetailsOpen"
@@ -116,10 +136,12 @@ export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName }: tracke
                                 }}
                             >
                                 <div className="flex items-center gap-2.5">
-                                    <div style={{backgroundImage: `url(${userData.userImages})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}} className="w-10 h-10 rounded-full"></div>
+                                    <div style={{backgroundImage: `url(${session === "local" ? "" : ""})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}} className={`w-10 h-10 rounded-full ${session === "local" ? "flex justify-center items-center border" : ""}`}>
+                                         {!userData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700" />}
+                                    </div> 
                                     <div>
-                                        <h3 className="font-medium text-[15px]">{userData.username}</h3>
-                                        <p className="font-medium text-xs">{userData.email}</p>
+                                        <h3 className="font-medium text-[15px]">{session === "local" ? userData?.name : ""}</h3>
+                                        <p className="font-medium text-xs">{session === "local" ? null : ""}</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2 w-full">

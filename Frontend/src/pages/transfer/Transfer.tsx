@@ -7,6 +7,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { TransferTrackerItem } from "@/components/TransferTrackerItem";
 import { OrbitProgress } from "react-loading-indicators"; 
+import { DBdelete } from "@/lib/db";
+import { fa } from "zod/v4/locales";
 
 
 export function Transfer(): JSX.Element {
@@ -16,6 +18,7 @@ export function Transfer(): JSX.Element {
     const [ loadingTooLong, setLoadingTooLong ] = useState<boolean>(false)
     const [ isSuccess, setIsSuccess ] = useState<boolean>(false)
     const [ isFailed, setIsFailed ] = useState<boolean>(false)
+    const [ isDeleteError, setIsDeleteError ] = useState<boolean>(false)
 
     const addItem = (value: number): void => {
         setSelectedItems(prev => [...prev, value])
@@ -40,17 +43,23 @@ export function Transfer(): JSX.Element {
         }
     }, [isLoading])
 
-    // simulation only
-    const eraseData = () => {
+    // local data deletion
+    const eraseData = async () => {
         setIsLoading(true)
         setTimeout(() => {
             setLoadingTooLong(true)
         }, 3000)
-        setTimeout(() => {
+        
+        try {
+            const res = await DBdelete()
+            setIsFailed(true)
+        } catch (err) {
+            setIsFailed(false)
+            setIsDeleteError(true)
+        } finally {
             setLoadingTooLong(false)
             setIsLoading(false)
-            setIsFailed(true)
-        }, 5255)
+        }
     }
 
     // simulation only
@@ -501,7 +510,7 @@ export function Transfer(): JSX.Element {
                         Enjoy cross device access and worry-free about losing your data.
                     </p>
                 </div>
-                <Button className="text-center items-center rounded-md h-9 flex-1 grow text-neutral-900 flex justify-center [background-image:var(--color-button-primary)] text-base font-medium">Start Fresh</Button>
+                <Button onClick={() => {setIsFailed(false); setTimeout(() => {window.location.href = "/app"}, 500)}} className="text-center items-center rounded-md h-9 flex-1 grow text-neutral-900 flex justify-center [background-image:var(--color-button-primary)] text-base font-medium">Start Fresh</Button>
             </div>
         </motion.div>
     )
@@ -516,6 +525,9 @@ export function Transfer(): JSX.Element {
                 {isLoading && loading}
                 {isSuccess && success}
                 {isFailed && failed}
+                {isDeleteError && 
+                    <p className="absolute translate-x-[-50%] left-[50%] bottom-10 text-black/50 text-center w-full px-10 font-medium text-sm">Error deleting your local data, restart the app and try again. for more information, please read our <span className="text-blue-500/50 hover:text-blue-400/50 underline">FAQ</span><br/></p>
+                }
             </AnimatePresence>
         </motion.section>
     )

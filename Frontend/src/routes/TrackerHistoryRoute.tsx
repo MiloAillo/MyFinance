@@ -1,7 +1,7 @@
 import { TrackerHistory } from "@/pages/tracker/TrackerHistory";
 
 const trackerHistory = {
-    path: "tracker/history",
+    path: "tracker/history/:id",
     element: <TrackerHistory />
 }
 
