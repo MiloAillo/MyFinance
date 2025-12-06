@@ -1,25 +1,21 @@
 import { useEffect, useState, type JSX } from "react";
-import { AnimatePresence, motion, spring } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faArrowRightFromBracket, faFilter, faLock, faQuestion, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
-import { userData } from "@/lib/userData";
-import { XIcon } from "lucide-react";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { faFilter, faQuestion } from "@fortawesome/free-solid-svg-icons";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TrackerNavbar } from "@/components/TrackerNavbar";
 import { DBgetalltransactions } from "@/lib/db";
-import { useParams, useRouteLoaderData } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export function TrackerHistory(): JSX.Element {
     const { id } = useParams()
 
     const [ isOut, setIsOut ] = useState<boolean>(false)
-    const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ showPlus, setShowPlus ] = useState(true)
     const [ showwMinus, setShowMinus ] = useState(true)
-    const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
+    const [ _session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>([])
 
     const [ page, setPage ] = useState<number>(1)

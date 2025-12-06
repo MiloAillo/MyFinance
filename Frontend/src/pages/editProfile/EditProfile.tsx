@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState, type JSX } from "react";
-import { AnimatePresence, motion, spring } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faArrowRightFromBracket, faCheck, faEraser, faFilter, faImage, faLock, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
-import { userData } from "@/lib/userData";
-import { XIcon } from "lucide-react";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { faArrowLeft, faCheck, faEraser, faImage } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { faCamera } from "@fortawesome/free-regular-svg-icons";
 import { Card } from "@/components/ui/card";
@@ -19,7 +14,7 @@ export function EditProfile(): JSX.Element {
     const userData = useRouteLoaderData("main")
 
     const [ isOut, setIsOut ] = useState<boolean>(false)
-    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
+    const [_isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
     const [isChangePhoto, setIsChangePhoto] = useState<boolean>(false)
     const [isRemovePhoto, setIsRemovePhoto] = useState<boolean>(false)
 
@@ -63,7 +58,7 @@ export function EditProfile(): JSX.Element {
     const edit = async () => {
         if(session === "local" && username.current?.value) {
             try {
-                const res = await DBchangename(username.current.value)
+                await DBchangename(username.current.value)
                 setIsOut(true)
                 setTimeout(() => {
                     window.location.href = "/app/editProfile"

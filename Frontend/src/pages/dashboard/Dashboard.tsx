@@ -1,11 +1,10 @@
 import { Input } from "@/components/ui/input";
-import { userData } from "@/lib/userData";
-import { faArrowRightFromBracket, faCloud, faLock, faMagnifyingGlass, faMoneyBill, faMoneyBillWave, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightFromBracket, faCloud, faLock, faMagnifyingGlass, faMoneyBillWave, faSun, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { motion, AnimatePresence, spring } from "motion/react";
-import { useLoaderData, useRouteLoaderData } from "react-router-dom";
+import { useRouteLoaderData } from "react-router-dom";
 import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { ApiUrl, StorageUrl } from "@/lib/variable";
 import axios, { isAxiosError } from "axios";
@@ -13,10 +12,9 @@ import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
 
 export function Dashboard(): JSX.Element {
     const mainLoaderData = useRouteLoaderData("main")
-    const loaderData = useLoaderData<[any]>()
     
     const [ trackers, setTrackers ] = useState<any[]>([])
-    const [ user, setUser ] = useState<any[]>([])
+    const [ user, setUser ] = useState<any>()
     const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ isCreateBoxOpen, setIsCreateBoxOpen ] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
@@ -91,7 +89,7 @@ export function Dashboard(): JSX.Element {
                 try {
                     const res = await DBcreatetracker(name, desc, cleanedBalance)
                     setIsCreateBoxOpen(false)
-                    console.log("created!")
+                    console.log("created!", res)
                     // get the tracker and render!
                 } catch(err) {
                     setIsCreateBoxOpen(false)
@@ -129,7 +127,7 @@ export function Dashboard(): JSX.Element {
 
     const signout = async () => {
         try {
-            const res = await axios.post(`${ApiUrl}/api/auth/logout`, {}, {
+            await axios.post(`${ApiUrl}/api/auth/logout`, {}, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
@@ -192,7 +190,7 @@ export function Dashboard(): JSX.Element {
                                     <motion.div
                                         key="accountDetailsClosed"
                                         onClick={() => setIsAccountOpen(true)}
-                                        style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
+                                        style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${user?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
                                         className={`w-10 h-10 rounded-full shadow ring ring-input ${mainLoaderData?.avatar === null || mainLoaderData?.avatar === undefined  ? "flex justify-center items-center bg-white border" : ""}`}
                                         initial={{
                                             opacity: 0
@@ -201,7 +199,7 @@ export function Dashboard(): JSX.Element {
                                             opacity: 100
                                         }}
                                     >
-                                        {!mainLoaderData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-800" />}
+                                        {!user?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-800" />}
                                     </motion.div>}
                                 {isAccountOpen &&
                                     <motion.div
@@ -255,12 +253,12 @@ export function Dashboard(): JSX.Element {
                                 >
                                     <div className="flex items-center gap-2.5">
                                         <motion.div 
-                                            style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full ${mainLoaderData.avatar === null || mainLoaderData.avatar === undefined ? "flex justify-center items-center border" : ""}`}>
-                                            {!mainLoaderData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700" />}
+                                            style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${user?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full ${mainLoaderData.avatar === null || mainLoaderData.avatar === undefined ? "flex justify-center items-center border" : ""}`}>
+                                            {!user?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700" />}
                                         </motion.div>
                                         <div>
-                                            <h3 className="font-medium text-[15px]">{mainLoaderData?.name}</h3>
-                                            <p className="font-medium text-xs">{mainLoaderData?.email}</p>
+                                            <h3 className="font-medium text-[15px]">{user?.name}</h3>
+                                            <p className="font-medium text-xs">{user?.email}</p>
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-2 w-full">

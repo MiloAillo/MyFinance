@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { AlertCircleIcon, FormInput } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 import { useState, type JSX } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { email, z } from "zod"
+import { useForm } from "react-hook-form";
+import { z } from "zod"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

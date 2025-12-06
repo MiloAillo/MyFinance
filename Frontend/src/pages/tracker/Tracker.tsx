@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState, type JSX } from "react";
-import { AnimatePresence, motion, spring } from "motion/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faArrowRightFromBracket, faLock, faMagnifyingGlass, faQuestion, faSun, faUserPen, faWarning } from "@fortawesome/free-solid-svg-icons";
+import { AnimatePresence, motion } from "motion/react";
 import { Input } from "@/components/ui/input";
-import { userData } from "@/lib/userData";
-import { Files, XIcon } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
@@ -93,7 +89,7 @@ export function Tracker(): JSX.Element {
         if(cleanedBalance && judul !== "" && judul !== undefined && date !== null && desc !== undefined && id) {
             if(session === "local") {
                 try {
-                    const res = await DBaddincome(judul, desc !== "" ? desc : null, image ? image : null, date, parseInt(id, 10), cleanedBalance)
+                    await DBaddincome(judul, desc !== "" ? desc : null, image ? image : null, date, parseInt(id, 10), cleanedBalance)
                     localInitialize()
                 } catch(err) {
                     console.log(err)
@@ -114,7 +110,7 @@ export function Tracker(): JSX.Element {
         if(cleanedBalance && judul !== "" && judul !== undefined && date !== null && desc !== undefined && id) {
             if(session === "local") {
                 try {
-                    const res = await DBaddoutcome(judul, desc !== "" ? desc : null, image ? image : null, date, parseInt(id, 10), cleanedBalance)
+                    await DBaddoutcome(judul, desc !== "" ? desc : null, image ? image : null, date, parseInt(id, 10), cleanedBalance)
                     localInitialize()
                 } catch(err) {
                     console.log(err)
@@ -161,7 +157,6 @@ export function Tracker(): JSX.Element {
             sortData.forEach((item) => {
                 // solve the outcome income format
                 const type = item.type
-                const amount = item.income
                 
                 if(type === "income") {
                     income += item.income
