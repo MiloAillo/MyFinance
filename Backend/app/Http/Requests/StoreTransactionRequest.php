@@ -31,7 +31,7 @@ class StoreTransactionRequest extends FormRequest
             'amount' => 'required|numeric|min:0.01',
             'description' => 'nullable|string|max:255',
             'image' => 'nullable|image|max:102400', // max 100MB
-            'transaction_date' => 'required|date',
+            'transaction_date' => 'required|timestamp',
         ];
     }
 
@@ -58,7 +58,7 @@ class StoreTransactionRequest extends FormRequest
             'user_id' => $this->user()->id,
             'tracker_id' => $this->route('tracker')->id,
             'image' => $image,
-            'transaction_date' => date('Y-m-d', strtotime($this->transaction_date)),
+            'transaction_date' => $this->transaction_date,
         ]);
     }
     /**
