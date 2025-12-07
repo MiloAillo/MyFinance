@@ -22,7 +22,7 @@ class GetTransactionsWithPaginationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'page' => 'integer|min:1'
+            //
         ];
     }
 
@@ -30,6 +30,9 @@ class GetTransactionsWithPaginationRequest extends FormRequest
     {
         $this->merge([
             'page' => $this->get('page', 1),
+            'per_page' => $this->get('per_page', 10),
+            'order' => $this->get('order', 'desc'),
+            'type' => $this->get('type', null),
         ]);
     }
 }
