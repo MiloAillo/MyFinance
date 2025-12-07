@@ -8,6 +8,7 @@ use Carbon\Traits\Timestamp;
 use DateTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class StoreTransactionRequest extends FormRequest
@@ -51,7 +52,9 @@ class StoreTransactionRequest extends FormRequest
             $file = $this->file('image');
             $name = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
             $file->storeAs('transactions/'.'user-id_'.$this->user()->id.'/tracker-id_'.$this->route('tracker')->id, $name, 'public');
-            $image = 'transactions/'.'user-id_'.$this->user()->id. '/tracker-id_' . $this->route('tracker')->id . '/' . $name;
+            $filePath = $file->storeAs('transactions/'.'user-id_'.$this->user()->id.'/tracker-id_'.$this->route('tracker')->id, $name, 'public');
+            $path = url(Storage::url($filePath));
+            $image = 'transactions/'.'user-id_'.$this->user()->id. '/tracker-id_' . $this->route('tracker')->id . '/' . $path;
         } else {
             $image = null;
         }
