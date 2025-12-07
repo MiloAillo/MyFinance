@@ -286,7 +286,7 @@ export function Dashboard(): JSX.Element {
                             <AnimatePresence>
                                 {isAccountOpen && !isOut && <motion.div
                                     key="accountDetails"
-                                    className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] backdrop-grayscale-50 z-20 md:right-auto md:translate-x-17"
+                                    className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] backdrop-grayscale-50 z-20 md:right-auto md:translate-x-17 w-60"
                                     initial = {{
                                         x: 10,
                                         opacity: 0
