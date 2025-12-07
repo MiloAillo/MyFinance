@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ResponseHelper;
+use Carbon\Traits\Timestamp;
+use DateTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -58,7 +60,6 @@ class StoreTransactionRequest extends FormRequest
             'user_id' => $this->user()->id,
             'tracker_id' => $this->route('tracker')->id,
             'image' => $image,
-            'transaction_date' => $this->transaction_date,
         ]);
     }
     /**
