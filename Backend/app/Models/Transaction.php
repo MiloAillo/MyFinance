@@ -22,7 +22,6 @@ class Transaction extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'transaction_date' => 'date',
     ];
 
     public function tracker()
