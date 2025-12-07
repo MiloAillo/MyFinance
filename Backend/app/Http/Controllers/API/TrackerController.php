@@ -141,6 +141,8 @@ class TrackerController extends Controller
             $search = $request->get('q');
 
             $trackers = $tracker
+            ->with(['transactions' => function ($query) {
+                $query->latest()->limit(3);}])
             ->where('user_id', $user->id)
             ->where(function($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");
