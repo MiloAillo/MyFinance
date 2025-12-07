@@ -50,8 +50,8 @@ class StoreTransactionRequest extends FormRequest
         if ($this->hasFile('image')) {
             $file = $this->file('image');
             $name = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-            $file->storeAs('transactions/'.'user_id:'.$this->user()->id.'/tracker_id:'.$this->route('tracker')->id, $name, 'public');
-            $image = 'transactions/'.'user_id:'.$this->user()->id. '/tracker_id:' . $this->route('tracker')->id . '/' . $name;
+            $file->storeAs('transactions/'.'user-id_'.$this->user()->id.'/tracker-id_'.$this->route('tracker')->id, $name, 'public');
+            $image = 'transactions/'.'user-id_'.$this->user()->id. '/tracker-id_' . $this->route('tracker')->id . '/' . $name;
         } else {
             $image = null;
         }
