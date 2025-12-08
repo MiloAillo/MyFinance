@@ -151,13 +151,13 @@ export function TrackerHistory(): JSX.Element {
                         }
                     }}
                 >
-                    <div className="flex justify-between w-full">
+                    <div className="flex justify-between w-full fixed left-[50%] -translate-x-[50%] px-10 md:w-160 bg-background-primary pt-3 -mt-3 pb-2 dark:bg-background-primary-dark">
                         <h3 className="text-sm font-regular">Riwayat finansial</h3>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <FontAwesomeIcon icon={faFilter} />
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-white/50 backdrop-blur-[2px] w-45 mr-5">
+                            <DropdownMenuContent className="bg-white/50 backdrop-blur-xs w-45 mr-5 dark:bg-background-primary-dark/40 dark:backdrop-blur-xs">
                                 <DropdownMenuRadioGroup value={direction} onValueChange={setDirection}>
                                     <DropdownMenuRadioItem value="asc">Naik</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="desc" defaultChecked>Turun</DropdownMenuRadioItem>
@@ -178,14 +178,14 @@ export function TrackerHistory(): JSX.Element {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-                    <div className="w-full flex flex-col gap-2 mb-15">
+                    <div className="w-full flex flex-col gap-2 mb-15 mt-7">
                         {data.length === 0 && <div className="flex flex-col items-center gap-5 justify-center h-75 px-5">
-                            <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40" />
-                            <p className="text-center font-medium text-base text-black/50">Oops... Your data looks empty <br /> <span className="font-normal">Try changing the filter or adding some data.</span></p>
+                            <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40 dark:text-white/50" />
+                            <p className="text-center font-medium text-base text-black/50 dark:text-white/50">Oops... Your data looks empty <br /> <span className="font-normal">Try changing the filter or adding some data.</span></p>
                         </div>}
                         {session === "local" && data.map(item => (
                             <Dialog>
-                                <DialogTrigger className="flex w-full bg-white rounded-md">
+                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
                                     {item.image && <div style={{backgroundImage: `url(${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
                                         <div className="flex flex-col w-full pb-5 gap-0.5">
@@ -197,11 +197,11 @@ export function TrackerHistory(): JSX.Element {
                                         <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.getDay()}-{item.date.getMonth()}-{item.date.getFullYear()}</div>
                                     </div>
                                 </DialogTrigger>
-                                <DialogContent className="w-full flex flex-col items-center">
+                                <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
                                     {item.image && <div style={{backgroundImage: `url(${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
                                     <div className="flex w-full flex-row justify-between items-end">
                                         <h4 className="font-medium text-xl">{item.name}</h4>
-                                        <p className="font-semibold text-2xl text-neutral-600">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
+                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
                                     </div>
                                     <p className="text-base font-normal self-start -mt-2">{item.desc}</p>
                                     <p className="text-sm font-normal text-neutral-400 self-end">
@@ -217,7 +217,7 @@ export function TrackerHistory(): JSX.Element {
                         ))}
                         {session === "cloud" && data.map(item => (
                             <Dialog>
-                                <DialogTrigger className="flex w-full bg-white rounded-md">
+                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
                                     {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
                                         <div className="flex flex-col w-full pb-5 gap-0.5">
@@ -229,11 +229,11 @@ export function TrackerHistory(): JSX.Element {
                                         <div className="self-end flex-1 font-normal text-xs text-neutral-500">{(new Date(item.transaction_date)).getDate()}-{(new Date(item.transaction_date)).getMonth()}-{(new Date(item.transaction_date)).getFullYear()}</div>
                                     </div>
                                 </DialogTrigger>
-                                <DialogContent className="w-full flex flex-col items-center">
+                                <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
                                     {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
                                     <div className="flex w-full flex-row justify-between items-end">
                                         <h4 className="font-medium text-xl">{item.name}</h4>
-                                        <p className="font-semibold text-2xl text-neutral-600">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
+                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
                                     </div>
                                     <p className="text-base font-normal self-start -mt-2">{item.description}</p>
                                     <p className="text-sm font-normal text-neutral-400 self-end">
@@ -250,7 +250,7 @@ export function TrackerHistory(): JSX.Element {
                     </div>
                 </motion.div>}
                 {!isOut && <motion.div
-                    className="w-full bg-background-primary flex justify-center items-center h-15 fixed bottom-0"
+                    className="w-full bg-background-primary flex justify-center items-center h-15 fixed bottom-0 dark:bg-background-primary-dark"
                     initial={{
                         x: 30,
                         opacity: 0,
@@ -282,7 +282,7 @@ export function TrackerHistory(): JSX.Element {
                                 <PaginationLink>1</PaginationLink>
                             </PaginationItem>
                             <PaginationItem>
-                                <PaginationLink isActive className="bg-green-400/60 text-white">
+                                <PaginationLink isActive className="bg-green-400/60 text-white dark:bg-violet-600">
                                     {page}
                                 </PaginationLink>
                             </PaginationItem>

@@ -23,6 +23,7 @@ export function Report(): JSX.Element {
     const [ data, setData ] = useState<any[]>()
     const [ displayData, setDisplayData ] = useState<{income: number, outcome: number, incomePercentage: number, outcomePercentage: number, chartData: any[], highestIncome: number | null, highestOutcome: number | null, transactionsHistory: any[]}>({income: 0, outcome: 0, incomePercentage: 0, outcomePercentage: 0, chartData: [], highestIncome: null, highestOutcome: null, transactionsHistory: []})
     const [ historyData, setHistoryData ] = useState<any[]>([])
+    const [ theme, setTheme ] = useState<"light" | "dark" | "system">("system")
     const [ trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number } | null>(null)
 
     const [ range, setRange ] = useState<number>(7)
@@ -530,6 +531,7 @@ export function Report(): JSX.Element {
             getLocalTrackerData()
         }
 
+        getTheme()
     }, [])
 
     useEffect(() => {
@@ -551,6 +553,10 @@ export function Report(): JSX.Element {
         if(direction === "down" && page !== 1) setPage(prev => prev -= 1) 
         if(direction === "up" && page !== lastPage) setPage(prev => prev += 1) 
     }
+
+    const getTheme = () => {
+        setTheme(localStorage.getItem("vite-ui-theme") as "light" | "dark" | "system")
+    }
     
     const chartConfig = {
     desktop: {
@@ -561,7 +567,7 @@ export function Report(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center">
-            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} trackerName="My New Tracker" backLink={`/app/tracker/${id}`} />
+            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} trackerName="My New Tracker" backLink={`/app/tracker/${id}`} getTheme={getTheme}/>
             <AnimatePresence>
                 {!isOut && <motion.div
                     className="w-full flex flex-col items-center"
@@ -595,11 +601,11 @@ export function Report(): JSX.Element {
                             <button
                                 key={item.value}
                                 onClick={() => setRange(item.value)}
-                                className="relative px-3 py-1 rounded-full backdrop-blur-[2px] text-sm font-medium text-neutral-800"
+                                className="relative px-3 py-1 rounded-full backdrop-blur-[2px] text-sm font-medium text-neutral-800 dark:text-neutral-200"
                             >
                                 {range === item.value && (
                                     <motion.div
-                                        className="absolute inset-0 bg-green-300/50 rounded-full"
+                                        className="absolute inset-0 bg-green-300/50 dark:bg-violet-600 rounded-full"
                                         layoutId="active-pill"
                                     />
                                 )}
@@ -617,7 +623,7 @@ export function Report(): JSX.Element {
                                 <p className="font-medium text-lg">Rp.3.796.105</p>
                             </div> */}
                             <div className="flex flex-row gap-3.5">
-                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit">
+                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
                                         <p className="font-normal text-base">Pemasukkan</p>
                                         <p className="font-medium text-lg">Rp.{displayData.income.toLocaleString("ID")}</p>
@@ -625,13 +631,13 @@ export function Report(): JSX.Element {
                                     {Number.isNaN(displayData.incomePercentage) && null}
                                     {!Number.isNaN(displayData.incomePercentage) && 
                                         <div>
-                                            <p className="text-sm font-normal text-neutral-600">
+                                            <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.incomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
                                             </p>
                                         </div>
                                     }
                                 </div>
-                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit">
+                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
                                         <p className="font-normal text-base">Pengeluaran</p>
                                         <p className="font-medium text-lg">Rp.{displayData.outcome.toLocaleString("ID")}</p>
@@ -639,7 +645,7 @@ export function Report(): JSX.Element {
                                     {Number.isNaN(displayData.outcomePercentage) && null}
                                     {!Number.isNaN(displayData.outcomePercentage) && 
                                         <div>
-                                            <p className="text-sm font-normal text-neutral-600">
+                                            <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.outcomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
                                             </p>
                                         </div>
@@ -647,7 +653,7 @@ export function Report(): JSX.Element {
                                 </div>
                             </div>
                         </div>
-                        <div className="w-full bg-white p-3 rounded-xl">
+                        <div className="w-full bg-white p-3 rounded-xl dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                             <ChartContainer config={chartConfig}>
                                 <AreaChart
                                     accessibilityLayer
@@ -669,7 +675,8 @@ export function Report(): JSX.Element {
                                         tickFormatter={value => {
                                         const d = new Date(value)
                                         return d.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit" })
-                                        }}                                    />
+                                        }}                                   
+                                     />
                                     <YAxis
                                         domain={['dataMin', 'dataMax']}
                                         tickLine={false}
@@ -684,9 +691,9 @@ export function Report(): JSX.Element {
                                     <Area
                                         dataKey="balance"
                                         type='natural'
-                                        fill="#16E716"
+                                        fill={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                         fillOpacity={0.2}
-                                        stroke="#16E716"
+                                        stroke={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                     />
                                 </AreaChart>
                             </ChartContainer>
@@ -694,13 +701,13 @@ export function Report(): JSX.Element {
                                 {displayData.highestIncome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faDollar} className="text-green-600/70" />
-                                        <p className="text-sm font-normal text-neutral-700">Pemasukkan terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pemasukkan terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                                 {displayData.highestOutcome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500/80" />
-                                        <p className="text-sm font-normal text-neutral-700">Pengeluaran terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pengeluaran terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                             </div>
@@ -708,39 +715,39 @@ export function Report(): JSX.Element {
                         <div className="w-full flex flex-col gap-2 mt-2">
                             <h3 className="text-sm font-regular">Riwayat dalam rentang {range === 7 ? "7 hari" : range === 30 ? "1 bulan" : "1 tahun"}</h3>
                             {historyData.map(item => (
-                                <Dialog>
-                                    <DialogTrigger className="flex w-full bg-white rounded-md">
-                                        {item.image && <div style={{backgroundImage: `url(${item.imageUrl})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
-                                        <div className="flex w-full text-start justify-between flex-1 p-3">
-                                            <div className="flex flex-col w-full pb-5 gap-0.5">
-                                                <div className="flex w-full flex-col flex-1">
-                                                    <p className="text-sm font-normal">{item.name}</p>
-                                                    <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
-                                                </div>
+                            <Dialog>
+                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
+                                    {item.image && <div style={{backgroundImage: `url(${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
+                                    <div className="flex w-full text-start justify-between flex-1 p-3">
+                                        <div className="flex flex-col w-full pb-5 gap-0.5">
+                                            <div className="flex w-full flex-col flex-1">
+                                                <p className="text-sm font-normal">{item.name}</p>
+                                                <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
                                             </div>
-                                            <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.getDay()}-{item.date.getMonth()}-{item.date.getFullYear()}</div>
                                         </div>
-                                    </DialogTrigger>
-                                    <DialogContent className="w-full flex flex-col items-center">
-                                        {item.image && <div style={{backgroundImage: `url(${item.imageUrl})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
-                                        <div className="flex w-full flex-row justify-between items-end">
-                                            <h4 className="font-medium text-xl">{item.name}</h4>
-                                            <p className="font-semibold text-2xl text-neutral-600">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
-                                        </div>
-                                        <p className="text-base font-normal self-start -mt-2">{item.desc}</p>
-                                        <p className="text-sm font-normal text-neutral-400 self-end">
-                                            {item.date.toLocaleDateString("ID", {
-                                                weekday: "long",
-                                                day: "numeric",
-                                                month: "long",
-                                                year: "numeric"
-                                            })}
-                                        </p>
-                                    </DialogContent>
-                                </Dialog>
+                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.getDay()}-{item.date.getMonth()}-{item.date.getFullYear()}</div>
+                                    </div>
+                                </DialogTrigger>
+                                <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
+                                    {item.image && <div style={{backgroundImage: `url(${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
+                                    <div className="flex w-full flex-row justify-between items-end">
+                                        <h4 className="font-medium text-xl">{item.name}</h4>
+                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
+                                    </div>
+                                    <p className="text-base font-normal self-start -mt-2">{item.desc}</p>
+                                    <p className="text-sm font-normal text-neutral-400 self-end">
+                                        {item.date.toLocaleDateString("ID", {
+                                            weekday: "long",
+                                            day: "numeric",
+                                            month: "long",
+                                            year: "numeric"
+                                        })}
+                                    </p>
+                                </DialogContent>
+                            </Dialog>
                             ))}
                             <motion.div
-                                className="w-full bg-background-primary flex justify-center items-center h-15"
+                                className="w-full bg-background-primary flex justify-center items-center h-15 dark:bg-background-primary-dark"
                             >
                         <Pagination className="relative">
                             <PaginationContent className="relative">
@@ -751,7 +758,7 @@ export function Report(): JSX.Element {
                                     <PaginationLink>1</PaginationLink>
                                 </PaginationItem>
                                 <PaginationItem>
-                                    <PaginationLink isActive className="bg-green-400/60 text-white">
+                                    <PaginationLink isActive className="bg-green-400/60 text-white dark:bg-violet-600">
                                         {page}
                                     </PaginationLink>
                                 </PaginationItem>
@@ -776,7 +783,7 @@ export function Report(): JSX.Element {
                                 <p className="font-medium text-lg">Rp.3.796.105</p>
                             </div> */}
                             <div className="flex flex-row gap-3.5">
-                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit">
+                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
                                         <p className="font-normal text-base">Pemasukkan</p>
                                         <p className="font-medium text-lg">Rp.{displayData.income.toLocaleString("ID")}</p>
@@ -784,13 +791,13 @@ export function Report(): JSX.Element {
                                     {Number.isNaN(displayData.incomePercentage) && null}
                                     {!Number.isNaN(displayData.incomePercentage) && 
                                         <div>
-                                            <p className="text-sm font-normal text-neutral-600">
+                                            <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.incomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
                                             </p>
                                         </div>
                                     }
                                 </div>
-                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit">
+                                <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
                                         <p className="font-normal text-base">Pengeluaran</p>
                                         <p className="font-medium text-lg">Rp.{displayData.outcome.toLocaleString("ID")}</p>
@@ -798,7 +805,7 @@ export function Report(): JSX.Element {
                                     {Number.isNaN(displayData.outcomePercentage) && null}
                                     {!Number.isNaN(displayData.outcomePercentage) && 
                                         <div>
-                                            <p className="text-sm font-normal text-neutral-600">
+                                            <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.outcomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
                                             </p>
                                         </div>
@@ -806,7 +813,7 @@ export function Report(): JSX.Element {
                                 </div>
                             </div>
                         </div>
-                        <div className="w-full bg-white p-3 rounded-xl">
+                        <div className="w-full bg-white p-3 rounded-xl dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                             <ChartContainer config={chartConfig}>
                                 <AreaChart
                                     accessibilityLayer
@@ -844,9 +851,9 @@ export function Report(): JSX.Element {
                                     <Area
                                         dataKey="balance"
                                         type='natural'
-                                        fill="#16E716"
+                                        fill={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                         fillOpacity={0.2}
-                                        stroke="#16E716"
+                                        stroke={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                     />
                                 </AreaChart>
                             </ChartContainer>
@@ -854,13 +861,13 @@ export function Report(): JSX.Element {
                                 {displayData.highestIncome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faDollar} className="text-green-600/70" />
-                                        <p className="text-sm font-normal text-neutral-700">Pemasukkan terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pemasukkan terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                                 {displayData.highestOutcome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500/80" />
-                                        <p className="text-sm font-normal text-neutral-700">Pengeluaran terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pengeluaran terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                             </div>
@@ -868,39 +875,39 @@ export function Report(): JSX.Element {
                         <div className="w-full flex flex-col gap-2 mt-2">
                             <h3 className="text-sm font-regular">Riwayat dalam rentang {range === 7 ? "7 hari" : range === 30 ? "1 bulan" : "1 tahun"}</h3>
                             {historyData?.map(item => (
-                                <Dialog>
-                                    <DialogTrigger className="flex w-full bg-white rounded-md">
-                                        {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
-                                        <div className="flex w-full text-start justify-between flex-1 p-3">
-                                            <div className="flex flex-col w-full pb-5 gap-0.5">
-                                                <div className="flex w-full flex-col flex-1">
-                                                    <p className="text-sm font-normal">{item.name}</p>
-                                                    <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{item.amount.toLocaleString("iD")}</p>
-                                                </div>
+                            <Dialog>
+                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
+                                    {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
+                                    <div className="flex w-full text-start justify-between flex-1 p-3">
+                                        <div className="flex flex-col w-full pb-5 gap-0.5">
+                                            <div className="flex w-full flex-col flex-1">
+                                                <p className="text-sm font-normal">{item.name}</p>
+                                                <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
                                             </div>
-                                            <div className="self-end flex-1 font-normal text-xs text-neutral-500">{(new Date(item.transaction_date)).getDate()}-{(new Date(item.transaction_date)).getMonth()}-{(new Date(item.transaction_date)).getFullYear()}</div>
                                         </div>
-                                    </DialogTrigger>
-                                    <DialogContent className="w-full flex flex-col items-center">
-                                        {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
-                                        <div className="flex w-full flex-row justify-between items-end">
-                                            <h4 className="font-medium text-xl">{item.name}</h4>
-                                            <p className="font-semibold text-2xl text-neutral-600">{item.type === "income" ? "+ " : "- "} Rp.{item.amount.toLocaleString("iD")}</p>
-                                        </div>
-                                        <p className="text-base font-normal self-start -mt-2">{item.description}</p>
-                                        <p className="text-sm font-normal text-neutral-400 self-end">
-                                            {(new Date(item.transaction_date)).toLocaleDateString("ID", {
-                                                weekday: "long",
-                                                day: "numeric",
-                                                month: "long",
-                                                year: "numeric"
-                                            })}
-                                        </p>
-                                    </DialogContent>
-                                </Dialog>
+                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{(new Date(item.transaction_date)).getDate()}-{(new Date(item.transaction_date)).getMonth()}-{(new Date(item.transaction_date)).getFullYear()}</div>
+                                    </div>
+                                </DialogTrigger>
+                                <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
+                                    {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
+                                    <div className="flex w-full flex-row justify-between items-end">
+                                        <h4 className="font-medium text-xl">{item.name}</h4>
+                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
+                                    </div>
+                                    <p className="text-base font-normal self-start -mt-2">{item.description}</p>
+                                    <p className="text-sm font-normal text-neutral-400 self-end">
+                                        {(new Date(item.transaction_date)).toLocaleDateString("ID", {
+                                            weekday: "long",
+                                            day: "numeric",
+                                            month: "long",
+                                            year: "numeric"
+                                        })}
+                                    </p>
+                                </DialogContent>
+                            </Dialog>
                             ))}
                             <motion.div
-                                className="w-full bg-background-primary flex justify-center items-center h-15"
+                                className="w-full bg-background-primary flex justify-center items-center h-15 dark:bg-background-primary-dark"
                             >
                         <Pagination className="relative">
                             <PaginationContent className="relative">
@@ -911,7 +918,7 @@ export function Report(): JSX.Element {
                                     <PaginationLink>1</PaginationLink>
                                 </PaginationItem>
                                 <PaginationItem>
-                                    <PaginationLink isActive className="bg-green-400/60 text-white">
+                                    <PaginationLink isActive className="bg-green-400/60 text-white dark:bg-violet-600">
                                         {page}
                                     </PaginationLink>
                                 </PaginationItem>

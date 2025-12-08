@@ -45,6 +45,8 @@ export function Tracker(): JSX.Element {
     const pengeluaranDate = useRef<HTMLInputElement | null>(null)
     const [ pengeluaranNominal, setPengeluaranNominal ] = useState<string>("")
 
+    const [ theme, setTheme ] = useState<"light" | "dark" | "system">("system")
+
     // to get all transactions and set it inside useState
     const localInitialize = async () => {
         try {
@@ -308,6 +310,8 @@ export function Tracker(): JSX.Element {
             localInitialize()
             getLocalTrackerData()
         }
+
+        getTheme()
     }, [])
     
     const getTimestampNow = () => {
@@ -322,6 +326,10 @@ export function Tracker(): JSX.Element {
         const second = String(t.getSeconds()).padStart(2, "0")
 
         setToday(`${year}-${month}-${day}T${hour}:${minute}:${second}`)
+    }
+
+    const getTheme = () => {
+        setTheme(localStorage.getItem("vite-ui-theme") as "light" | "dark" | "system")
     }
 
     useEffect(() => {
@@ -435,7 +443,7 @@ export function Tracker(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center md:max-w-[650px]">
-            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} backLink="/app" trackerName={trackerData?.name ?? ""} />
+            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} backLink="/app" trackerName={trackerData?.name ?? ""} getTheme={getTheme} />
             <AnimatePresence>
                 {!isOut && <motion.div
                     key={"main"}
@@ -463,7 +471,7 @@ export function Tracker(): JSX.Element {
                 >
                     <div className="w-full flex flex-col gap-3">
                         <div className="w-full">
-                            <p className="font-normal text-sm">Saldo kamu:</p>
+                            <p className="font-normal text-sm text-neutral-700 dark:text-neutral-300">Saldo kamu:</p>
                             <p className="font-semibold text-xl">Rp.{balance.toLocaleString("ID")}</p>
                         </div>
                         <div className="w-full">
@@ -504,9 +512,9 @@ export function Tracker(): JSX.Element {
                                     <Area
                                         dataKey="balance"
                                         type='natural'
-                                        fill="#16E716"
+                                        fill={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                         fillOpacity={0.2}
-                                        stroke="#16E716"
+                                        stroke={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                     />
                                 </AreaChart>
                             </ChartContainer>
@@ -514,17 +522,17 @@ export function Tracker(): JSX.Element {
                         <div className="flex justify-between w-full gap-5">
                             <Dialog>
                                 <DialogTrigger className="flex-1 w-full" onClick={() => getTimestampNow()}>
-                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-white border-2 border-green-300 text-neutral-800" onClick={() => setPendapatanUrl(null)} >+ Pendapatan</Button></motion.div>
+                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-green-300 dark:bg-violet-600 border-2 border-green-300 dark:border-violet-600 text-neutral-800 font-semibold hover:bg-green-400 dark:hover:bg-violet-500 dark:text-white" onClick={() => setPendapatanUrl(null)} >+ Pendapatan</Button></motion.div>
                                 </DialogTrigger>
-                                <DialogContent className="flex flex-col shadow-green-300/40">
+                                <DialogContent className="flex flex-col shadow-green-300/40 dark:shadow-green-300/7 bg-white/80 dark:bg-background-primary-dark/60 backdrop-blur-2xl">
                                     <DialogTitle className="font-medium">Pendapatan</DialogTitle>
                                     <DialogDescription className="flex flex-col gap-4">
                                         <div className="flex flex-col gap-2">
-                                            <Input ref={pendapatanJudul} placeholder="Judul" />
-                                            <Input value={pendapatanNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Nominal" />
-                                            <Input ref={pendapatanDesc} placeholder="Deskripsi (opsional)" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanJudul} placeholder="Judul" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" value={pendapatanNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Nominal" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanDesc} placeholder="Deskripsi (opsional)" />
                                             <div className="flex flex-row gap-2 mt-2">
-                                                <Input ref={pendapatanImage} type="file" onChange={(e) => {
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanImage} type="file" onChange={(e) => {
                                                     const file = e.target.files
                                                     console.log(e.target.files)
                                                     if(file?.length === 0) {
@@ -537,27 +545,27 @@ export function Tracker(): JSX.Element {
                                                         isAllowed && setPendapatanUrl(URL.createObjectURL(file[0]))
                                                     }
                                                 }} />
-                                                <Input ref={pendapatanDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
                                             </div>
                                             <img src={pendapatanUrl ? pendapatanUrl : undefined} alt="" className="w-[50%] max-h-40 rounded-md" />
                                         </div>
-                                        <DialogClose onClick={() => addIncome()} className="bg-transparent border-2 border-green-300 text-black font-[Inter] font-semibold py-1.5 rounded-md">Tambah</DialogClose>
+                                        <DialogClose onClick={() => addIncome()} className="bg-green-300 dark:bg-violet-600 dark:text-white border-2 dark:border-violet-700 border-green-400 text-black font-[Inter] font-semibold py-1.5 rounded-md">Tambah</DialogClose>
                                     </DialogDescription>
                                 </DialogContent>
                             </Dialog>
                             <Dialog>
                                 <DialogTrigger className="flex-1 w-full" onClick={() => getTimestampNow()}>
-                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-white border-2 border-red-300 text-neutral-800">- Pengeluaran</Button></motion.div>
+                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-red-300 font-semibold border-2 border-red-300 text-neutral-800 dark:bg-red-600 dark:border-red-600 hover:bg-red-400 dark:text-white">- Pengeluaran</Button></motion.div>
                                 </DialogTrigger>
-                                <DialogContent className="flex flex-col shadow-red-300/40">
+                                <DialogContent className="flex flex-col shadow-red-400/20 dark:shadow-red-400/7 bg-white/80 dark:bg-background-primary-dark/60 backdrop-blur-2xl">
                                     <DialogTitle className="font-medium">Pengeluaran</DialogTitle>
                                     <DialogDescription className="flex flex-col gap-4">
                                         <div className="flex flex-col gap-2">
-                                            <Input ref={pengeluaranJudul} placeholder="Judul" />
-                                            <Input value={pengeluaranNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Nominal" />
-                                            <Input ref={pengeluaranDesc} placeholder="Deskripsi (opsional)" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranJudul} placeholder="Judul" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" value={pengeluaranNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Nominal" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranDesc} placeholder="Deskripsi (opsional)" />
                                             <div ref={pengeluaranImage} className="flex flex-row gap-2 mt-2">
-                                                <Input type="file" onChange={(e) => {
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" type="file" onChange={(e) => {
                                                     const file = e.target.files
                                                     console.log(e.target.files)
                                                     if(file?.length === 0) {
@@ -570,11 +578,11 @@ export function Tracker(): JSX.Element {
                                                         isAllowed && setPengeluaranUrl(URL.createObjectURL(file[0]))
                                                     }
                                                 }} />
-                                                <Input ref={pengeluaranDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
                                             </div>
                                             <img src={pengeluaranUrl ? pengeluaranUrl : undefined} alt="" className="w-[50%] max-h-40 rounded-md" />
                                         </div>
-                                        <DialogClose className="bg-transparent border-2 border-red-300 text-black font-[Inter] font-semibold py-1.5 rounded-md" onClick={() => addOutcome()}>Tambah</DialogClose>
+                                        <DialogClose className="bg-red-300 dark:bg-red-600 dark:text-white border-2 border-red-700 text-black font-[Inter] font-semibold py-1.5 rounded-md" onClick={() => addOutcome()}>Tambah</DialogClose>
                                     </DialogDescription>
                                 </DialogContent>
                             </Dialog>
@@ -585,16 +593,16 @@ export function Tracker(): JSX.Element {
                             <div className="flex flex-col w-full">
                                 <div className="flex justify-between items-center w-full">
                                     <p className="font-medium text-base">Riwayat Transaksi</p>
-                                    <Button onClick={() => { setIsOut(true); setTimeout(() => { window.location.href = `/app/tracker/history/${trackerData?.id}`; }, 400); }} className="bg-white border-2 border-neutral-200 text-neutral-800 font-medium h-8">Lihat</Button>
+                                    <Button onClick={() => { setIsOut(true); setTimeout(() => { window.location.href = `/app/tracker/history/${trackerData?.id}`; }, 400); }} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primary dark:text-neutral-800 dark:border text-white/95">Lihat lengkap</Button>
                                 </div>
                                 {historyBalance.length === 0 && <div className="flex flex-col justify-center items-center text-center h-35">
-                                    <p className="text-center font-medium text-base text-black/50">You have very few transactions <br /> <span className="font-normal">Try adding it and see your history here.</span></p>                                
+                                    <p className="text-center font-medium text-base text-black/50 dark:text-white/50">You have very few transactions <br /> <span className="font-normal">Try adding it and see your history here.</span></p>                                
                                 </div>}
                                 {historyBalance && historyBalance.map((item) => (
                                     <div className="flex justify-between items-center border-b py-3">
                                         <div className="flex flex-col">
                                             <p className="font-normal text-[15px]">{item.name}</p>
-                                            <p className="font-normal text-sm text-neutral-600">{item.date}</p>
+                                            <p className="font-normal text-sm text-neutral-600 dark:font-medium dark:text-neutral-400">{item.date}</p>
                                         </div>
                                         <div>
                                             <p className="font-medium text-sm">{item.amount}</p>
@@ -605,28 +613,28 @@ export function Tracker(): JSX.Element {
                             <div className="flex flex-col w-full gap-4 h-full">
                                 <div className="flex justify-between items-center w-full">
                                     <p className="font-medium text-base">Laporan & Insight</p>
-                                    <Button onClick={() => {setIsOut(true); setTimeout(() => window.location.href = `/app/tracker/report/${trackerData?.id}`, 400)}} className="bg-white border-2 border-neutral-200 text-neutral-800 font-medium h-8">Lihat</Button>
+                                    <Button onClick={() => {setIsOut(true); setTimeout(() => window.location.href = `/app/tracker/report/${trackerData?.id}`, 400)}} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">Lihat lengkap</Button>
                                 </div>
-                                <div className="flex flex-row gap-2 h-full">
+                                <div className="flex flex-row gap-2 h-full w-full">
                                     <div className="flex flex-row gap-2 overflow-hidden w-full">
-                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1">
+                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1 dark:bg-black/5">
                                             <p className="font-normal text-sm">Pemasukkan</p>
                                             <p className="font-medium text-lg">Rp.{report.income.toLocaleString("ID")}</p>
                                         </div>
-                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1">
+                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1 dark:bg-black/5">
                                             <p className="font-normal text-sm">Pengeluaran</p>
                                             <p className="font-medium text-lg">Rp.{report.outcome.toLocaleString("ID")}</p>
                                         </div>
-                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1">
+                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1 dark:bg-black/5 hidden">
                                             <p className="font-normal text-sm text-nowrap">Saldo akhir</p>
                                             <p className="font-medium text-lg text-nowrap">Rp.{report.balance.toLocaleString("ID")}</p>
                                         </div>
-                                        <div className="absolute w-20 h-25 left-[calc(100vw-100px)] bg-linear-to-l from-background-primary to-transparent" />
+                                        <div className="absolute w-20 h-25 left-[calc(100vw-100px)] bg-linear-to-l from-background-primary dark:from-background-primary-dark to-transparent" />
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-row gap-2 justify-center items-center">
-                                <p className="font-medium text-sm text-black/50 -mt-2 text-center">This page only show the last 7 transactions, data may look innacurate. Please refer to our <span className="text-blue-500/50 hover:text-blue-400/50 underline">FAQ</span></p>
+                            <div className="flex flex-row gap-2 justify-center items-center mb-5">
+                                <p className="font-medium text-sm text-black/50 -mt-2 text-center dark:text-white/50">This page only show the last 7 transactions, data may look innacurate. Please refer to our <span className="text-blue-500/50 hover:text-blue-400/50 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/faq", 600)}}>FAQ</span></p>
                             </div>
                         </div>
                     </div>

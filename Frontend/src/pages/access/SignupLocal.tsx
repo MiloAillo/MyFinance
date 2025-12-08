@@ -19,6 +19,9 @@ export function SignupLocal(): JSX.Element {
     const [show, setShow] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
 
+    const [ isConsentError, setIsConsentError ] = useState<boolean>(false)
+    const [ consent, setConsent ] = useState<boolean>(false)
+
     const signupSchema = z.object({
         username: z.string(),
     })
@@ -33,6 +36,16 @@ export function SignupLocal(): JSX.Element {
 
 
     const login = async (values: z.infer<typeof signupSchema>): Promise<void> => {
+        setIsConsentError(false)
+        if(!consent) {
+            setIsConsentError(true)
+            return
+        }
+
+        if(values.username === "") {
+            return
+        }
+
         try {
             const res = await DBcreate(values.username)
             if(res) {
@@ -45,10 +58,10 @@ export function SignupLocal(): JSX.Element {
     }
 
     return (
-        <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5">
+        <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
                 {!isOut && <motion.h1
-                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide"
+                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary"
                     initial={{
                         x: 30,
                         opacity: 0,
@@ -112,16 +125,15 @@ export function SignupLocal(): JSX.Element {
                         }
                     }}
                 >
-                    <Alert variant="destructive" className="w-full hidden">
+                    {isConsentError && <Alert variant="destructive" className="w-full bg-background-primary dark:bg-background-primary-dark">
                         <AlertCircleIcon />
                         <AlertTitle className="font-semibold tracking-normal">Sign In Failed</AlertTitle>
                         <AlertDescription>
-                            Your attempt to sign in has failed due to reasons below
                             <ul className="list-inside list-disc text-sm">
-                                <li>Email or password is wrong</li>
+                                <li>You must agree to the terms to use our service</li>
                             </ul>
                         </AlertDescription>
-                    </Alert>
+                    </Alert>}
                     <div className="w-full flex flex-col gap-4">
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(login)}>
@@ -149,8 +161,8 @@ export function SignupLocal(): JSX.Element {
                                     </div>
                                     <div className="flex flex-col gap-3">
                                         <div className="flex items-center gap-2">
-                                            <Checkbox id="tos" />
-                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline">Terms of Services</span></label>
+                                            <Checkbox id="tos" onCheckedChange={(e) => setConsent(e as any)} />
+                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/tos", 600)}}>Terms of Services</span></label>
                                         </div>
                                     <motion.div className="w-full flex justify-center items-center self-center " whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}>
                                         <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Create local account</Button>

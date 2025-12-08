@@ -98,11 +98,11 @@ export function EditProfile(): JSX.Element {
                         opacity: 0
                     }}
                 >
-                    <div className="fixed z-0 bg-background-primary w-full h-15" />
+                    <div className="fixed z-0 bg-background-primary w-full h-15 dark:bg-background-primary-dark" />
                     <div className="flex justify-between items-center gap-2 mt-5 w-[85%] z-10 fixed">
-                        <FontAwesomeIcon onClick={() => {setIsOut(true); setTimeout(() => {window.location.href = "/app"}, 400)}} icon={faArrowLeft} className="w-10 h-10 text-xl text-neutral-800" />
+                        <FontAwesomeIcon onClick={() => {setIsOut(true); setTimeout(() => {window.location.href = "/app"}, 400)}} icon={faArrowLeft} className="w-10 h-10 text-xl text-neutral-800 dark:text-neutral-400" />
                         <h1 className={`font-medium text-base text-neutral-500 ${!isCredentialDifferent && "mr-5"} ${isCredentialDifferent && "mr-[-5px]"}`}>Edit Profile</h1>
-                        {isCredentialDifferent && <FontAwesomeIcon onClick={() => edit()} icon={faCheck} className="text-xl" />}
+                        {isCredentialDifferent && <FontAwesomeIcon onClick={() => edit()} icon={faCheck} className="text-xl dark:text-neutral-400" />}
                         {!isCredentialDifferent && <div/>}
                     </div>
                 </motion.div>}

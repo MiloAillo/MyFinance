@@ -6,7 +6,7 @@ import { motion, spring } from "motion/react"
 
 export function NotFound(): JSX.Element {
   return (
-    <Empty className="font-[inter] flex justify-center items-center w-screen h-screen -mt-10">
+    <Empty className="font-[inter] flex justify-center items-center w-screen h-screen bg-background-primary dark:bg-background-primary-dark">
         <EmptyHeader>
             <motion.div
                 initial = {{
