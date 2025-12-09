@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { spring } from "motion-dom";
 import axios, { isAxiosError } from "axios";
 import { OrbitProgress } from "react-loading-indicators";
+import { ApiUrl } from "@/lib/variable";
 
 
 export function Signup(): JSX.Element {
@@ -66,7 +67,7 @@ export function Signup(): JSX.Element {
 
         try {
             setIsLoading(true)
-            const res = await axios.post("http://127.0.0.1:8000/api/auth/register", {
+            const res = await axios.post(`${ApiUrl}/api/auth/register`, {
                 name: values.username,
                 email: values.email,
                 password: values.password,

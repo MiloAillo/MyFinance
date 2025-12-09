@@ -1,8 +1,8 @@
-import { NotFound } from "@/pages/NotFound";
+import { Navigate } from "react-router-dom";
 
 const notFound = {
     path: "*",
-    element: <NotFound />
+    element: <Navigate to={"/app"} />
 }
 
 export default notFound;

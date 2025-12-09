@@ -6,9 +6,10 @@ export async function DBSupportCheck() {
 }
 
 export async function DBcheck() {
-    const db = (await indexedDB.databases())[0]
-    if(db) {
-        return db
+    const db = await indexedDB.databases()
+    const dbExists = db.some(db => db.name === "MyFinance");
+    if(dbExists) {
+        return dbExists
     } else {
         return null
     }
