@@ -20,8 +20,8 @@ services:
     image: mysql:8
     container_name: mysql-db
     environment:
-      - MYSQL_ROOT_PASSWORD: root
-      - MYSQL_DATABASE: myfinance
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: myfinance
     volumes:
       - db_data:/var/lib/mysql
 
