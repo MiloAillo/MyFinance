@@ -149,28 +149,28 @@ export function TrackerHistory(): JSX.Element {
                     }}
                 >
                     <div className="flex justify-between w-full fixed left-[50%] -translate-x-[50%] px-10 md:w-160 bg-background-primary pt-3 -mt-3 pb-2 dark:bg-background-primary-dark">
-                        <h3 className="text-sm font-regular">Riwayat finansial</h3>
+                        <h3 className="text-sm font-regular">Transactions History</h3>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <FontAwesomeIcon icon={faFilter} />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="bg-white/50 backdrop-blur-xs w-45 mr-5 dark:bg-background-primary-dark/40 dark:backdrop-blur-xs">
                                 <DropdownMenuRadioGroup value={direction} onValueChange={setDirection}>
-                                    <DropdownMenuRadioItem value="asc">Naik</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="desc" defaultChecked>Turun</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="desc" defaultChecked>Descending</DropdownMenuRadioItem>
                                 </DropdownMenuRadioGroup>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuCheckboxItem
                                 checked={showwMinus}
                                 onCheckedChange={setShowMinus}
                                 >
-                                Pengeluaran
+                                Income
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuCheckboxItem
                                 checked={showPlus}
                                 onCheckedChange={setShowPlus}
                                 >
-                                Pemasukkan
+                                Expense
                                 </DropdownMenuCheckboxItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

@@ -578,9 +578,9 @@ export function Report(): JSX.Element {
                 >
                     <div className="mt-18 mb-3 flex flex-row justify-between w-fit gap-4 relative">
                         {[
-                            { value: 7, label: "7 hari" },
-                            { value: 30, label: "30 hari" },
-                            { value: 365, label: "1 tahun" }
+                            { value: 7, label: "7 days" },
+                            { value: 30, label: "30 days" },
+                            { value: 365, label: "1 year" }
                         ].map(item => (
                             <button
                                 key={item.value}
@@ -599,7 +599,7 @@ export function Report(): JSX.Element {
                     </div>
                     {session === "local" && displayData.transactionsHistory.length >= 3 && <div className="flex flex-col items-center w-[87%] gap-3">
                         <div className="flex justify-between w-full">
-                            <h3 className="text-sm font-regular">Laporan & Insight</h3>
+                            <h3 className="text-sm font-regular">Report & Insight</h3>
                         </div>
                         <div className="w-full flex flex-col gap-3.5">
                             {/* <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl">
@@ -609,28 +609,28 @@ export function Report(): JSX.Element {
                             <div className="flex flex-row gap-3.5">
                                 <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
-                                        <p className="font-normal text-base">Pemasukkan</p>
+                                        <p className="font-normal text-base">Income</p>
                                         <p className="font-medium text-lg">Rp.{displayData.income.toLocaleString("ID")}</p>
                                     </div>
                                     {Number.isNaN(displayData.incomePercentage) && null}
                                     {!Number.isNaN(displayData.incomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
-                                                {displayData.incomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
+                                                {displayData.incomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
                                     }
                                 </div>
                                 <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
-                                        <p className="font-normal text-base">Pengeluaran</p>
+                                        <p className="font-normal text-base">Expense</p>
                                         <p className="font-medium text-lg">Rp.{displayData.outcome.toLocaleString("ID")}</p>
                                     </div>
                                     {Number.isNaN(displayData.outcomePercentage) && null}
                                     {!Number.isNaN(displayData.outcomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
-                                                {displayData.outcomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
+                                                {displayData.outcomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
                                     }                                
@@ -685,19 +685,19 @@ export function Report(): JSX.Element {
                                 {displayData.highestIncome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faDollar} className="text-green-600/70" />
-                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pemasukkan terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Your biggest income {range === 7 ? "this week" : range === 30 ? "this month" : "this year"} is Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                                 {displayData.highestOutcome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500/80" />
-                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pengeluaran terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Your biggest outcome {range === 7 ? "this week" : range === 30 ? "this month" : "this year"} is Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                             </div>
                         </div>
                         <div className="w-full flex flex-col gap-2 mt-2">
-                            <h3 className="text-sm font-regular">Riwayat dalam rentang {range === 7 ? "7 hari" : range === 30 ? "1 bulan" : "1 tahun"}</h3>
+                            <h3 className="text-sm font-regular">Transaction History Within {range === 7 ? "7 Days" : range === 30 ? "1 Month" : "1 Year"}</h3>
                             {historyData.map(item => (
                             <Dialog>
                                 <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
@@ -720,7 +720,7 @@ export function Report(): JSX.Element {
                                     </div>
                                     <p className="text-base font-normal self-start -mt-2">{item.desc}</p>
                                     <p className="text-sm font-normal text-neutral-400 self-end">
-                                        {item.date.toLocaleDateString("ID", {
+                                        {item.date.toLocaleDateString("ENG", {
                                             weekday: "long",
                                             day: "numeric",
                                             month: "long",
@@ -759,7 +759,7 @@ export function Report(): JSX.Element {
                     </div>}
                     {session === "cloud" && displayData.transactionsHistory.length >= 3 && <div className="flex flex-col items-center w-[87%] gap-3">
                         <div className="flex justify-between w-full">
-                            <h3 className="text-sm font-regular">Laporan & Insight</h3>
+                            <h3 className="text-sm font-regular">Report & Insight</h3>
                         </div>
                         <div className="w-full flex flex-col gap-3.5">
                             {/* <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl">
@@ -769,28 +769,28 @@ export function Report(): JSX.Element {
                             <div className="flex flex-row gap-3.5">
                                 <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
-                                        <p className="font-normal text-base">Pemasukkan</p>
+                                        <p className="font-normal text-base">Income</p>
                                         <p className="font-medium text-lg">Rp.{displayData.income.toLocaleString("ID")}</p>
                                     </div>
                                     {Number.isNaN(displayData.incomePercentage) && null}
                                     {!Number.isNaN(displayData.incomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
-                                                {displayData.incomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
+                                                {displayData.incomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
                                     }
                                 </div>
                                 <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
-                                        <p className="font-normal text-base">Pengeluaran</p>
+                                        <p className="font-normal text-base">Expense</p>
                                         <p className="font-medium text-lg">Rp.{displayData.outcome.toLocaleString("ID")}</p>
                                     </div>
                                     {Number.isNaN(displayData.outcomePercentage) && null}
                                     {!Number.isNaN(displayData.outcomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
-                                                {displayData.outcomePercentage}% dari {range === 7 ? "minggu lalu" : range === 30 ? "bulan lalu" : "tahun lalu"}
+                                                {displayData.outcomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
                                     }                                
@@ -845,19 +845,19 @@ export function Report(): JSX.Element {
                                 {displayData.highestIncome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faDollar} className="text-green-600/70" />
-                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pemasukkan terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Your biggest income {range === 7 ? "this week" : range === 30 ? "this month" : "this year"} is Rp.{displayData.highestIncome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                                 {displayData.highestOutcome &&                                
                                     <div className="flex justify-start items-center gap-2">
                                         <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500/80" />
-                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Pengeluaran terbesarmu {range === 7 ? "minggu ini" : range === 30 ? "bulan ini" : "tahun ini"} adalah Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
+                                        <p className="text-sm font-normal text-neutral-700 dark:text-neutral-300">Your biggest outcome {range === 7 ? "this week" : range === 30 ? "this month" : "this year"} is Rp.{displayData.highestOutcome?.toLocaleString("ID")}</p>
                                     </div>
                                 }
                             </div>
                         </div>
                         <div className="w-full flex flex-col gap-2 mt-2">
-                            <h3 className="text-sm font-regular">Riwayat dalam rentang {range === 7 ? "7 hari" : range === 30 ? "1 bulan" : "1 tahun"}</h3>
+                            <h3 className="text-sm font-regular">Transactions History Within {range === 7 ? "7 Days" : range  === 30 ? "1 Month" : "1 Year"}</h3>
                             {historyData?.map(item => (
                             <Dialog>
                                 <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
@@ -880,7 +880,7 @@ export function Report(): JSX.Element {
                                     </div>
                                     <p className="text-base font-normal self-start -mt-2">{item.description}</p>
                                     <p className="text-sm font-normal text-neutral-400 self-end">
-                                        {(new Date(item.transaction_date)).toLocaleDateString("ID", {
+                                        {(new Date(item.transaction_date)).toLocaleDateString("ENG", {
                                             weekday: "long",
                                             day: "numeric",
                                             month: "long",
