@@ -18,7 +18,7 @@ export function TrackerHistory(): JSX.Element {
     // const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ showPlus, setShowPlus ] = useState(true)
     const [ showwMinus, setShowMinus ] = useState(true)
-    const [ _session, setSession ] = useState<"cloud" | "local" | null>(null)
+    const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>([])
 
     const [ page, setPage ] = useState<number>(1)
