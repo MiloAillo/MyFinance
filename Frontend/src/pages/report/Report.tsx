@@ -15,7 +15,7 @@ import { ApiUrl } from "@/lib/variable";
 export function Report(): JSX.Element {
     const { id } = useParams()
 
-    const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
+    const [ _session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>()
     const [ displayData, setDisplayData ] = useState<{income: number, outcome: number, incomePercentage: number, outcomePercentage: number, chartData: any[], highestIncome: number | null, highestOutcome: number | null, transactionsHistory: any[]}>({income: 0, outcome: 0, incomePercentage: 0, outcomePercentage: 0, chartData: [], highestIncome: null, highestOutcome: null, transactionsHistory: []})
     const [ historyData, setHistoryData ] = useState<any[]>([])
