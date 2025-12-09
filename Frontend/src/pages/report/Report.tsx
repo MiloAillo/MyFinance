@@ -15,7 +15,7 @@ import { ApiUrl } from "@/lib/variable";
 export function Report(): JSX.Element {
     const { id } = useParams()
 
-    const [ _session, setSession ] = useState<"cloud" | "local" | null>(null)
+    const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>()
     const [ displayData, setDisplayData ] = useState<{income: number, outcome: number, incomePercentage: number, outcomePercentage: number, chartData: any[], highestIncome: number | null, highestOutcome: number | null, transactionsHistory: any[]}>({income: 0, outcome: 0, incomePercentage: 0, outcomePercentage: 0, chartData: [], highestIncome: null, highestOutcome: null, transactionsHistory: []})
     const [ historyData, setHistoryData ] = useState<any[]>([])
@@ -700,7 +700,7 @@ export function Report(): JSX.Element {
                             <h3 className="text-sm font-regular">Transaction History Within {range === 7 ? "7 Days" : range === 30 ? "1 Month" : "1 Year"}</h3>
                             {historyData.map(item => (
                             <Dialog>
-                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
+                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-black/5 dark:border">
                                     {item.image && <div style={{backgroundImage: `url(${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
                                         <div className="flex flex-col w-full pb-5 gap-0.5">
@@ -797,7 +797,7 @@ export function Report(): JSX.Element {
                                 </div>
                             </div>
                         </div>
-                        <div className="w-full bg-white p-3 rounded-xl dark:dark:bg-black/5 dark:ring dark:ring-white/10">
+                        <div className="w-full bg-white p-3 rounded-xl dark:bg-black/5 dark:ring dark:ring-white/10">
                             <ChartContainer config={chartConfig}>
                                 <AreaChart
                                     accessibilityLayer
@@ -860,7 +860,7 @@ export function Report(): JSX.Element {
                             <h3 className="text-sm font-regular">Transactions History Within {range === 7 ? "7 Days" : range  === 30 ? "1 Month" : "1 Year"}</h3>
                             {historyData?.map(item => (
                             <Dialog>
-                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-neutral-800/60 dark:border">
+                                <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-black/5 dark:border">
                                     {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
                                         <div className="flex flex-col w-full pb-5 gap-0.5">
