@@ -37,6 +37,7 @@ export function Access(): JSX.Element {
 
     const login = async (values: z.infer<typeof loginSchema>): Promise<void> => {
         console.log(values)
+        console.log(ApiUrl)
         setIsInternalServerError(false)
         setIsInvalidCredentials(false)
         setIsError(false)

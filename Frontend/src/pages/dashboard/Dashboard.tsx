@@ -59,6 +59,7 @@ export function Dashboard(): JSX.Element {
     }
     
     useEffect(() => {
+        console.log("mainLoaderData", mainLoaderData)
         setUser(mainLoaderData)
 
         const session = localStorage.getItem("session")

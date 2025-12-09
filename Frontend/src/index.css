@@ -131,11 +131,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
 }
 
 html {
   background-color: #f7f7f7;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 html.dark {
