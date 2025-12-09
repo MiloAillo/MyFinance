@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    container_name: laravel
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: myfinance
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    volumes:
+      - .:/app
+
+  db:
+    image: mysql:8
+    container_name: mysql-db
+    environment:
+      - MYSQL_ROOT_PASSWORD: root
+      - MYSQL_DATABASE: myfinance
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
