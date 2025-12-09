@@ -74,10 +74,10 @@ export function Access(): JSX.Element {
     }, [])
 
     return (
-        <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5">
+        <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
                 {!isOut && <motion.h1
-                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide"
+                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary"
                     initial={{
                         x: 30,
                         opacity: 0,
@@ -163,7 +163,7 @@ export function Access(): JSX.Element {
                                     }
                                 }}
                             >
-                                <Alert variant="destructive" className="w-full bg-background-primary">
+                                <Alert variant="destructive" className="w-full bg-background-primary dark:bg-background-primary-dark">
                                     <AlertCircleIcon />
                                     <AlertTitle className="font-semibold tracking-normal">Sign In Failed</AlertTitle>
                                     <AlertDescription>
@@ -211,7 +211,7 @@ export function Access(): JSX.Element {
                                                         <FormControl>
                                                             <motion.div className="flex items-center justify-end w-full" whileTap={{ scale: 0.95, width: "110%", y: 3, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}}>
                                                                 <Input type={`${show ? "text" : "password"}`} {...field} className="w-full" />
-                                                                <FontAwesomeIcon icon={faEyeSlash} onClick={() => setShow(!show)} className="absolute pr-3 text-neutral-700" />
+                                                                <FontAwesomeIcon icon={faEyeSlash} onClick={() => setShow(!show)} className="absolute pr-3 text-neutral-700 dark:text-neutral-300" />
                                                             </motion.div>
                                                         </FormControl>
                                                         <FormMessage />
@@ -229,15 +229,15 @@ export function Access(): JSX.Element {
                         </Form>
                         <div className="flex flex-col justify-center items-center w-full">
                             <div className="w-full h-px bg-neutral-300" />
-                            <p className="absolute bg-background-primary w-fit h-fit px-2 font-medium text-sm text-neutral-600">or</p>
+                            <p className="absolute bg-background-primary w-fit h-fit px-2 font-medium text-sm text-neutral-600 dark:bg-background-primary-dark dark:text-neutral-400">or</p>
                         </div>
                         <div className="flex flex-col justify-center gap-5 w-full">
-                            <motion.div className="w-full self-center" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup", 700) }} whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}><Button className="bg-transparent border-3 border-neutral-800 text-neutral-800 font-semibold text-[14px] hover:text-neutral-100 tracking-normal py-4 w-full">Create account</Button></motion.div>
+                            <motion.div className="w-full self-center" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup", 700) }} whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}><Button className="bg-transparent border-3 border-neutral-800 text-neutral-800 font-semibold text-[14px] hover:text-neutral-100 tracking-normal py-4 w-full dark:border-neutral-400 dark:text-white/80">Create account</Button></motion.div>
                             {isLocalSupported && <p onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup/local", 700)}} className="text-center font-medium text-sm text-blue-500 hover:text-blue-400 w-full">Sign in without an account</p>}
                             {!isLocalSupported && 
                                 <div>
                                     <p className="text-center font-medium text-sm text-red-500/60 line-through w-full">Sign in without an account</p>
-                                    <p className="font-medium text-sm text-black/50 text-center">Your browser doesnt support this feature, for more information please read our <span className="font-medium text-sm text-blue-500/60 hover:text-blue-400/60 underline">FAQ</span></p>
+                                    <p className="font-medium text-sm text-black/50 text-center dark:text-white/50">Your browser doesnt support this feature, for more information please read our <span className="font-medium text-sm text-blue-500/60 hover:text-blue-400/60 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/faq", 600)}}>FAQ</span></p>
                                 </div>
                             }
                         </div>

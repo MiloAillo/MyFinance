@@ -5,18 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>myfinance</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/32x32.png">
+    <link rel="apple-touch-icon" href="/icons/128x128.png">
+    <link rel="apple-touch-icon" href="/icons/256x256.png">
+    <link rel="apple-touch-icon" href="/icons/512x512.png">
+    <meta name="apple-mobile-web-app-status-bar" content="#f7f7f7">
+    <meta name="theme-color " content="#f7f7f7">
+    <meta name="description" content="My Awesome App description">
+    <link rel="icon" href="/icons/32x32.png">
+    <link rel="mask-icon" href="/mask-icon.svg" color="#FFFFFF">
+<!-- theme purposes -->
+    <script>
+      const theme = localStorage.getItem('vite-ui-theme') || "light";
+      console.log(theme)
+      // apply theme class BEFORE anything renders
+      document.documentElement.classList.add(theme);
+
+      // apply background BEFORE paint
+      document.documentElement.style.backgroundColor = theme === "dark" ? "#211E1E" : "#F7F7F7";
+      if(!localStorage.getItem('vite-ui-theme')) localStorage.setItem("vite-ui-theme", "light")
+    </script>
   </head>
-  <body style="background-color: #F7F7F7;">
+  <body>
     <div id="root"></div>
-  <script>
-    const theme = localStorage.getItem('theme')
-    if(!theme) {
-      localStorage.setItem("theme", "light")
-      document.body.style.backgroundColor = '#F7F7F7';
-    } else {
-      document.body.style.backgroundColor = theme === "dark" ? "#000000" : "#F7F7F7"
-    }
-  </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

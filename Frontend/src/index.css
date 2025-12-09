@@ -50,11 +50,13 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-button-primary: var(--button-primary);
   --color-background-primary: var(--background-primary);
+  --color-background-primary-dark: var(--background-primary-dark);
 }
 
 :root {
   --button-primary: linear-gradient(356deg, rgba(55, 255, 182, 1) 30%, rgba(255, 248, 55, 1) 100%);
   --background-primary: #F7F7F7;
+  --background-primary-dark: #211E1E;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -130,4 +132,12 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+html {
+  background-color: #f7f7f7;
+}
+
+html.dark {
+  background-color: #211E1E;
 }

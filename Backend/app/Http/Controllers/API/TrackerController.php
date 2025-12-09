@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\DeleteTrackerRequest;
 use App\Http\Requests\GetAllTrackersRequest;
+use App\Http\Requests\GetAllTransactionsByTracker;
+use App\Http\Requests\GetAllTransactionsByTrackerRequest;
 use App\Http\Requests\GetTrackerRequest;
 use App\Http\Requests\GetTrackersBySearchRequest;
 use App\Http\Requests\StoreTrackerRequest;
@@ -89,6 +91,24 @@ class TrackerController extends Controller
         }
     }
 
+    public function allTransactions(GetAllTransactionsByTrackerRequest $request, Tracker $tracker)
+    {
+        try {
+            $tracker = $tracker->with(['transactions' => function ($query) {
+                $query->latest();
+            }])->findOrFail($tracker->id);
+
+            $tracker->current_balance = $tracker->current_balance;
+
+            return ResponseHelper::successResponse(
+                ['tracker' => $tracker],
+                'Tracker transactions fetched successfully.'
+            );
+        } catch (\Exception $e) {
+            return ResponseHelper::logAndErrorResponse($e, 'Tracker transactions fetch error', 'Failed to fetch tracker transactions.');
+        }
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -141,6 +161,8 @@ class TrackerController extends Controller
             $search = $request->get('q');
 
             $trackers = $tracker
+            ->with(['transactions' => function ($query) {
+                $query->latest()->limit(3);}])
             ->where('user_id', $user->id)
             ->where(function($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");

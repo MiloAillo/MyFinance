@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     use HasFactory;
+
+    const TYPES = ['income', 'expense'];
     
     protected $fillable = [
         'tracker_id',
@@ -22,7 +24,7 @@ class Transaction extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'transaction_date' => 'date',
+        'transaction_date' => 'datetime',
     ];
 
     public function tracker()
@@ -35,14 +37,21 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeIncome($query)
+    public function scopeFilterByType($query, $type = null)
     {
-        return $query->where('type', 'income');
-    }
+        if (is_null($type)) {
+            return $query->whereRaw('1 = 0');
+        }
 
-    public function scopeExpense($query)
-    {
-        return $query->where('type', 'expense');
+        if ($type === 'both') {
+            return $query->whereIn('type', self::TYPES);
+        }
+
+        if (in_array($type, self::TYPES)) {
+            return $query->where('type', $type);
+        }
+
+        return $query->whereRaw('1 = 0');
     }
 
     public function scopeByDateRange($query, $startDate, $endDate)

@@ -1,0 +1,24 @@
+{
+    "name": "MyFinance",
+    "short_name": "MyFinance",
+    "start_url": "/",
+    "display": "standalone",
+    "icons": [
+        {
+            "src": "/icons/32x32.png",
+            "type": "image/png", "sizes": "32x32"
+        },
+        {
+            "src": "/icons/128x128.png",
+            "type": "image/png", "sizes": "128x128"
+        },
+        {
+            "src": "/icons/256x256.png",
+            "type": "image/png", "sizes": "256x256"
+        },
+        {
+            "src": "/icons/512x512.png",
+            "type": "image/png", "sizes": "512x512"
+        }
+    ]
+}

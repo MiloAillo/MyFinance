@@ -27,6 +27,9 @@ export function Signup(): JSX.Element {
     const [ isError, setIsError ] = useState<boolean>(false)
     const [ isUnknownError, setIsUnknownError ] = useState<boolean>(false)
     const [ isLoading, setIsLoading ] = useState<boolean>(false)
+    
+    const [ isConsentError, setIsConsentError ] = useState<boolean>(false)
+    const [ consent, setConsent ] = useState<boolean>(false)
 
     const signupSchema = z.object({
         username: z.string(),
@@ -53,6 +56,13 @@ export function Signup(): JSX.Element {
         setIsUnknownError(false)
         setIsEmailError(false)
         setIsNameError(false)
+        setIsConsentError(false)
+
+        if(!consent) {
+            setIsError(true)
+            setIsConsentError(true)
+            return
+        }
 
         try {
             setIsLoading(true)
@@ -105,10 +115,10 @@ export function Signup(): JSX.Element {
     }
 
     return (
-        <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5">
+        <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
                 {!isOut && <motion.h1
-                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide"
+                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary"
                     initial={{
                         x: 30,
                         opacity: 0,
@@ -194,7 +204,7 @@ export function Signup(): JSX.Element {
                                     }
                                 }}
                             >
-                                <Alert variant="destructive" className="w-full bg-background-primary">
+                                <Alert variant="destructive" className="w-full bg-background-primary dark:bg-background-primary-dark">
                                     <AlertCircleIcon />
                                     <AlertTitle className="font-semibold tracking-normal">Sign In Failed</AlertTitle>
                                     <AlertDescription>
@@ -210,6 +220,9 @@ export function Signup(): JSX.Element {
                                         }
                                         {isUnknownError &&
                                             <li>Received an unknown error. Please try again in a few moment.</li>
+                                        }
+                                        {isConsentError &&
+                                            <li>You must agree to the terms to use our service</li>
                                         }
                                         </ul>
                                     </AlertDescription>
@@ -266,7 +279,7 @@ export function Signup(): JSX.Element {
                                                             <FormControl>
                                                                 <motion.div className="flex items-center justify-end w-full" whileTap={{ scale: 0.95, width: "110%", y: 3, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}}>
                                                                     <Input type={`${show ? "text" : "password"}`} {...field} className="w-full" />
-                                                                    <FontAwesomeIcon icon={faEyeSlash} onClick={() => setShow(!show)} className="absolute pr-3 text-neutral-700" />
+                                                                    <FontAwesomeIcon icon={faEyeSlash} onClick={() => setShow(!show)} className="absolute pr-3 text-neutral-700 dark:text-neutral-300" />
                                                                 </motion.div>
                                                             </FormControl>
                                                             <FormMessage />
@@ -276,8 +289,8 @@ export function Signup(): JSX.Element {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Checkbox id="tos" />
-                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline">Terms of Services</span></label>
+                                            <Checkbox id="tos" onCheckedChange={(e) => setConsent(e as any)} />
+                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/tos", 600)}}>Terms of Services</span></label>
                                         </div>
                                     </div>
                                     <AnimatePresence mode="popLayout">

@@ -9,7 +9,6 @@ import { TransferTrackerItem } from "@/components/TransferTrackerItem";
 import { OrbitProgress } from "react-loading-indicators"; 
 import { DBdelete } from "@/lib/db";
 
-
 export function Transfer(): JSX.Element {
     const [ isTransfer, setIsTransfer ] = useState<boolean>(false)
     const [ selectedItems, setSelectedItems ] = useState<number[]>([])

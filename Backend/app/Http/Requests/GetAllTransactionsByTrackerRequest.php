@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class GetTransactionsWithPaginationRequest extends FormRequest
+class GetAllTransactionsByTrackerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,10 +29,7 @@ class GetTransactionsWithPaginationRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'page' => $this->get('page', 1),
-            'per_page' => $this->get('per_page', 10),
-            'order' => $this->get('order', 'desc'),
-            'type' => $this->get('type', null),
+            
         ]);
     }
 }

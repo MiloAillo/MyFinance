@@ -4,8 +4,11 @@ namespace App\Http\Requests;
 
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ResponseHelper;
+use Carbon\Traits\Timestamp;
+use DateTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class StoreTransactionRequest extends FormRequest
@@ -45,20 +48,9 @@ class StoreTransactionRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        if ($this->hasFile('image')) {
-            $file = $this->file('image');
-            $name = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-            $file->storeAs('transactions/'.'user_id:'.$this->user()->id.'/tracker_id:'.$this->route('tracker')->id, $name, 'public');
-            $image = 'transactions/'.'user_id:'.$this->user()->id. '/tracker_id:' . $this->route('tracker')->id . '/' . $name;
-        } else {
-            $image = null;
-        }
-
         $this->merge([
             'user_id' => $this->user()->id,
             'tracker_id' => $this->route('tracker')->id,
-            'image' => $image,
-            'transaction_date' => date('Y-m-d', strtotime($this->transaction_date)),
         ]);
     }
     /**

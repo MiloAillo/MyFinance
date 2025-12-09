@@ -9,6 +9,8 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { TrackerNavbar } from "@/components/TrackerNavbar";
 import { useParams } from "react-router-dom";
 import { DBaddincome, DBaddoutcome, DBgetalltransactions, DBgetonetracker } from "@/lib/db";
+import axios from "axios";
+import { ApiUrl } from "@/lib/variable";
 
 
 export function Tracker(): JSX.Element {
@@ -17,7 +19,7 @@ export function Tracker(): JSX.Element {
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>()
     const [ chart, setChart ] = useState<any[]>([])
-    const [ trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number } | null>(null)
+    const [ trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number, current_balance: number } | null>(null)
     const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ pendapatanUrl, setPendapatanUrl ] = useState<string | null>(null)
     const [ pengeluaranUrl, setPengeluaranUrl ] = useState<string | null>(null)
@@ -39,6 +41,8 @@ export function Tracker(): JSX.Element {
     const pengeluaranDate = useRef<HTMLInputElement | null>(null)
     const [ pengeluaranNominal, setPengeluaranNominal ] = useState<string>("")
 
+    const [ _theme, setTheme ] = useState<"light" | "dark" | "system">("system")
+
     // to get all transactions and set it inside useState
     const localInitialize = async () => {
         try {
@@ -52,16 +56,31 @@ export function Tracker(): JSX.Element {
     }
     
     const cloudInitialize = async () => {
-        //
+        try {
+            const res = await axios.get(`${ApiUrl}/api/trackers/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+                }
+            })
+
+            const data = await res.data
+
+            console.log("cloud initialize data fetch", data.data.tracker)
+            setData(data.data.tracker.transactions as any[])
+            setTrackerData(data.data.tracker)
+        } catch(err) {
+            console.log(err)
+            // add error catcher
+        }
     }
 
     //get the tracker data for local
-    const getTrackerData = async () => {
+    const getLocalTrackerData = async () => {
         try {
             if(id) {
                 const res = await DBgetonetracker(parseInt(id, 10))
                 console.log("tracker data", res)
-                setTrackerData(res as { name: string; id: number; initialBalance: number })
+                setTrackerData(res as { name: string; id: number; initialBalance: number, current_balance: number })
             }
         } catch(err) {
             console.log(err)
@@ -95,6 +114,29 @@ export function Tracker(): JSX.Element {
                     console.log(err)
                 }
             }
+
+            if(session === "cloud") {
+                try {
+                    const formData = new FormData()
+                    formData.append('name', judul)
+                    formData.append('type', 'income')
+                    formData.append('amount', cleanedBalance.toString())
+                    formData.append('description', desc)
+                    if(image) formData.append('image', image)
+                    formData.append('transaction_date', date.toISOString().slice(0, 19).replace('T', ' '))
+
+                    const res = await axios.post(`${ApiUrl}/api/trackers/${id}/transactions`, formData, {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+                        }
+                    })
+
+                    console.log(res)
+                    cloudInitialize()
+                } catch(err) {
+                    console.log(err)
+                }
+            }
         }
     }
 
@@ -116,12 +158,35 @@ export function Tracker(): JSX.Element {
                     console.log(err)
                 }
             }
+
+            if(session === "cloud") {
+                try {
+                    const formData = new FormData()
+                    formData.append('name', judul)
+                    formData.append('type', 'expense')
+                    formData.append('amount', cleanedBalance.toString())
+                    formData.append('description', desc)
+                    if(image) formData.append('image', image)
+                    formData.append('transaction_date', date.toISOString().slice(0, 19).replace('T', ' '))
+
+                    const res = await axios.post(`${ApiUrl}/api/trackers/${id}/transactions`, formData, {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+                        }
+                    })
+
+                    console.log(res)
+                    cloudInitialize()
+                } catch(err) {
+                    console.log(err)
+                }
+            }
         }
     }
 
     // parse data for transactions history (NEED IF ELSE FOR CLOUD TO WORK!) 
     const setBalanceHistory = async () => {
-        if(data) {
+        if(data && session === "local") {
             const splicedData = (data.sort((a, b) => b.date - a.date)).slice(0, 3) as {name: string, date: Date, desc: string, id: number, image: File, income: number, tracker_id: number, type: string}[]
 
             const clearedData: {name: string, date: string, amount: string}[] = []
@@ -129,7 +194,7 @@ export function Tracker(): JSX.Element {
                 // solve the date object to string
                 const year = item.date.getFullYear()
                 const month = item.date.getMonth()
-                const day = item.date.getDay()
+                const day = item.date.getDate()
                 const formattedDate = `${day}-${month}-${year}` 
 
                 // solve the outcome income format
@@ -141,14 +206,37 @@ export function Tracker(): JSX.Element {
                 setHistoryBalance(clearedData)
             });
         }
+
+        if(data && session === "cloud") {
+            const formattedData = data
+            
+            const slicedData = (formattedData.sort((a, b) => b.transaction_date - a.transaction_date)).slice(0, 3)
+            const clearedData: {name: string, date: string, amount: string}[] = []
+            slicedData.forEach((item) => {
+                // solve the date object to string
+                const year = item.transaction_date.getFullYear()
+                const month = item.transaction_date.getMonth()
+                const day = item.transaction_date.getDate()
+                const formattedDate = `${day}-${month}-${year}`
+                console.log(`${day}-${month}-${year}`, item.transaction_date)
+                
+                // solve the outcome income format
+                const type = item.type
+                const amount = parseInt(item.amount, 10)
+                const formattedAmount = type === "income" ? `+ Rp.${amount.toLocaleString("ID")}` : `- Rp.${amount.toLocaleString("ID")}`
+
+                clearedData.push({name: item.name, date: formattedDate, amount: formattedAmount})
+            })
+
+            setHistoryBalance(clearedData)
+        }
     }
 
     // parse data for report preview (NEED IF ELSE FOR CLOUD TO WORK!) 
     const setReportPreview = () => {
-        if(data) {
+        if(data && session === "local") {
             const sortData = (data.sort((a, b) => a.date - b.date)) as {name: string, date: Date, desc: string, id: number, image: File, income: number, tracker_id: number, type: string}[]
 
-            
             // variable for final income and outcome
             let income = 0
             let outcome = 0
@@ -169,17 +257,56 @@ export function Tracker(): JSX.Element {
             
             setReport({income: income, outcome: outcome, balance: balance})
         }
+
+        if(data && session === "cloud") {
+            const formattedData: any[] = [];
+            data.forEach((item) => {
+                const realDate = new Date(item.transaction_date)
+                item.transaction_date = realDate
+
+                return formattedData.push(item)
+            })
+            
+            formattedData.sort((a, b) => a.transaction_date - b.transaction_date)
+
+            // variable for final income and outcome
+            let income = 0
+            let outcome = 0
+            let balance = 0
+            
+            formattedData.forEach((item) => {
+                // solve the outcome income format
+                const type = item.type
+                const amount = parseInt(item.amount, 10)
+                
+                if(type === "income") {
+                    income += amount
+                    balance += amount
+                } else {
+                    outcome += amount
+                    balance -= amount
+                }
+            });
+
+            setReport({income: income, outcome: outcome, balance: balance})
+        }
     }
 
     useEffect(() => {
-        getTrackerData()
-        
         const session = localStorage.getItem("session")
         if(session === null) window.location.href = "/access"
         
         setSession(session as "cloud" | "local")
-        if(session === "cloud") cloudInitialize()
-        if(session === "local") localInitialize()
+        if(session === "cloud") {
+            cloudInitialize()
+        }
+
+        if(session === "local") {
+            localInitialize()
+            getLocalTrackerData()
+        }
+
+        getTheme()
     }, [])
     
     const getTimestampNow = () => {
@@ -196,60 +323,102 @@ export function Tracker(): JSX.Element {
         setToday(`${year}-${month}-${day}T${hour}:${minute}:${second}`)
     }
 
-    useEffect(() => {
-        if(data) {
-            const defaultData = data.sort((a, b) => a.date - b.date)
-            let newBalance: number = trackerData?.initialBalance ?? 0;
-            // get the data
-            // 1. count the last balance
-            defaultData?.forEach((item) => {
-                console.log(item.income, item.type)
-                if(item.type === "income") newBalance += item.income ?? 0
-                if(item.type === "outcome") newBalance -= item.income ?? 0
-            });
-            setBalance(newBalance)
-        }
-        
-        // 2. build the chart
-        if(data) {
-            // sort the data from the newest
-            let sortedData = data.sort((a, b) => b.date - a.date)
-            console.log("sortedData", sortedData)
-            
-            // variable
-            let cuttedData = []
+    const getTheme = () => {
+        setTheme(localStorage.getItem("vite-ui-theme") as "light" | "dark" | "system")
+    }
 
-            // get only 7 newest data
-            const dataLength = data.length
+    useEffect(() => {
+        if(session === "local") {            
             if(data) {
-                if(data.length > 7) {
-                    cuttedData = data.slice(0, 7)
-                    console.log("sliced data")
-                    console.log("cuttedData", cuttedData, dataLength)
-                } else {
-                    console.log("no data sliced")
-                    cuttedData = sortedData
-                    console.log("cuttedData", sortedData)
-                }
+                const defaultData = data.sort((a, b) => a.date - b.date)
+                let newBalance: number = trackerData?.initialBalance ?? 0;
+                // get the data
+                // 1. count the last balance
+                defaultData?.forEach((item) => {
+                    console.log(item.income, item.type)
+                    if(item.type === "income") newBalance += item.income ?? 0
+                    if(item.type === "outcome") newBalance -= item.income ?? 0
+                });
+                setBalance(newBalance)
             }
             
-            
-            let balance = 0
-            const arrayBalance: {date: number, balance: number}[] = []
-
-            cuttedData = cuttedData.sort((a, b) => a.date - b.date)
-            cuttedData.forEach(item => {
-                if (item.type === "income") balance += item.income ?? 0
-                if (item.type === "outcome") balance -= item.income ?? 0
-
-                arrayBalance.push({
-                    date: new Date(item.date).getTime(),
-                    balance: balance
+            // 2. build the chart
+            if(data) {
+                // sort the data from the newest
+                let sortedData = data.sort((a, b) => b.date - a.date)
+                console.log("sortedData", sortedData)
+                
+                // variable
+                let cuttedData = []
+    
+                // get only 7 newest data
+                const dataLength = data.length
+                if(data) {
+                    if(data.length > 7) {
+                        cuttedData = data.slice(0, 7)
+                        console.log("sliced data")
+                        console.log("cuttedData", cuttedData, dataLength)
+                    } else {
+                        console.log("no data sliced")
+                        cuttedData = sortedData
+                        console.log("cuttedData", sortedData)
+                    }
+                }
+                
+                
+                let balance = 0
+                const arrayBalance: {date: number, balance: number}[] = []
+    
+                cuttedData = cuttedData.sort((a, b) => a.date - b.date)
+                cuttedData.forEach(item => {
+                    if (item.type === "income") balance += item.income ?? 0
+                    if (item.type === "outcome") balance -= item.income ?? 0
+    
+                    arrayBalance.push({
+                        date: new Date(item.date).getTime(),
+                        balance: balance
+                    })
                 })
-            })
-            console.log("array balance look up", arrayBalance)
+                console.log("array balance look up", arrayBalance)
+    
+                setChart(arrayBalance)
+            }
+        }
+        if(session === "cloud") {
+            if(data) {
+                setBalance(trackerData ? trackerData.current_balance : 0)
 
-            setChart(arrayBalance)
+                // set the transaction date to real date
+                const formattedData: any[] = []
+                data.forEach((item) => {
+                    const realDate = new Date(item.transaction_date)
+                    item.transaction_date = realDate
+
+                    return formattedData.push(item)
+                })
+                console.log("real date data", formattedData)
+
+                // sort data from the oldest
+                formattedData.sort((a, b) => a.transaction_date - b.transaction_date)
+                console.log("oldest to newest data", formattedData)
+
+                // build the chart
+                let balance = 0
+                const arrayBalance: {date: number, balance: number}[] = []
+    
+                formattedData.forEach(item => {
+                    if (item.type === "income") balance += parseInt(item.amount, 10) ?? 0
+                    if (item.type === "expense") balance -= parseInt(item.amount, 10) ?? 0
+    
+                    arrayBalance.push({
+                        date: item.transaction_date.getTime(),
+                        balance: balance
+                    })
+                })
+                console.log("array balance look up", arrayBalance)
+    
+                setChart(arrayBalance)
+            }
         }
     }, [data, trackerData])
 
@@ -268,8 +437,8 @@ export function Tracker(): JSX.Element {
     } satisfies ChartConfig
 
     return (
-        <section className="flex flex-col items-center">
-            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} backLink="/app" trackerName={trackerData?.name ?? ""} />
+        <section className="flex flex-col items-center md:max-w-[650px]">
+            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} backLink="/app" trackerName={trackerData?.name ?? ""} getTheme={getTheme} />
             <AnimatePresence>
                 {!isOut && <motion.div
                     key={"main"}
@@ -297,7 +466,7 @@ export function Tracker(): JSX.Element {
                 >
                     <div className="w-full flex flex-col gap-3">
                         <div className="w-full">
-                            <p className="font-normal text-sm">Saldo kamu:</p>
+                            <p className="font-normal text-sm text-neutral-700 dark:text-neutral-300">Your balance:</p>
                             <p className="font-semibold text-xl">Rp.{balance.toLocaleString("ID")}</p>
                         </div>
                         <div className="w-full">
@@ -338,9 +507,9 @@ export function Tracker(): JSX.Element {
                                     <Area
                                         dataKey="balance"
                                         type='natural'
-                                        fill="#16E716"
+                                        fill={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                         fillOpacity={0.2}
-                                        stroke="#16E716"
+                                        stroke={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                     />
                                 </AreaChart>
                             </ChartContainer>
@@ -348,17 +517,17 @@ export function Tracker(): JSX.Element {
                         <div className="flex justify-between w-full gap-5">
                             <Dialog>
                                 <DialogTrigger className="flex-1 w-full" onClick={() => getTimestampNow()}>
-                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-white border-2 border-green-300 text-neutral-800" onClick={() => setPendapatanUrl(null)} >+ Pendapatan</Button></motion.div>
+                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-green-400/75 dark:bg-violet-600 dark:border-violet-600 text-neutral-800 font-semibold hover:bg-green-400 dark:hover:bg-violet-500 dark:text-white" onClick={() => setPendapatanUrl(null)} >+ Income</Button></motion.div>
                                 </DialogTrigger>
-                                <DialogContent className="flex flex-col shadow-green-300/40">
-                                    <DialogTitle className="font-medium">Pendapatan</DialogTitle>
+                                <DialogContent className="flex flex-col shadow-green-300/40 dark:shadow-green-300/7 bg-white/80 dark:bg-background-primary-dark/60 backdrop-blur-2xl">
+                                    <DialogTitle className="font-medium">Income</DialogTitle>
                                     <DialogDescription className="flex flex-col gap-4">
                                         <div className="flex flex-col gap-2">
-                                            <Input ref={pendapatanJudul} placeholder="Judul" />
-                                            <Input value={pendapatanNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Nominal" />
-                                            <Input ref={pendapatanDesc} placeholder="Deskripsi (opsional)" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanJudul} placeholder="Title" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" value={pendapatanNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Amount" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanDesc} placeholder="Description (optional)" />
                                             <div className="flex flex-row gap-2 mt-2">
-                                                <Input ref={pendapatanImage} type="file" onChange={(e) => {
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanImage} type="file" onChange={(e) => {
                                                     const file = e.target.files
                                                     console.log(e.target.files)
                                                     if(file?.length === 0) {
@@ -371,27 +540,27 @@ export function Tracker(): JSX.Element {
                                                         isAllowed && setPendapatanUrl(URL.createObjectURL(file[0]))
                                                     }
                                                 }} />
-                                                <Input ref={pendapatanDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
                                             </div>
                                             <img src={pendapatanUrl ? pendapatanUrl : undefined} alt="" className="w-[50%] max-h-40 rounded-md" />
                                         </div>
-                                        <DialogClose onClick={() => addIncome()} className="bg-transparent border-2 border-green-300 text-black font-[Inter] font-semibold py-1.5 rounded-md">Tambah</DialogClose>
+                                        <DialogClose onClick={() => addIncome()} className="bg-green-400/75 dark:bg-violet-600 dark:text-white border-2 dark:border-violet-700 border-green-400 text-black font-[Inter] font-semibold py-1.5 rounded-md">Add Income</DialogClose>
                                     </DialogDescription>
                                 </DialogContent>
                             </Dialog>
                             <Dialog>
                                 <DialogTrigger className="flex-1 w-full" onClick={() => getTimestampNow()}>
-                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-white border-2 border-red-300 text-neutral-800">- Pengeluaran</Button></motion.div>
+                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-red-400/80 font-semibold text-neutral-800 dark:bg-red-600 dark:border-red-600 hover:bg-red-400 dark:text-white">- Expense</Button></motion.div>
                                 </DialogTrigger>
-                                <DialogContent className="flex flex-col shadow-red-300/40">
-                                    <DialogTitle className="font-medium">Pengeluaran</DialogTitle>
+                                <DialogContent className="flex flex-col shadow-red-400/20 dark:shadow-red-400/7 bg-white/80 dark:bg-background-primary-dark/60 backdrop-blur-2xl">
+                                    <DialogTitle className="font-medium">Expense</DialogTitle>
                                     <DialogDescription className="flex flex-col gap-4">
                                         <div className="flex flex-col gap-2">
-                                            <Input ref={pengeluaranJudul} placeholder="Judul" />
-                                            <Input value={pengeluaranNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Nominal" />
-                                            <Input ref={pengeluaranDesc} placeholder="Deskripsi (opsional)" />
-                                            <div ref={pengeluaranImage} className="flex flex-row gap-2 mt-2">
-                                                <Input type="file" onChange={(e) => {
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranJudul} placeholder="Title" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" value={pengeluaranNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Amount" />
+                                            <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranDesc} placeholder="Description (optional)" />
+                                            <div className="flex flex-row gap-2 mt-2">
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranImage} type="file" onChange={(e) => {
                                                     const file = e.target.files
                                                     console.log(e.target.files)
                                                     if(file?.length === 0) {
@@ -404,11 +573,11 @@ export function Tracker(): JSX.Element {
                                                         isAllowed && setPengeluaranUrl(URL.createObjectURL(file[0]))
                                                     }
                                                 }} />
-                                                <Input ref={pengeluaranDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
+                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
                                             </div>
                                             <img src={pengeluaranUrl ? pengeluaranUrl : undefined} alt="" className="w-[50%] max-h-40 rounded-md" />
                                         </div>
-                                        <DialogClose className="bg-transparent border-2 border-red-300 text-black font-[Inter] font-semibold py-1.5 rounded-md" onClick={() => addOutcome()}>Tambah</DialogClose>
+                                        <DialogClose className="bg-red-400/75 dark:bg-red-600 dark:text-white border-2 border-red-500 text-black font-[Inter] font-semibold py-1.5 rounded-md" onClick={() => addOutcome()}>Add Expense</DialogClose>
                                     </DialogDescription>
                                 </DialogContent>
                             </Dialog>
@@ -418,17 +587,17 @@ export function Tracker(): JSX.Element {
                         <div className="w-full flex flex-col gap-7">
                             <div className="flex flex-col w-full">
                                 <div className="flex justify-between items-center w-full">
-                                    <p className="font-medium text-base">Riwayat Transaksi</p>
-                                    <Button onClick={() => { setIsOut(true); setTimeout(() => { window.location.href = `/app/tracker/history/${trackerData?.id}`; }, 400); }} className="bg-white border-2 border-neutral-200 text-neutral-800 font-medium h-8">Lihat</Button>
+                                    <p className="font-medium text-base">Transactions History</p>
+                                    <Button onClick={() => { setIsOut(true); setTimeout(() => { window.location.href = `/app/tracker/history/${trackerData?.id}`; }, 400); }} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primary dark:text-neutral-800 dark:border text-white/95">More</Button>
                                 </div>
                                 {historyBalance.length === 0 && <div className="flex flex-col justify-center items-center text-center h-35">
-                                    <p className="text-center font-medium text-base text-black/50">You have very few transactions <br /> <span className="font-normal">Try adding it and see your history here.</span></p>                                
+                                    <p className="text-center font-medium text-base text-black/50 dark:text-white/50">You have very few transactions <br /> <span className="font-normal">Try adding it and see your history here.</span></p>                                
                                 </div>}
                                 {historyBalance && historyBalance.map((item) => (
                                     <div className="flex justify-between items-center border-b py-3">
                                         <div className="flex flex-col">
                                             <p className="font-normal text-[15px]">{item.name}</p>
-                                            <p className="font-normal text-sm text-neutral-600">{item.date}</p>
+                                            <p className="font-normal text-sm text-neutral-600 dark:font-medium dark:text-neutral-400">{item.date}</p>
                                         </div>
                                         <div>
                                             <p className="font-medium text-sm">{item.amount}</p>
@@ -438,29 +607,29 @@ export function Tracker(): JSX.Element {
                             </div>
                             <div className="flex flex-col w-full gap-4 h-full">
                                 <div className="flex justify-between items-center w-full">
-                                    <p className="font-medium text-base">Laporan & Insight</p>
-                                    <Button onClick={() => {setIsOut(true); setTimeout(() => window.location.href = `/app/tracker/report/${trackerData?.id}`, 400)}} className="bg-white border-2 border-neutral-200 text-neutral-800 font-medium h-8">Lihat</Button>
+                                    <p className="font-medium text-base">Report & Insight</p>
+                                    <Button onClick={() => {setIsOut(true); setTimeout(() => window.location.href = `/app/tracker/report/${trackerData?.id}`, 400)}} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">More</Button>
                                 </div>
-                                <div className="flex flex-row gap-2 h-full">
+                                <div className="flex flex-row gap-2 h-full w-full">
                                     <div className="flex flex-row gap-2 overflow-hidden w-full">
-                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1">
-                                            <p className="font-normal text-sm">Pemasukkan</p>
+                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1 dark:bg-black/5">
+                                            <p className="font-normal text-sm">Income</p>
                                             <p className="font-medium text-lg">Rp.{report.income.toLocaleString("ID")}</p>
                                         </div>
-                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1">
-                                            <p className="font-normal text-sm">Pengeluaran</p>
+                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1 dark:bg-black/5">
+                                            <p className="font-normal text-sm">Expense</p>
                                             <p className="font-medium text-lg">Rp.{report.outcome.toLocaleString("ID")}</p>
                                         </div>
-                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1">
-                                            <p className="font-normal text-sm text-nowrap">Saldo akhir</p>
+                                        <div className="bg-white w-fit px-4 py-3 border rounded-lg flex-1 dark:bg-black/5 hidden">
+                                            <p className="font-normal text-sm text-nowrap">Last Balance</p>
                                             <p className="font-medium text-lg text-nowrap">Rp.{report.balance.toLocaleString("ID")}</p>
                                         </div>
-                                        <div className="absolute w-20 h-25 left-[calc(100vw-100px)] bg-linear-to-l from-background-primary to-transparent" />
+                                        <div className="absolute w-20 h-25 left-[calc(100vw-100px)] bg-linear-to-l from-background-primary dark:from-background-primary-dark to-transparent" />
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-row gap-2 justify-center items-center">
-                                <p className="font-medium text-sm text-black/50 -mt-2 text-center">This page only show the last 7 transactions, data may look innacurate. Please refer to our <span className="text-blue-500/50 hover:text-blue-400/50 underline">FAQ</span></p>
+                            <div className="flex flex-row gap-2 justify-center items-center mb-5">
+                                <p className="font-medium text-sm text-black/50 -mt-2 text-center dark:text-white/50">This page only show the last 7 transactions, data may look innacurate. Please refer to our <span className="text-blue-500/50 hover:text-blue-400/50 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/faq", 600)}}>FAQ</span></p>
                             </div>
                         </div>
                     </div>

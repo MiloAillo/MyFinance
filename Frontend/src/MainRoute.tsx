@@ -11,6 +11,9 @@ import trackerHistory from "./routes/TrackerHistoryRoute";
 import editProfile from "./routes/EditProfile";
 import report from "./routes/ReportRoute";
 import appLoader from "./loader/appLoader";
+import TermsOfServiceRoute from "./routes/TermsOfServiceRoute";
+import PrivacyPolicyRoute from "./routes/PrivacyPolicyRoute";
+import FAQRoute from "./routes/FAQRoute";
 
 const routes = createBrowserRouter([
     {path: "/app", element: <MainPage />, id: "main", loader: appLoader, children: [
@@ -25,6 +28,9 @@ const routes = createBrowserRouter([
     signup,
     signupLocal,
     notFound,
+    TermsOfServiceRoute,
+    PrivacyPolicyRoute,
+    FAQRoute
 ])
 
 export default routes
