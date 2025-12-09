@@ -98,7 +98,7 @@ export function Dashboard(): JSX.Element {
                 try {
                     await DBcreatetracker(name, desc, cleanedBalance)
                     setIsCreateBoxOpen(false)
-                    console.log("created!", res)
+                    console.log("created!")
                     // get the tracker and render!
                 } catch(err) {
                     setIsCreateBoxOpen(false)
