@@ -122,19 +122,19 @@ export function TrackerHistory(): JSX.Element {
         getData()
     }, [page, direction, showPlus, showwMinus])
 
-    const deleteTransaction = async (transactionId: number) => {
-        console.log(id)
-        try {
-            const res = await axios.delete(`${ApiUrl}/api/trackers/${id}/transactions`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("Authorization")}`
-                }
-            })
-            getData()
-        } catch(err) {
-            console.log(err)
-        }
-    }
+    // const deleteTransaction = async (transactionId: number) => {
+    //     console.log(id)
+    //     try {
+    //         const res = await axios.delete(`${ApiUrl}/api/trackers/${id}/transactions`, {
+    //             headers: {
+    //                 Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+    //             }
+    //         })
+    //         getData()
+    //     } catch(err) {
+    //         console.log(err)
+    //     }
+    // }
 
     return (
         <section className="flex flex-col items-center w-full md:max-w-[650px]">
@@ -249,7 +249,7 @@ export function TrackerHistory(): JSX.Element {
                                                     className="flex items-center gap-1 px-3"
                                                 >
                                                     <FontAwesomeIcon icon={faTrashAlt} />
-                                                    <p className="font-medium text-base" onClick={(e) => {e.stopPropagation(); deleteTransaction(item.id)}}>Delete</p>
+                                                    <p className="font-medium text-base" onClick={(e) => {e.stopPropagation()}}>Delete</p>
                                                 </motion.div>
                                             </PopoverContent>
                                         </Popover>
