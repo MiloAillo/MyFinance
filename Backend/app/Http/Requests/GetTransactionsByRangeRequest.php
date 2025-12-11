@@ -14,7 +14,10 @@ class GetTransactionsByRangeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->id === $this->route('tracker')->user_id;
+        $tracker = $this->route('tracker');
+        $user = $this->user();
+
+        return $tracker && $user->id === $tracker->user_id;
     }
 
     /**

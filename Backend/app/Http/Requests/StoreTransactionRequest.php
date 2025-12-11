@@ -18,7 +18,10 @@ class StoreTransactionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $tracker = $this->route('tracker');
+        $user = $this->user();
+
+        return $tracker && $user->id === $tracker->user_id;
     }
 
     /**
@@ -53,6 +56,7 @@ class StoreTransactionRequest extends FormRequest
             'tracker_id' => $this->route('tracker')->id,
         ]);
     }
+
     /**
      * Handle a failed validation attempt.
      */

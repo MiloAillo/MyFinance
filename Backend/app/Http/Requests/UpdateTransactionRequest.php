@@ -14,7 +14,11 @@ class UpdateTransactionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $tracker = $this->route('tracker');
+        $transaction = $this->route('transaction');
+        $user = $this->user();
+
+        return $tracker && $transaction && $user->id === $tracker->user_id && $transaction->tracker_id === $tracker->id;
     }
 
     /**
@@ -25,11 +29,11 @@ class UpdateTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:50',
-            'amount' => 'required|numeric|min:0.01',
-            'description' => 'nullable|string|max:255',
-            'image' => 'nullable|image|max:102400', // max 100MB
-            'transaction_date' => 'required|date',
+            'name' => 'sometimes|string|max:50',
+            'amount' => 'sometimes|numeric|min:0.01',
+            'description' => 'sometimes|string|max:255',
+            'image' => 'sometimes|image|max:10240', // max 10MB
+            'transaction_date' => 'sometimes|date',
         ];
     }
 

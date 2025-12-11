@@ -14,7 +14,10 @@ class DeleteTrackerRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $tracker = $this->route('tracker');
+        $user = $this->user();
+
+        return $tracker && $user->id === $tracker->user_id;
     }
 
     /**
@@ -27,6 +30,14 @@ class DeleteTrackerRequest extends FormRequest
         return [
             //
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'user_id' => $this->user()->id,
+            'tracker_id' => $this->route('tracker')->id,
+        ]);
     }
 
     /**

@@ -14,7 +14,11 @@ class GetTransactionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->id === $this->route('tracker')->user_id;
+        $tracker = $this->route('tracker');
+        $transaction = $this->route('transaction');
+        $user = $this->user();
+
+        return $tracker && $transaction && $user->id === $tracker->user_id && $transaction->tracker_id === $tracker->id;
     }
 
     /**
