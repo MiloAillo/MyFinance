@@ -1,20 +1,22 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
 use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
-class UpdateAvatarRequest extends FormRequest
+class UpdateProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
     /**
@@ -25,12 +27,23 @@ class UpdateAvatarRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'avatar' => [
-                'required',
-                'image',
-                'mimes:jpeg,png,jpg,webp',
-                'max:2048', // max file size in kilobytes (2 MB)
+            'name' => 'sometimes|string|min:3|max:50',
+            'email' => [
+                'sometimes',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($this->user()->id)
             ],
+            'password' => [
+                'sometimes',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+            ]
         ];
     }
 
@@ -39,12 +52,7 @@ class UpdateAvatarRequest extends FormRequest
      */
     public function messages()
     {
-        return [
-            'avatar.required' => 'Please upload an avatar image.',
-            'avatar.image'    => 'The uploaded file must be an image.',
-            'avatar.mimes'    => 'Allowed image formats: :values.',
-            'avatar.max'      => 'Avatar must not exceed :max kilobytes (2 MB).',
-        ];
+        return [];
     }
 
     /**

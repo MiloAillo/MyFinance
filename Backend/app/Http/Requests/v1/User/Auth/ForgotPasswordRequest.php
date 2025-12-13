@@ -1,24 +1,20 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
-use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ResponseHelper;
-use Carbon\Traits\Timestamp;
-use DateTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreTransactionRequest extends FormRequest
+class ForgotPasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
     /**
@@ -29,12 +25,7 @@ class StoreTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:50',
-            'type' => ['required', Rule::in(['income', 'expense'])],
-            'amount' => 'required|numeric|min:0.01',
-            'description' => 'nullable|string|max:255',
-            'image' => 'nullable|image|max:102400', // max 100MB
-            'transaction_date' => 'required|date',
+            'email' => 'required|email|exists:users,email',
         ];
     }
 
@@ -46,13 +37,6 @@ class StoreTransactionRequest extends FormRequest
         return [];
     }
 
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'user_id' => $this->user()->id,
-            'tracker_id' => $this->route('tracker')->id,
-        ]);
-    }
     /**
      * Handle a failed validation attempt.
      */

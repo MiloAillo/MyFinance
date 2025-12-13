@@ -13,24 +13,19 @@ use App\Http\Requests\StoreTrackerRequest;
 use App\Models\Tracker;
 use App\Http\Requests\UpdateTrackerRequest;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Log;
 
 class TrackerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(GetAllTrackersRequest $request, Tracker $tracker)
+    public function index(GetAllTrackersRequest $request)
     {
         try {
-            // Fetch trackers with the latest (3) transactions for the authenticated user
-            $trackers = $tracker
-            ->with(['transactions' => function ($query) {
-                $query->latest()->limit(3);}])
-            ->where('user_id', $request->user()->id)->get();
-            
+            $trackers = Tracker::with(['transactions' => function ($query) {
+                $query->latest()->limit(3);}]) // Eager load latest 3 transactions
+            ->where('user_id', $request->user()->id)
+            ->get();
 
             return ResponseHelper::successResponse(
                 ['trackers' => $trackers],
@@ -48,7 +43,7 @@ class TrackerController extends Controller
     public function store(StoreTrackerRequest $request)
     {
         try {
-            $tracker = array_merge($request->validated(), ['user_id' => $request->user()->id]);
+            $tracker = $request->onlyDatabaseFields();
             
             DB::transaction(function () use (&$tracker) {
                 return Tracker::create($tracker);
@@ -70,16 +65,10 @@ class TrackerController extends Controller
     public function show(GetTrackerRequest $request, Tracker $tracker)
     {
         try {
-            if ($tracker->user_id !== $request->user()->id) {
-                return ResponseHelper::forbiddenResponse('Access denied.');
-            }
-
-            // Fetch the tracker with the latest (7) transactions for the authenticated user
-            $tracker = $tracker->with(['transactions' => function ($query) {
-                $query->latest()->limit(7);
-            }])->findOrFail($tracker->id);
-
-            $tracker->current_balance = $tracker->current_balance;
+            
+            $tracker = $tracker->load(['transactions' => function ($query) {
+                $query->latest()->limit(7); // Eager load latest 7 transactions
+            }]);
 
             return ResponseHelper::successResponse(
                 ['tracker' => $tracker],
@@ -94,11 +83,9 @@ class TrackerController extends Controller
     public function allTransactions(GetAllTransactionsByTrackerRequest $request, Tracker $tracker)
     {
         try {
-            $tracker = $tracker->with(['transactions' => function ($query) {
+            $tracker = $tracker->load(['transactions' => function ($query) {
                 $query->latest();
-            }])->findOrFail($tracker->id);
-
-            $tracker->current_balance = $tracker->current_balance;
+            }]);
 
             return ResponseHelper::successResponse(
                 ['tracker' => $tracker],
@@ -115,11 +102,7 @@ class TrackerController extends Controller
     public function update(UpdateTrackerRequest $request, Tracker $tracker)
     {
         try {
-            if ($tracker->user_id !== $request->user()->id) {
-                return ResponseHelper::forbiddenResponse('Access denied.');
-            }
-
-            $tracker->update($request->validated());
+            $tracker->update($request->onlyDatabaseFields());
 
             return ResponseHelper::successResponse(
                 ['tracker' => $tracker],
@@ -136,14 +119,7 @@ class TrackerController extends Controller
     public function destroy(DeleteTrackerRequest $request, Tracker $tracker)
     {
         try {
-            if ($tracker->user_id !== $request->user()->id) {
-                return ResponseHelper::forbiddenResponse('Access denied.');
-            }
-
-            DB::transaction(function () use ($tracker) {
-                $tracker->transactions()->delete();
-                $tracker->delete();
-            });
+            $tracker->delete();
 
             return ResponseHelper::successResponse(
                 null,
@@ -154,16 +130,14 @@ class TrackerController extends Controller
         }
     }
 
-    public function search(GetTrackersBySearchRequest $request, Tracker $tracker)
+    public function search(GetTrackersBySearchRequest $request)
     {
         try {
-            $user = $request->user();
             $search = $request->get('q');
 
-            $trackers = $tracker
-            ->with(['transactions' => function ($query) {
-                $query->latest()->limit(3);}])
-            ->where('user_id', $user->id)
+            $trackers = Tracker::with(['transactions' => function ($query) {
+                $query->latest()->limit(3);}]) // Eager load latest 3 transactions
+            ->where('user_id', $request->user()->id)
             ->where(function($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");
             })
