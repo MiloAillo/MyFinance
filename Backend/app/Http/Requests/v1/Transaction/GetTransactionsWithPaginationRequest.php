@@ -1,20 +1,23 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
 use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class LoginRequest extends FormRequest
+class GetTransactionsWithPaginationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        $tracker = $this->route('tracker');
+        $user = $this->user();
+
+        return $tracker && $user->id === $tracker->user_id;
     }
 
     /**
@@ -25,17 +28,18 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
-            'password' => 'required|string',
+            //
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages()
+    protected function prepareForValidation()
     {
-        return [];
+        $this->merge([
+            'page' => $this->get('page', 1),
+            'per_page' => $this->get('per_page', 10),
+            'order' => $this->get('order', 'desc'),
+            'type' => $this->get('type', null),
+        ]);
     }
 
     /**

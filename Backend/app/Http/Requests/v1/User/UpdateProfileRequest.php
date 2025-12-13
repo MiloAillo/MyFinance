@@ -1,27 +1,22 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
-use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ResponseHelper;
-use Carbon\Traits\Timestamp;
-use DateTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
 
-class StoreTransactionRequest extends FormRequest
+class UpdateProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        $tracker = $this->route('tracker');
-        $user = $this->user();
-
-        return $tracker && $user->id === $tracker->user_id;
+        return true;
     }
 
     /**
@@ -32,12 +27,23 @@ class StoreTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:50',
-            'type' => ['required', Rule::in(['income', 'expense'])],
-            'amount' => 'required|numeric|min:0.01',
-            'description' => 'nullable|string|max:255',
-            'image' => 'nullable|image|max:10240', // max 10MB
-            'transaction_date' => 'required|date',
+            'name' => 'sometimes|string|min:3|max:50',
+            'email' => [
+                'sometimes',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($this->user()->id)
+            ],
+            'password' => [
+                'sometimes',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+            ]
         ];
     }
 
@@ -47,14 +53,6 @@ class StoreTransactionRequest extends FormRequest
     public function messages()
     {
         return [];
-    }
-
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'user_id' => $this->user()->id,
-            'tracker_id' => $this->route('tracker')->id,
-        ]);
     }
 
     /**

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
 use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class GetTransactionRequest extends FormRequest
+class GetTrackerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,10 +15,9 @@ class GetTransactionRequest extends FormRequest
     public function authorize(): bool
     {
         $tracker = $this->route('tracker');
-        $transaction = $this->route('transaction');
         $user = $this->user();
 
-        return $tracker && $transaction && $user->id === $tracker->user_id && $transaction->tracker_id === $tracker->id;
+        return $tracker && $user->id === $tracker->user_id;
     }
 
     /**

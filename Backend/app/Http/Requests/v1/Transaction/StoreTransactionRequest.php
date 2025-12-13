@@ -1,13 +1,17 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
+use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ResponseHelper;
+use Carbon\Traits\Timestamp;
+use DateTime;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
-class GetTransactionsWithPaginationRequest extends FormRequest
+class StoreTransactionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,17 +32,28 @@ class GetTransactionsWithPaginationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:50',
+            'type' => ['required', Rule::in(['income', 'expense'])],
+            'amount' => 'required|numeric|min:0.01',
+            'description' => 'nullable|string|max:255',
+            'image' => 'nullable|image|max:10240', // max 10MB
+            'transaction_date' => 'required|date',
         ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages()
+    {
+        return [];
     }
 
     protected function prepareForValidation()
     {
         $this->merge([
-            'page' => $this->get('page', 1),
-            'per_page' => $this->get('per_page', 10),
-            'order' => $this->get('order', 'desc'),
-            'type' => $this->get('type', null),
+            'user_id' => $this->user()->id,
+            'tracker_id' => $this->route('tracker')->id,
         ]);
     }
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
 use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class GetTransactionsByRangeRequest extends FormRequest
+class GetTransactionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,9 +15,10 @@ class GetTransactionsByRangeRequest extends FormRequest
     public function authorize(): bool
     {
         $tracker = $this->route('tracker');
+        $transaction = $this->route('transaction');
         $user = $this->user();
 
-        return $tracker && $user->id === $tracker->user_id;
+        return $tracker && $transaction && $user->id === $tracker->user_id && $transaction->tracker_id === $tracker->id;
     }
 
     /**
@@ -28,19 +29,7 @@ class GetTransactionsByRangeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-        ];
-    }
-
-    public function messages()
-    {
-        return [
-            'start_date.required' => 'The start date is required.',
-            'start_date.date' => 'The start date must be a valid date.',
-            'end_date.required' => 'The end date is required.',
-            'end_date.date' => 'The end date must be a valid date.',
-            'end_date.after_or_equal' => 'The end date must be a date after or equal to the start date.',
+            //
         ];
     }
 

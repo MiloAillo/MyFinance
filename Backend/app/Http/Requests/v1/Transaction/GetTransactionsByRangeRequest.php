@@ -1,21 +1,23 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
 use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\Rules\Password;
 
-class RegisterRequest extends FormRequest
+class GetTransactionsByRangeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        $tracker = $this->route('tracker');
+        $user = $this->user();
+
+        return $tracker && $user->id === $tracker->user_id;
     }
 
     /**
@@ -26,26 +28,20 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|min:3|max:50',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => [
-                'required',
-                'confirmed',
-                Password::min(8)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols()
-            ]
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
     public function messages()
     {
-        return [];
+        return [
+            'start_date.required' => 'The start date is required.',
+            'start_date.date' => 'The start date must be a valid date.',
+            'end_date.required' => 'The end date is required.',
+            'end_date.date' => 'The end date must be a valid date.',
+            'end_date.after_or_equal' => 'The end date must be a date after or equal to the start date.',
+        ];
     }
 
     /**
