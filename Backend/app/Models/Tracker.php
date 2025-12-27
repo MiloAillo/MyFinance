@@ -22,6 +22,11 @@ class Tracker extends Model
         'is_active' => 'boolean',
     ];
 
+    protected $appends = [
+        'current_balance',
+        'total_transactions',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -32,21 +37,35 @@ class Tracker extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
+    // public function scopeActive($query)
+    // {
+    //     return $query->where('is_active', true);
+    // }
 
     public function getCurrentBalanceAttribute()
     {
-        $totalIncome = $this->transactions()
-            ->where('type', 'income')
-            ->sum('amount');
+        if ($this->relationLoaded('transactions')) {
+            $income = $this->transactions->where('type', 'income')->sum('amount');
+            $expense = $this->transactions->where('type', 'expense')->sum('amount');
+            return $this->initial_balance
+                    + $income
+                    - $expense;
+        }
+        
+        $totals = $this->transactions()
+            ->selectRaw('
+                COALESCE(SUM(CASE WHEN type = "income" THEN amount ELSE 0 END), 0) as income,
+                COALESCE(SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END), 0) as expense
+            ')
+            ->first();
+        
+        return $this->initial_balance
+                    + $totals->income
+                    - $totals->expense;
+    }
 
-        $totalExpense = $this->transactions()
-            ->where('type', 'expense')
-            ->sum('amount');
-
-        return $this->initial_balance + $totalIncome - $totalExpense;
+    public function getTotalTransactionsAttribute()
+    {
+        return $this->transactions()->count();
     }
 }

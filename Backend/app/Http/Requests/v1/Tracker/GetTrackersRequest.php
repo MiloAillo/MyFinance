@@ -1,17 +1,20 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
+use App\Helpers\ResponseHelper;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-class GetAllTransactionsByTrackerRequest extends FormRequest
+class GetTrackersRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user() !== null && $this->user()->id === $this->route('tracker')->user_id;
+        return true;
     }
 
     /**
@@ -26,10 +29,13 @@ class GetAllTransactionsByTrackerRequest extends FormRequest
         ];
     }
 
-    protected function prepareForValidation()
+    /**
+     * Handle a failed validation attempt.
+     */
+    protected function failedValidation(Validator $validator)
     {
-        $this->merge([
-            
-        ]);
+        throw new HttpResponseException(
+            ResponseHelper::validationErrorResponse($validator)
+        );
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ResponseHelper;
@@ -9,12 +9,23 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreTrackerRequest extends FormRequest
 {
+    private $databaseFields = [
+        'user_id',
+        'name',
+        'description',
+        'initial_balance',
+    ];
+
+    public function onlyDatabaseFields()
+    {
+        return $this->only($this->databaseFields);
+    }
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
     /**
@@ -46,6 +57,15 @@ class StoreTrackerRequest extends FormRequest
             'initial_balance.numeric' => 'The initial balance must be a number.',
             'initial_balance.min' => 'The initial balance must be at least :min.',
         ];
+    }
+
+    public function withValidator(Validator $validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$validator->failed()) {
+                $this->merge(['user_id' => $this->user()->id]);
+            }
+        });
     }
 
     /**

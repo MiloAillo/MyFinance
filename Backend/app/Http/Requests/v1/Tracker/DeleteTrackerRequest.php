@@ -1,21 +1,23 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\v1;
 
 use App\Helpers\ResponseHelper;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\Rules\Password;
 
-class RegisterRequest extends FormRequest
+class DeleteTrackerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        $tracker = $this->route('tracker');
+        $user = $this->user();
+
+        return $tracker && $user->id === $tracker->user_id;
     }
 
     /**
@@ -26,26 +28,8 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|min:3|max:50',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => [
-                'required',
-                'confirmed',
-                Password::min(8)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols()
-            ]
+            //
         ];
-    }
-
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages()
-    {
-        return [];
     }
 
     /**
