@@ -17,7 +17,7 @@ We offer,
 5. Local Account to keep your finance fully private
 6. Offline access with local account
 7. Install and access without opening browser
-
+ 
 <br>
 <div align="center"> <img src="./Docs/Images/MyFinance_Flyer.svg" style="width: 60%;" alt="MyFinance"/> </div>
 <br>
