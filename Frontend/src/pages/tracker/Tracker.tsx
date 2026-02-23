@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type JSX } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Input } from "@/components/ui/input";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { CartesianGrid, LabelList, Line, LineChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -471,16 +471,15 @@ export function Tracker(): JSX.Element {
                         </div>
                         <div className="w-full">
                             <ChartContainer config={chartConfig}>
-                                <AreaChart
+                                <LineChart
                                     accessibilityLayer
                                     data={chart}
                                     margin={{
-                                    left: 10,
-                                    right: 10,
-                                    top: 10 ,
+                                    left: 25,
+                                    right: 25,
+                                    top: 25,
                                     bottom: 10
                                     }}
-                
                                 >
                                     <CartesianGrid vertical={false} />
                                     <XAxis
@@ -504,14 +503,23 @@ export function Tracker(): JSX.Element {
                                         cursor={false}
                                         content={<ChartTooltipContent indicator="line" />}
                                     />
-                                    <Area
+                                    <Line
                                         dataKey="balance"
-                                        type='natural'
+                                        type='linear'
                                         fill={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                         fillOpacity={0.2}
+                                        className=""
                                         stroke={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
-                                    />
-                                </AreaChart>
+                                    >
+                                        <LabelList
+                                            position="top"
+                                            offset={12}
+                                            className= {`${localStorage.getItem("vite-ui-theme") === "light" ? "fill-black/70" : "fill-white/70"}`}
+                                            fontSize={12}
+                                            formatter={(balance: number) => balance.toLocaleString("ID")}
+                                        />
+                                    </Line>
+                                </LineChart>
                             </ChartContainer>
                         </div>
                         <div className="flex justify-between w-full gap-5">

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDollar, faQuestion, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { TrackerNavbar } from "@/components/TrackerNavbar";
@@ -639,12 +639,12 @@ export function Report(): JSX.Element {
                         </div>
                         <div className="w-full bg-white p-3 rounded-xl dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                             <ChartContainer config={chartConfig}>
-                                <AreaChart
+                                <LineChart
                                     accessibilityLayer
                                     data={displayData.chartData}
                                     margin={{
-                                    left: 10,
-                                    right: 10,
+                                    left: 20,
+                                    right: 20,
                                     top: 10 ,
                                     bottom: 10
                                     }}
@@ -672,14 +672,14 @@ export function Report(): JSX.Element {
                                         cursor={false}
                                         content={<ChartTooltipContent indicator="line" />}
                                     />
-                                    <Area
+                                    <Line
                                         dataKey="balance"
-                                        type='natural'
+                                        type='linear'
                                         fill={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                         fillOpacity={0.2}
                                         stroke={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                     />
-                                </AreaChart>
+                                </LineChart>
                             </ChartContainer>
                             <div className="flex flex-col gap-3 px-3">
                                 {displayData.highestIncome &&                                
@@ -799,12 +799,12 @@ export function Report(): JSX.Element {
                         </div>
                         <div className="w-full bg-white p-3 rounded-xl dark:bg-black/5 dark:ring dark:ring-white/10">
                             <ChartContainer config={chartConfig}>
-                                <AreaChart
+                                <LineChart
                                     accessibilityLayer
                                     data={displayData.chartData}
                                     margin={{
-                                    left: 10,
-                                    right: 10,
+                                    left: 20,
+                                    right: 20,
                                     top: 10 ,
                                     bottom: 10
                                     }}
@@ -832,14 +832,14 @@ export function Report(): JSX.Element {
                                         cursor={false}
                                         content={<ChartTooltipContent indicator="line" />}
                                     />
-                                    <Area
+                                    <Line
                                         dataKey="balance"
-                                        type='natural'
+                                        type='linear'
                                         fill={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                         fillOpacity={0.2}
                                         stroke={localStorage.getItem("vite-ui-theme") === "light" ? "#16E716" : "#6703DC"}
                                     />
-                                </AreaChart>
+                                </LineChart>
                             </ChartContainer>
                             <div className="flex flex-col gap-3 px-3">
                                 {displayData.highestIncome &&                                
