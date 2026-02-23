@@ -709,7 +709,11 @@ export function Report(): JSX.Element {
                                                 <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
                                             </div>
                                         </div>
-                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.getDay()}-{item.date.getMonth()}-{item.date.getFullYear()}</div>
+                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.toLocaleDateString("ID", {
+                                            day: "numeric",
+                                            month: "numeric",
+                                            year: "numeric"
+                                        })}</div>
                                     </div>
                                 </DialogTrigger>
                                 <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
@@ -869,7 +873,11 @@ export function Report(): JSX.Element {
                                                 <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
                                             </div>
                                         </div>
-                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{(new Date(item.transaction_date)).getDate()}-{(new Date(item.transaction_date)).getMonth()}-{(new Date(item.transaction_date)).getFullYear()}</div>
+                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.toLocaleDateString("ID", {
+                                            day: "numeric",
+                                            month: "numeric",
+                                            year: "numeric"
+                                        })}</div>
                                     </div>
                                 </DialogTrigger>
                                 <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">

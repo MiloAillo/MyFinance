@@ -194,7 +194,7 @@ export function Tracker(): JSX.Element {
                 // solve the date object to string
                 const year = item.date.getFullYear()
                 const month = item.date.getMonth()
-                const day = item.date.getDate()
+                const day = item.date.getUTCDate()
                 const formattedDate = `${day}-${month}-${year}` 
 
                 // solve the outcome income format
