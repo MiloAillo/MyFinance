@@ -1,5 +1,11 @@
 # <div align="center"> <img src="./Docs/Images/MyFinance.svg" style="width: 30%;" alt="MyFinance"/> </div>
 
+<b>MyFinance V1.0.1 is live 🔴</b>
+<br>
+<span> 1. Improved chart with linear line <br> 
+2. Fixed broken date across the UI
+</span>
+
 Uncontrollable urge to shop and spend? Don't know where your money go? Need to keep track of your financial? MyFinance here to help! Your digital solution to help with your financial.
 
 We offer,

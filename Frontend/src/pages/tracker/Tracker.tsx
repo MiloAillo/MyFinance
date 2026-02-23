@@ -215,7 +215,9 @@ export function Tracker(): JSX.Element {
             slicedData.forEach((item) => {
                 // solve the date object to string
                 const year = item.transaction_date.getFullYear()
-                const month = item.transaction_date.getMonth()
+                const month = item.transaction_date.toLocaleString("ID", {
+                    month: "numeric",
+                })
                 const day = item.transaction_date.getDate()
                 const formattedDate = `${day}-${month}-${year}`
                 console.log(`${day}-${month}-${year}`, item.transaction_date)
