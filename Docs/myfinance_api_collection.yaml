@@ -11,16 +11,16 @@ collection:
     meta:
       id: fld_2ed0412f5baa4defbf4ada4814def9c8
       created: 1775348019636
-      modified: 1775348085806
+      modified: 1775626879175
       sortKey: -1775348048210
       description: ""
     children:
-      - url: "{{ base_url }}{{ users }}/profile"
+      - url: "{{ base_url }}/users/profile"
         name: My Profile
         meta:
           id: req_e8ed90316f664d1cafacefa3e501103c
           created: 1775457167776
-          modified: 1775542540436
+          modified: 1775629642131
           isPrivate: false
           description: ""
           sortKey: -1775442143835
@@ -41,12 +41,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ users }}/profile"
+      - url: "{{ base_url }}/users/profile"
         name: My Profile
         meta:
           id: req_4e99fc758e85487f82be180ecd3d78ff
           created: 1775458872192
-          modified: 1775542657615
+          modified: 1775629657890
           isPrivate: false
           description: ""
           sortKey: -1775442143785
@@ -80,12 +80,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ users }}/avatar"
+      - url: "{{ base_url }}/users/avatar"
         name: My Profile Picture
         meta:
           id: req_d1ae5302db204307b2fb40354c128fa9
           created: 1775461912765
-          modified: 1775542582144
+          modified: 1775629667315
           isPrivate: false
           description: ""
           sortKey: -1775441064988.5
@@ -116,6 +116,32 @@ collection:
             send: true
             store: true
           rebuildPath: true
+      - url: "{{ base_url }}/users/profile"
+        name: My Profile
+        meta:
+          id: req_f476bdb43db744ecb3f6ff7fe03219f1
+          created: 1775627993357
+          modified: 1775629899469
+          isPrivate: false
+          description: ""
+          sortKey: -1775441064888.5
+        method: DELETE
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        authentication:
+          type: bearer
+          token: ""
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
       - name: Auth
         meta:
           id: fld_a2ec0a1454a7435382206f24d94c6998
@@ -124,12 +150,12 @@ collection:
           sortKey: -1775442143935
           description: ""
         children:
-          - url: "{{ base_url }}{{auth}}/tokens"
+          - url: "{{ base_url }}/auth/tokens"
             name: Sign In
             meta:
               id: req_c2cee613b53f4eae8934dcf27b1ce7fa
               created: 1775439998216
-              modified: 1775457296406
+              modified: 1775629501045
               isPrivate: false
               description: ""
               sortKey: -1775439413526
@@ -158,12 +184,12 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-          - url: "{{ base_url }}/users"
+          - url: "{{ base_url }}{{ users_id }}"
             name: Sign Up
             meta:
               id: req_2f0a7f531f304898ad37c978fee0cc05
               created: 1775440044349
-              modified: 1775542505540
+              modified: 1775629806063
               isPrivate: false
               description: ""
               sortKey: -1775439413576
@@ -192,12 +218,12 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-          - url: "{{ base_url }}{{auth}}/tokens/current"
+          - url: "{{ base_url }}/auth/tokens/current"
             name: Sign Out
             meta:
               id: req_96e4dc630c024af0b00081cdafcb8547
               created: 1775440242033
-              modified: 1775457575712
+              modified: 1775629614669
               isPrivate: false
               description: ""
               sortKey: -1775439413176
@@ -218,12 +244,12 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-          - url: "{{ base_url }}{{auth}}/password-resets"
+          - url: "{{ base_url }}/auth/password-resets"
             name: Forgot Password
             meta:
               id: req_3418a5dbed1346a7a100b16ff05947d1
               created: 1775440264467
-              modified: 1775444132008
+              modified: 1775629510247
               isPrivate: false
               description: ""
               sortKey: -1775439413501
@@ -249,12 +275,12 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-          - url: "{{ base_url }}{{auth}}/password-resets"
+          - url: "{{ base_url }}/auth/password-resets"
             name: Reset Password
             meta:
               id: req_37cd4f096b74463abf997240bdba67bb
               created: 1775446109626
-              modified: 1775455675079
+              modified: 1775629521480
               isPrivate: false
               description: ""
               sortKey: -1775439413338.5
@@ -291,12 +317,12 @@ collection:
       sortKey: -1775348048185
       description: ""
     children:
-      - url: "{{ base_url }}{{ trackers }}"
+      - url: "{{ base_url }}/trackers"
         name: Trackers
         meta:
           id: req_c2a5c29bc81444059f3103abd0b2fa87
           created: 1775544393743
-          modified: 1775552420217
+          modified: 1775629962605
           isPrivate: false
           description: ""
           sortKey: -1775544397058
@@ -327,12 +353,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ trackers }}"
+      - url: "{{ base_url }}/trackers"
         name: Trackers
         meta:
           id: req_a931470e85a04e73b1622eebd420d4a7
           created: 1775544509722
-          modified: 1775549039736
+          modified: 1775630000080
           isPrivate: false
           description: ""
           sortKey: -1775493270446.5
@@ -387,12 +413,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ trackers }}{{ tracker_id }}"
+      - url: "{{ base_url }}{{ trackers_id }}"
         name: Tracker
         meta:
           id: req_1f1f7d9f07114730a045477eb89b5929
           created: 1775544531844
-          modified: 1775552627040
+          modified: 1775630099222
           isPrivate: false
           description: ""
           sortKey: -1775467707140.75
@@ -423,12 +449,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ trackers }}{{ tracker_id }}"
+      - url: "{{ base_url }}{{ trackers_id }}"
         name: Tracker
         meta:
           id: req_836cec279e324064b5fec4a1cc08abc6
           created: 1775544777890
-          modified: 1775545196114
+          modified: 1775630141918
           isPrivate: false
           description: ""
           sortKey: -1775454925487.875
@@ -454,12 +480,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ trackers }}{{ tracker_id }}"
+      - url: "{{ base_url }}{{ trackers_id }}"
         name: Tracker
         meta:
           id: req_9242ab752e3a4b36a2881ee48bc4534d
           created: 1775544821223
-          modified: 1775549223503
+          modified: 1775630024115
           isPrivate: false
           description: ""
           sortKey: -1775480488793.625
@@ -493,12 +519,12 @@ collection:
       sortKey: -1775348048172.5
       description: ""
     children:
-      - url: "{{ base_url }}{{ trackers }}{{ tracker_id }}{{ transactions }}"
+      - url: "{{ base_url }}{{ trackers_id }}/transactions"
         name: Transactions
         meta:
           id: req_757924eb8c684e3abdb4c17f5cbfb24b
           created: 1775544982131
-          modified: 1775552586953
+          modified: 1775630194108
           isPrivate: false
           description: ""
           sortKey: -1775544985172
@@ -548,12 +574,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ trackers }}{{ tracker_id }}{{ transactions }}"
+      - url: "{{ base_url }}{{ trackers_id }}/transactions"
         name: Transactions
         meta:
           id: req_150d5ef9f71b495596a57179b73b51a6
           created: 1775545092380
-          modified: 1775549493808
+          modified: 1775630280272
           isPrivate: false
           description: ""
           sortKey: -1775544691115
@@ -604,12 +630,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ transactions }}{{ transaction_id }}"
+      - url: "{{ base_url }}{{ transactions_id }}"
         name: Transaction
         meta:
           id: req_f3a05c0387304057872ecca2665de9d8
           created: 1775545111959
-          modified: 1775545137116
+          modified: 1775630328156
           isPrivate: false
           description: ""
           sortKey: -1775544544086.5
@@ -635,12 +661,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ transactions }}{{ transaction_id }}"
+      - url: "{{ base_url }}{{ transactions_id }}"
         name: Transaction
         meta:
           id: req_de4b5962a4fb444793abeff1a03a997b
           created: 1775545262297
-          modified: 1775545268199
+          modified: 1775630413620
           isPrivate: false
           description: ""
           sortKey: -1775544433815.125
@@ -666,12 +692,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}{{ trackers }}{{ tracker_id }}{{ transactions }}"
+      - url: "{{ base_url }}{{ transactions_id }}"
         name: PATCH Transactions
         meta:
           id: req_e32bf21a4eb646ee99f83ae89f6615f3
           created: 1775552661567
-          modified: 1775552683400
+          modified: 1775630398047
           isPrivate: false
           description: ""
           sortKey: -1775544488950.8125
@@ -767,26 +793,25 @@ environments:
   meta:
     id: env_4859241f5ffffeaee04754019a20cca4a74d9ac0
     created: 1775312032769
-    modified: 1775552833656
+    modified: 1775629435509
     isPrivate: false
   data:
     domain: localhost
     port: :8080
     base_url: "{{ domain }}{{ port }}/api/v{{ version }}"
     version: "1"
-    auth: /auth
-    users: /users
-    trackers: /trackers
-    transactions: /transactions
   subEnvironments:
     - name: Development
       meta:
         id: env_601f0b8ec6264675874f37ce3cf85f99
         created: 1775456406243
-        modified: 1775544641798
+        modified: 1775629767512
         isPrivate: false
         sortKey: 1775456406243
       data:
-        user_id: /1
-        tracker_id: /1
-        transaction_id: /1
+        user_id: "1"
+        tracker_id: "1"
+        transaction_id: "1"
+        users_id: /users/{{ user_id }}
+        trackers_id: /trackers/{{ tracker_id }}
+        transactions_id: /transactions/{{ transaction_id }}
