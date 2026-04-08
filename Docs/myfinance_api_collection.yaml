@@ -81,11 +81,11 @@ collection:
             store: true
           rebuildPath: true
       - url: "{{ base_url }}/users/avatar"
-        name: My Profile Picture
+        name: PATCH My Profile Picture
         meta:
           id: req_d1ae5302db204307b2fb40354c128fa9
           created: 1775461912765
-          modified: 1775629667315
+          modified: 1775633826329
           isPrivate: false
           description: ""
           sortKey: -1775441064988.5
@@ -93,11 +93,20 @@ collection:
         body:
           mimeType: multipart/form-data
           params:
+            - name: _method
+              value: PATCH
+              description: ""
+              disabled: false
             - name: avatar
               value: ""
               description: ""
               disabled: false
               type: file
+        parameters:
+          - name: delete
+            value: "1"
+            description: ""
+            disabled: true
         headers:
           - name: Content-Type
             value: multipart/form-data
@@ -184,12 +193,12 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-          - url: "{{ base_url }}{{ users_id }}"
+          - url: "{{ base_url }}/users"
             name: Sign Up
             meta:
               id: req_2f0a7f531f304898ad37c978fee0cc05
               created: 1775440044349
-              modified: 1775629806063
+              modified: 1775639735420
               isPrivate: false
               description: ""
               sortKey: -1775439413576
