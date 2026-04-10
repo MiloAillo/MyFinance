@@ -11,6 +11,7 @@ Route::controller(UserController::class)->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('tokens', 'login')->name('auth.login');
         Route::post('password-resets', 'forgotPassword')->name('auth.password-resets.email');
+        Route::get('password-resets', 'validateResetToken')->name('auth.password-resets.validate');
         Route::put('password-resets', 'resetPassword')->name('auth.password-resets.update');
         Route::delete('tokens/current', 'logout')->name('auth.logout')->middleware('auth:sanctum');
     });

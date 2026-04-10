@@ -7,9 +7,10 @@ use App\Http\Requests\API\V1\User\Auth\ForgotPasswordRequest;
 use App\Http\Requests\API\V1\User\Auth\LoginRequest;
 use App\Http\Requests\API\V1\User\Auth\RegisterRequest;
 use App\Http\Requests\API\V1\User\Auth\ResetPasswordRequest;
+use App\Http\Requests\API\V1\User\Auth\ValidatePasswordResetTokenRequest as ValidateResetTokenRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 
 class UserController extends Controller
 {
@@ -74,13 +75,26 @@ class UserController extends Controller
         );
     }
 
+    public function validateResetToken(ValidateResetTokenRequest $request)
+    {
+        return ResponseHelper::successResponse(
+            message: 'Password reset token is valid.'
+        );
+    }
+
     public function resetPassword(ResetPasswordRequest $request)
     {
         $credentials = $request->validated();
-        $user = $request['user'];
+        // $user = $request['user'];
 
-        $user->password = $credentials['password'];
-        $user->save();
+        Password::broker()->reset(
+            $credentials,
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => $password
+                ])->save();
+            }
+        );
 
         return ResponseHelper::successResponse(
             message: 'Password has been reset successfully.'

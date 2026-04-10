@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests\API\V1\User\Auth;
 
-use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -50,15 +51,15 @@ class ResetPasswordRequest extends FormRequest
 
     public function passedValidation()
     {
-        $user = User::where('email', $this->input('email'))->first();
-        $token = $user->validatePasswordResetToken($this->input('token'));
+        $tokenRecord = DB::table('password_reset_tokens')->where('email', $this->input('email'))->first();
 
-         if (!$token) {
-            throw new UnprocessableEntityHttpException('Invalid credentials');
+        if (!$tokenRecord ||
+            !Hash::check($this->input('token'), $tokenRecord->token) ||
+            Carbon::parse($tokenRecord->created_at)->addMinutes(config('auth.passwords.users.expire'))->isPast()){
+                throw new UnprocessableEntityHttpException('Invalid credentials');
         }
 
         $this->merge([
-            'user' => $user,
             'password' => Hash::make($this->input('password'))
         ]);
     }
