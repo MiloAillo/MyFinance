@@ -8,8 +8,11 @@ use App\Http\Requests\API\V1\User\Auth\LoginRequest;
 use App\Http\Requests\API\V1\User\Auth\RegisterRequest;
 use App\Http\Requests\API\V1\User\Auth\ResetPasswordRequest;
 use App\Http\Requests\API\V1\User\Auth\ValidatePasswordResetTokenRequest as ValidateResetTokenRequest;
+use App\Http\Requests\API\V1\User\Auth\Verification\Email\SendVerificationEmailRequest;
+use App\Http\Requests\API\V1\User\Auth\Verification\Email\VerifyEmailRequest;
 use App\Models\User;
-use App\Notifications\API\V1\ResetPasswordNotification;
+use App\Notifications\API\V1\User\Auth\ResetPasswordNotification;
+use App\Notifications\API\V1\User\Auth\VerificationEmailNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 
@@ -26,11 +29,6 @@ class UserController extends Controller
 
         return ResponseHelper::successResponse(
             data: [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
                 'token' => $token,
                 'token_type' => 'Bearer',
                 'expires_in' => config('sanctum.expiration'),
@@ -49,11 +47,6 @@ class UserController extends Controller
 
         return ResponseHelper::successResponse(
             data: [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
                 'token' => $token,
                 'token_type' => 'Bearer',
                 'expires_in' => config('sanctum.expiration'),
@@ -115,20 +108,21 @@ class UserController extends Controller
     // USER MANAGEMENT
 
     // Get User Data
-    // public function show(User $user)
-    // {
-    //     return ResponseHelper::successResponse(
-    //         data: [
-    //             'user' => [
-    //                 'id' => $user->id,
-    //                 'name' => $user->name,
-    //                 'email' => $user->email,
-    //                 'avatar' => $user->avatar,
-    //             ],
-    //         ],
-    //         message: 'User data retrieved successfully.'
-    //     );
-    // }
+    public function show(User $user)
+    {
+        return ResponseHelper::successResponse(
+            data: [
+                'user' => [
+                    'id' => $user->getKey(),
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'is_verified' => $user->email_verified_at ? true : false,
+                    'avatar' => $user->avatar ? asset('storage/avatars/' . $user->avatar) : null,
+                ],
+            ],
+            message: 'User data retrieved successfully.'
+        );
+    }
 
     // // Update User Data
     // public function update(Request $request, User $user)
@@ -142,6 +136,29 @@ class UserController extends Controller
     //         message: 'User data updated successfully.'
     //     );
     // }
+
+    // Email Verification
+    public function sendVerificationEmail(SendVerificationEmailRequest $request)
+    {
+        $user = $request['user'];
+
+        $user->notify(new VerificationEmailNotification($user->email_verified_at));
+
+        return ResponseHelper::successResponse(
+            message: 'Verification email sent successfully.'
+        );
+    }
+
+    public function verifyEmail(VerifyEmailRequest $request)
+    {
+        $user = $request['user'];
+
+        $user->markEmailAsVerified();
+
+        return ResponseHelper::successResponse(
+            message: 'Email verified successfully.'
+        );
+    }
 
     // // Delete User
     // public function destroy(User $user)
