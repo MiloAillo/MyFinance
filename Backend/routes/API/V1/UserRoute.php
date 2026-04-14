@@ -9,7 +9,10 @@ Route::controller(UserController::class)->group(function () {
     Route::post('users', 'store')->name('auth.register');
 
     Route::prefix('auth')->name('auth.')->group(function () {
-        Route::post('tokens', 'login')->name('login');
+        Route::prefix('tokens')->group(function () {
+            Route::post('/', 'login')->name('login');
+            Route::get('new-device/{hash}', 'login')->name('login.new-device')->middleware('signed');
+        });
         
         Route::prefix('password-resets')->name('password-resets.')->group(function () {
             Route::post('/', 'forgotPassword')->name('email');
@@ -35,6 +38,5 @@ Route::controller(UserController::class)->group(function () {
         Route::patch('/', 'update')->name('update');
         Route::get('/verify-new-email/{id}/{hash}', 'update')->middleware('signed')->name('update.verify.new-email'); // For email change verification
         Route::delete('/', 'destroy')->name('destroy');
-        // Route::patch('/avatar', 'handleAvatar')->name('avatar');
     });
 });

@@ -26,7 +26,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => 'required|email',
-            'password' => 'required|string',
+            'password' => $this->routeIs('api.v1.auth.login.new-device') ? 'sometimes' : 'required|string',
         ];
     }
 
@@ -41,11 +41,22 @@ class LoginRequest extends FormRequest
     protected function passedValidation()
     {
         $user = User::where('email', $this->input('email'))->first();
+        $data = ['user' => $user];
+        $hash = $this->route('hash');
+        $currentDeviceHash = hash('sha256', "$user->id|{$this->userAgent()}");
 
-        if (!$user || !Hash::check($this->input('password'), $user->password)) {
+        if ($this->routeIs('api.v1.auth.login') && (!$user || !Hash::check($this->input('password'), $user->password))) {
             throw new UnprocessableEntityHttpException('Invalid credentials');
         }
 
-        $this->merge(['user' => $user]);
+        if ($this->routeIs('api.v1.auth.login.new-device')) {
+            if (!hash_equals($hash, $currentDeviceHash)) {
+                throw new UnprocessableEntityHttpException('Invalid credentials.');
+            }
+
+            $data['hash'] = $hash;
+        }
+
+        $this->merge($data);
     }
 }

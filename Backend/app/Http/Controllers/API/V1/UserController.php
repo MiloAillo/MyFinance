@@ -49,8 +49,56 @@ class UserController extends Controller
     // Sign In
     public function login(LoginRequest $request)
     {
-        $credentials = $request->validated();
         $user = $request['user'];
+
+        if ($user->email_verified_at) {
+            $currentDeviceHash = hash('sha256', "$user->id|{$request->userAgent()}");
+            $devices = $user->known_devices ?? collect();
+            // $devices = collect($user->known_devices ?? []);
+            $maxDevices = 5;
+
+            // If the current device is in the known devices list, update the last used timestamp
+            if ($devices->contains('hash', $currentDeviceHash)) {
+                $devices = $devices->map(function ($device) use ($currentDeviceHash) {
+                    if ($device['hash'] === $currentDeviceHash) {
+                        $device['last_used_at'] = now();
+                    }
+                    return $device;
+                });
+                $user->known_devices = $devices->sortByDesc('last_used_at')->values()->all();
+                $user->save();
+
+            } 
+
+            /** 
+             * If the current device is not in the known devices list,
+             * and the required credentials are valid,
+             * and if the known devices list has reached the maximum limit,
+             * remove the least recently used device from the list,
+             * add the current device to the list
+             */
+
+            if (!$devices->contains('hash', $currentDeviceHash)) {
+                if ($request->routeIs('api.v1.auth.login.new-device')) {
+                    $devices = $devices->push([
+                        "hash" => $currentDeviceHash,
+                        "last_used_at" => now(),
+                    ]);
+
+                    $user->known_devices = $devices->sortByDesc('last_used_at')->take($maxDevices)->values();
+                    // dd($user->known_devices);
+                    $user->save();
+
+                } else {
+                    $user->notify(new NewDeviceLoginDetectedNotification($currentDeviceHash));
+
+                    return ResponseHelper::successResponse(
+                        message: 'New device login detected. Please check your email to continue.'
+                    );
+                }
+            }
+                
+        }
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -59,8 +107,8 @@ class UserController extends Controller
                 'token' => $token,
                 'token_type' => 'Bearer',
                 'expires_in' => config('sanctum.expiration'),
-                ];,
-            message: $message ?? 'User logged in successfully.'
+            ],
+            message: 'User logged in successfully.'
         );
     }
 
@@ -101,10 +149,14 @@ class UserController extends Controller
                     }
                 );
 
-                // Invalidate all existing tokens after password reset
+                // Invalidate all existing tokens and known devices after password reset
                 $user = User::where('email', $credentials['email'])->first();
-                $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
-                $user->notify(new CredentialsChangesNotification());
+
+                $user->tokens()->delete();
+                $user->known_devices = null;
+                $user->save();
+
+                $user->notify(new CredentialsChangesNotification('password'));
             });
         
         } catch (\Exception $e) {
@@ -119,7 +171,21 @@ class UserController extends Controller
     // Sign Out
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        
+        // if ($user->email_verified_at && !empty($user->known_devices)) {
+        //     $currentDeviceHash = hash('sha256', "$user->id|{$request->userAgent()}");
+        //     $devices = $user->known_devices;
+
+        //     // Remove the current device from the known devices list upon logout
+        //     $devices = $devices->reject(function ($device) use ($currentDeviceHash) {
+        //         return $device['hash'] === $currentDeviceHash;
+        //     });
+
+        //     $user->known_devices = $devices->values()->all();
+        //     $user->save();
+        // }
 
         return ResponseHelper::successResponse(
             message: 'User logged out successfully.'
@@ -170,13 +236,16 @@ class UserController extends Controller
                  * then mark the new email as verified
                  */
 
+                // MUST HAVE BEARER TOKEN !!!
                 // Handle email change and verification if the request is only for email change verification
                 if ($request->routeIs('api.v1.users.update.verify.new-email')) {
                     $user->email = $user->pending_email;
                     $user->pending_email = null;
                     $user->markEmailAsVerified();
                     $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
-                    $user->notify(new CredentialsChangesNotification());
+                    $user->known_devices = null;
+                    $user->save();
+                    $user->notify(new CredentialsChangesNotification('email'));
 
                     $message = 'Email updated and verified successfully.';
 
@@ -235,7 +304,9 @@ class UserController extends Controller
                 // Invalidate all existing tokens after credentials change except the current token
                 if (isset($credentials['password'])) {
                     $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
-                    $user->notify(new CredentialsChangesNotification());
+                    $user->known_devices = null;
+                    $user->save();
+                    $user->notify(new CredentialsChangesNotification('password'));
                 }
             });
 
@@ -264,7 +335,14 @@ class UserController extends Controller
     public function verifyEmail(VerifyEmailRequest $request)
     {
         $user = $request['user'];
+        $devices = collect();
+        $currentDeviceHash = hash('sha256', "$user->id|{$request->userAgent()}");
 
+        $devices->push([
+            "hash" => $currentDeviceHash,
+            "last_used_at" => now(),
+        ]);
+        $user->known_devices = $devices;
         $user->markEmailAsVerified();
 
         return ResponseHelper::successResponse(

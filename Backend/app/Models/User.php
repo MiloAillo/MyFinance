@@ -34,6 +34,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'pending_email',
+        'known_devices',
     ];
 
     /**
@@ -46,6 +47,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'known_devices' => 'collection',
         ];
     }
 }
