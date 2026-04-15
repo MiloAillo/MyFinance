@@ -25,7 +25,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
+            'email' => 'required|email|exists:users,email',
             'password' => $this->routeIs('api.v1.auth.login.new-device') ? 'sometimes' : 'required|string',
         ];
     }
