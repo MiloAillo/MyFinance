@@ -62,17 +62,18 @@ class UserController extends Controller
         if ($this->authService->isVerified($user)) {
             $currentDeviceHash = $this->authService->hashDevice($user->id, $request->userAgent());
             $devices = $user->known_devices ?? collect();
-            $maxDevices = 5;
 
             if ($devices->contains('hash', $currentDeviceHash)) {
                 $this->authService->updateLastTimeDeviceUsed($user, $currentDeviceHash);
 
             } else {
                 if ($request->routeIs('api.v1.auth.login.new-device')) {
-                    $this->authService->addDevice($user, $currentDeviceHash, $maxDevices);
+                    $this->authService->addDevice($user, $currentDeviceHash);
 
                 } else {
-                    $user->notify(new NewDeviceLoginDetectedNotification($currentDeviceHash));
+                    $this->authService->sendNewDeviceLoginDetectedNotification($user, $currentDeviceHash);
+
+                    // throw new NewDeviceLoginDetectedException();
 
                     return ResponseHelper::successResponse(
                         message: 'New device login detected. Please check your email to continue.'
@@ -100,7 +101,7 @@ class UserController extends Controller
 
         $token = $this->authService->makePasswordResetToken($user);
 
-        $user->notify(new ResetPasswordNotification($token));
+        $this->authService->sendResetPasswordNotification($user, $token);
 
         return ResponseHelper::successResponse(
             message: 'Password reset token has been generated and sent to email.'
@@ -125,8 +126,7 @@ class UserController extends Controller
                 $this->authService->updatePassword($credentials);
                 $user->tokens()->delete();
                 $this->authService->unsetKnownDevices($user);
-
-                $user->notify(new CredentialsChangesNotification('password'));
+                $this->authService->sendCredentialsChangesNotification($user, 'password');
             });
         
         } catch (\Exception $e) {
@@ -178,92 +178,59 @@ class UserController extends Controller
         $credentials = $request->validated();
         $user = $request->user();
         $message = null;
+        $mustNotEmptyFields = ['name', 'email', 'password'];
 
         try {
 
-            DB::transaction(function () use ($request, $credentials, $user, &$message) {
-
-                /**
-                 * If the request has 'change_and_verify_email' which value is true,
-                 * and the user of request has pending_email which value is not null,
-                 * and hash check shows that both hash is the same and valid
-                 * 
-                 * move the pending email to email,
-                 * removed the pending email,
-                 * then mark the new email as verified
-                 */
+            DB::transaction(function () use ($request, $credentials, $user, $mustNotEmptyFields, &$message) {
 
                 // MUST HAVE BEARER TOKEN !!!
-                // Handle email change and verification if the request is only for email change verification
                 if ($request->routeIs('api.v1.users.update.verify.new-email')) {
-                    $user->email = $user->pending_email;
-                    $user->pending_email = null;
+                    $this->userService->changeVerifiedEmail($user);
                     $user->markEmailAsVerified();
-                    $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
-                    $user->known_devices = null;
-                    $user->save();
-                    $user->notify(new CredentialsChangesNotification('email'));
+                    $this->authService->unsetKnownDevices($user);
+                    $this->userService->revokeAllTokensExceptCurrent($user);
+                    $this->authService->sendCredentialsChangesNotification($user, 'email');
 
                     $message = 'Email updated and verified successfully.';
 
                     return;
                 }
 
-                /** If user has been verified and email is being updated,
-                 *  store the new email into pending email,
-                 *  remove email from credentials to prevent it from being updated,
-                 *  and send verification email to the new email address.
-                 * 
-                 *  everything will be updated except the email until the new email is verified,
-                 *  then the pending email will be moved to email and get removed,
-                 *  and the new email will be verified.
-                 */
-
-                // Handle email change request if the user is already verified and wants to change email
-                if ($user->email_verified_at &&
+                if ($this->authService->isVerified($user) &&
                     !empty($credentials['email']) &&
                     $credentials['email'] !== $user->getEmailForVerification()) {
-                        $user->pending_email = $credentials['email'];
+                        $this->userService->moveEmailToPending($user, $credentials['email']);
                         unset($credentials['email']);
-                        $user->notify(new VerifiedEmailChangedNotification($user->pending_email));
+                        $this->authService->sendVerifiedEmailChangedNotification($user, $user->pending_email);
+                        
                         $message = 'Please verify your new email address to finish the process.';
                 }
 
-                /**
-                 * Sort the data to be updated,
-                 * only include the fields that are present in the request and not empty.
-                 */
-
                 $data = collect($credentials)
-                    ->only(['name', 'email', 'password'])
+                    ->only($mustNotEmptyFields)
                     ->filter(function ($value) {
                         return !empty($value);
                     })
                     ->toArray();
 
-                // Handle avatar upload if the request has avatar file
                 if ($request->hasFile('avatar')) {
                     $oldAvatar = $user->avatar;
                     $newAvatar = $request->file('avatar');
 
-                    $avatarName = time() . '.' . $newAvatar->getClientOriginalExtension();
-                    $newAvatar->storeAs('users/avatars', $avatarName, 'public');
-                    $data['avatar'] = $avatarName;
+                    $data['avatar'] = $this->userService->addAvatar($user, $newAvatar);
 
-                    if (!empty($oldAvatar) &&
-                        Storage::disk('public')->exists('users/avatars/' . $oldAvatar)) {
-                            Storage::disk('public')->delete('users/avatars/' . $oldAvatar);
+                    if (!empty($oldAvatar) && $this->userService->avatarExists($oldAvatar)) {
+                        $this->userService->removeAvatarFromStorage($oldAvatar);
                     }
                 }
 
                 $user->update($data);
                 
-                // Invalidate all existing tokens after credentials change except the current token
                 if (isset($credentials['password'])) {
-                    $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
-                    $user->known_devices = null;
-                    $user->save();
-                    $user->notify(new CredentialsChangesNotification('password'));
+                    $this->userService->revokeAllTokensExceptCurrent($user);
+                    $this->authService->unsetKnownDevices($user);
+                    $this->authService->sendCredentialsChangesNotification($user, 'password');
                 }
             });
 
@@ -282,7 +249,7 @@ class UserController extends Controller
     {
         $user = $request['user'];
 
-        $user->notify(new VerificationEmailNotification($user->email_verified_at));
+        $this->authService->sendVerificationEmailNotification($user);
 
         return ResponseHelper::successResponse(
             message: 'Verification email sent successfully.'
@@ -292,14 +259,9 @@ class UserController extends Controller
     public function verifyEmail(VerifyEmailRequest $request)
     {
         $user = $request['user'];
-        $devices = collect();
-        $currentDeviceHash = hash('sha256', "$user->id|{$request->userAgent()}");
+        $currentDeviceHash = $this->authService->hashDevice($user->id, $request->userAgent());
 
-        $devices->push([
-            "hash" => $currentDeviceHash,
-            "last_used_at" => now(),
-        ]);
-        $user->known_devices = $devices;
+        $this->authService->addDevice($user, $currentDeviceHash);
         $user->markEmailAsVerified();
 
         return ResponseHelper::successResponse(

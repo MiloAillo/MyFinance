@@ -3,6 +3,11 @@
 namespace App\Services\API\V1;
 
 use App\Models\User;
+use App\Notifications\API\V1\User\Auth\ResetPasswordNotification;
+use App\Notifications\API\V1\User\Auth\VerificationEmailNotification;
+use App\Notifications\API\V1\User\Auth\Verified\CredentialsChangesNotification;
+use App\Notifications\API\V1\User\Auth\Verified\NewDeviceLoginDetectedNotification;
+use App\Notifications\API\V1\User\Auth\Verified\VerifiedEmailChangedNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -21,9 +26,10 @@ class AuthService
         return hash('sha256', "$userId|$userAgent");
     }
 
-    public function addDevice(User $user, string $deviceHash, int $maxDevices): void
+    public function addDevice(User $user, string $deviceHash): void
     {
         $devices = $user->known_devices ?? collect();
+        $maxDevices = config('auth.users.known_devices_limit');
 
         $devices = $devices->push([
                         "hash" => $deviceHash,
@@ -85,5 +91,30 @@ class AuthService
     {
         $user->known_devices = null;
         $user->save();
+    }
+
+    public function sendNewDeviceLoginDetectedNotification(User $user, string $deviceHash): void
+    {
+        $user->notify(new NewDeviceLoginDetectedNotification($deviceHash));
+    }
+
+    public function sendResetPasswordNotification(User $user, string $token): void
+    {
+        $user->notify(new ResetPasswordNotification($token));
+    }
+
+    public function sendCredentialsChangesNotification(User $user, string $fields): void
+    {
+        $user->notify(new CredentialsChangesNotification($fields));
+    }
+
+    public function sendVerifiedEmailChangedNotification(User $user, string $newEmail): void
+    {
+        $user->notify(new VerifiedEmailChangedNotification($newEmail));
+    }
+
+    public function sendVerificationEmailNotification(User $user): void
+    {
+        $user->notify(new VerificationEmailNotification());
     }
 }
