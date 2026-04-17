@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
-class ResponseHelper
+class ApiResponseHelper
 {
     // success responses
     public static function successResponse(
@@ -80,33 +80,6 @@ class ResponseHelper
     //     return self::errorResponse($message, Response::HTTP_FORBIDDEN);
     // }
 
-    public static function internalServerErrorResponse(
-        \Throwable $exception,
-        string $context,
-        string $message = 'An error occurred.',
-    ): JsonResponse {
-        
-        $caption = "{$context}: {$exception->getMessage()}";
-
-        $details = [
-            'exception' => get_class($exception),
-            'message' => $exception->getMessage(),
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine(),
-            'trace' => $exception->getTraceAsString()
-        ];
-
-        Log::error($caption, $details);
-
-        return self::errorResponse(
-            config('app.debug') ? $exception->getMessage() : $message,
-            Response::HTTP_INTERNAL_SERVER_ERROR,
-            null,
-            [],
-            $exception
-        );
-    }
-
     public static function errorResponse(
         string $message = 'Error',
         int $statusCode = Response::HTTP_BAD_REQUEST,
@@ -143,5 +116,19 @@ class ResponseHelper
         }
         
         return response()->json($response, $statusCode);
+    }
+
+    public static function internalServerErrorResponse(
+        \Throwable $exception,
+        string $message = 'An error occurred.',
+    ): JsonResponse {
+
+        return self::errorResponse(
+            config('app.debug') ? $exception->getMessage() : $message,
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            null,
+            [],
+            $exception
+        );
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API\V1;
 
-use App\Http\Helpers\ResponseHelper;
+use App\Http\Helpers\ApiResponseHelper;
 use App\Http\Requests\API\V1\User\Auth\ForgotPasswordRequest;
 use App\Http\Requests\API\V1\User\Auth\LoginRequest;
 use App\Http\Requests\API\V1\User\Auth\RegisterRequest;
@@ -12,17 +12,10 @@ use App\Http\Requests\API\V1\User\Auth\Verification\Email\SendVerificationEmailR
 use App\Http\Requests\API\V1\User\Auth\Verification\Email\VerifyEmailRequest;
 use App\Http\Requests\API\V1\User\UpdateProfileRequest;
 use App\Models\User;
-use App\Notifications\API\V1\User\Auth\ResetPasswordNotification;
-use App\Notifications\API\V1\User\Auth\VerificationEmailNotification;
-use App\Notifications\API\V1\User\Auth\Verified\CredentialsChangesNotification;
-use App\Notifications\API\V1\User\Auth\Verified\NewDeviceLoginDetectedNotification;
-use App\Notifications\API\V1\User\Auth\Verified\VerifiedEmailChangedNotification;
 use App\Services\API\V1\AuthService;
 use App\Services\API\V1\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Storage;
 
 
 class UserController extends Controller
@@ -44,7 +37,7 @@ class UserController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             data: [
                 'token' => $token,
                 'token_type' => 'Bearer',
@@ -75,7 +68,7 @@ class UserController extends Controller
 
                     // throw new NewDeviceLoginDetectedException();
 
-                    return ResponseHelper::successResponse(
+                    return ApiResponseHelper::successResponse(
                         message: 'New device login detected. Please check your email to continue.'
                     );
                 }
@@ -84,7 +77,7 @@ class UserController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             data: [
                 'token' => $token,
                 'token_type' => 'Bearer',
@@ -103,14 +96,14 @@ class UserController extends Controller
 
         $this->authService->sendResetPasswordNotification($user, $token);
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             message: 'Password reset token has been generated and sent to email.'
         );
     }
 
     public function validateResetToken(ValidateResetTokenRequest $request)
     {
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             message: 'Password reset token is valid.'
         );
     }
@@ -133,7 +126,7 @@ class UserController extends Controller
             throw $e;
         }
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             message: 'Password has been reset successfully.'
         );
     }
@@ -144,7 +137,7 @@ class UserController extends Controller
         $user = $request->user();
         $user->currentAccessToken()->delete();
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             message: 'User logged out successfully.'
         );
     }
@@ -158,7 +151,7 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             data: [
                 'user' => [
                     'id' => $user->getKey(),
@@ -203,7 +196,7 @@ class UserController extends Controller
                         $this->userService->moveEmailToPending($user, $credentials['email']);
                         unset($credentials['email']);
                         $this->authService->sendVerifiedEmailChangedNotification($user, $user->pending_email);
-                        
+
                         $message = 'Please verify your new email address to finish the process.';
                 }
 
@@ -234,7 +227,7 @@ class UserController extends Controller
                 }
             });
 
-            return ResponseHelper::successResponse(
+            return ApiResponseHelper::successResponse(
                 data: ['user' => $user->fresh()],
                 message: $message ?? 'User data updated successfully.'
             );
@@ -251,7 +244,7 @@ class UserController extends Controller
 
         $this->authService->sendVerificationEmailNotification($user);
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             message: 'Verification email sent successfully.'
         );
     }
@@ -264,7 +257,7 @@ class UserController extends Controller
         $this->authService->addDevice($user, $currentDeviceHash);
         $user->markEmailAsVerified();
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             message: 'Email verified successfully.'
         );
     }
@@ -274,7 +267,7 @@ class UserController extends Controller
     {
         $request->user()->delete();
 
-        return ResponseHelper::successResponse(
+        return ApiResponseHelper::successResponse(
             message: 'User data deleted successfully.'
         );
     }

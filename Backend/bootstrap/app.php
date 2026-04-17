@@ -1,14 +1,11 @@
 <?php
 
-use App\Http\Helpers\ResponseHelper;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Support\Facades\Log;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -42,29 +39,24 @@ return Application::configure(basePath: dirname(__DIR__))
             return true;
         })
         ->render(function (Throwable $e, Request $request) {
-            
-            if ($e instanceof ValidationException) {
-                return ResponseHelper::errorResponse(
-                    message:'Validation failed',
-                    statusCode: Response::HTTP_UNPROCESSABLE_ENTITY,
-                    errors: $e->errors(),
-                    extra: [],
-                    exception: $e
-                );
+            return App\Exceptions\ApiExceptionHandler::handle($e);
+        })
+        ->dontReport([
+            Illuminate\Http\Exceptions\ThrottleRequestsException::class,
+        ])
+        ->report(function (Throwable $e) {
+            if ($e instanceof \PDOException) {
+                $caption = '[Internal Server Error] ' . get_class($e) . ' : '. $e->getMessage();
+
+                $details = [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ];
+
+                Log::error($caption, $details);
             }
-            if ($e instanceof HttpException) {
-                return ResponseHelper::errorResponse(
-                    message: $e->getMessage() ?: 'Unauthorized access or page not found',
-                    statusCode: $e->getStatusCode(),
-                    errors: [],
-                    extra: [],
-                    exception: $e
-                );
-            }
-            return ResponseHelper::internalServerErrorResponse(
-                exception: $e,
-                context: 'Internal Server Error',
-            );
         });
     })
     ->create();
