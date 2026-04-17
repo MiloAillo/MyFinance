@@ -26,59 +26,11 @@ class ApiResponseHelper
         }
 
         if (!empty($data)) {
-            $response['data'] = $data;
+            $response += $data->resolve();
         }
 
         return response()->json($response, $statusCode);
     }
-
-
-    // public static function validationErrorResponse($validator):JsonResponse
-    // {
-    //     return self::errorResponse(
-    //         'Validation failed',
-    //         Response::HTTP_UNPROCESSABLE_ENTITY,
-    //         $validator->errors()->toArray()
-    //     );
-    // }
-
-    // public static function createdResponse(
-    //     $data = null,
-    //     string $message = 'Resource created successfully.'
-    // ): JsonResponse {
-    //     return self::successResponse($data, $message, Response::HTTP_CREATED);
-    // }
-
-    // public static function updatedResponse(
-    //     $data = null,
-    //     string $message = 'Resource updated successfully.'
-    // ): JsonResponse {
-    //     return self::successResponse($data, $message, Response::HTTP_OK);
-    // }
-
-    // public static function deletedResponse(
-    //     string $message = 'Resource deleted successfully.'
-    // ): JsonResponse {
-    //     return self::successResponse(null, $message, Response::HTTP_OK);
-    // }
-
-    // public static function notFoundResponse(
-    //     string $message = 'Resource not found.'
-    // ): JsonResponse {
-    //     return self::errorResponse($message, Response::HTTP_NOT_FOUND);
-    // }
-
-    // public static function unauthorizedResponse(
-    //     string $message = 'Unauthorized access.'
-    // ): JsonResponse {
-    //     return self::errorResponse($message, Response::HTTP_UNAUTHORIZED);
-    // }
-
-    // public static function forbiddenResponse(
-    //     string $message = 'Forbidden access.'
-    // ): JsonResponse {
-    //     return self::errorResponse($message, Response::HTTP_FORBIDDEN);
-    // }
 
     public static function errorResponse(
         string $message = 'Error',
@@ -116,19 +68,5 @@ class ApiResponseHelper
         }
         
         return response()->json($response, $statusCode);
-    }
-
-    public static function internalServerErrorResponse(
-        \Throwable $exception,
-        string $message = 'An error occurred.',
-    ): JsonResponse {
-
-        return self::errorResponse(
-            config('app.debug') ? $exception->getMessage() : $message,
-            Response::HTTP_INTERNAL_SERVER_ERROR,
-            null,
-            [],
-            $exception
-        );
     }
 }
