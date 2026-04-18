@@ -25,7 +25,7 @@ class ApiResponseHelper
             $response['timestamp'] = now()->toISOString();
         }
 
-        if (!empty($data)) {
+        if (!empty($data) && method_exists($data, 'resolve')) {
             $response += $data->resolve();
         }
 
