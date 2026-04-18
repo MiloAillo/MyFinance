@@ -41,10 +41,12 @@ class UserController extends Controller
         return ApiResponseHelper::successResponse(
             message: 'User successfully registered.',
             data: collect(new UserResource($user))->mergeRecursive([
-                'meta' => [
-                    'token' => $token,
-                    'token_type' => 'Bearer',
-                    'expires_in' => config('sanctum.expiration'),
+                'data' => [
+                    'meta' => [
+                        'token' => $token,
+                        'token_type' => 'Bearer',
+                        'expires_in' => config('sanctum.expiration'),
+                    ]
                 ]
             ]),
         );
@@ -83,10 +85,12 @@ class UserController extends Controller
         return ApiResponseHelper::successResponse(
             message: 'User logged in successfully.',
             data: collect(new UserResource($user))->mergeRecursive([
-                'meta' => [
-                    'token' => $token,
-                    'token_type' => 'Bearer',
-                    'expires_in' => config('sanctum.expiration'),
+                'data' => [
+                    'meta' => [
+                        'token' => $token,
+                        'token_type' => 'Bearer',
+                        'expires_in' => config('sanctum.expiration'),
+                    ]
                 ]
             ]),
         );
@@ -155,19 +159,6 @@ class UserController extends Controller
     public function show(Request $request)
     {
         $user = $request->user();
-
-        // return ApiResponseHelper::successResponse(
-        //     data: [
-        //         'user' => [
-        //             'id' => $user->getKey(),
-        //             'name' => $user->name,
-        //             'email' => $user->email,
-        //             'is_verified' => $user->email_verified_at ? true : false,
-        //             'avatar' => $user->avatar ? asset('storage/avatars/' . $user->avatar) : null,
-        //         ],
-        //     ],
-        //     message: 'User data retrieved successfully.'
-        // );
 
         return ApiResponseHelper::successResponse(
             data: new UserResource($user),
