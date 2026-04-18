@@ -17,6 +17,7 @@ class ApiExceptionHandler
         $statusCode = self::getStatusCode($e);
         $message = self::getExceptionMessage($e, $statusCode);
         $errors = self::getErrors($e);
+        // dd($statusCode);
 
         return ApiResponseHelper::errorResponse(
                 message: $message,
@@ -42,6 +43,7 @@ class ApiExceptionHandler
         return match (true) {
             $e instanceof HttpExceptionInterface => $e->getStatusCode(),
             property_exists($e, 'status') => $e->status,
+            method_exists($e, 'getCode') && !is_string($e->getCode()) &&
             100 <= $e->getCode() && $e->getCode() < 600 => $e->getCode(),
             default => 500
         };
