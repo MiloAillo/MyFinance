@@ -39,12 +39,14 @@ class UserController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return ApiResponseHelper::successResponse(
-            data: [
-                'token' => $token,
-                'token_type' => 'Bearer',
-                'expires_in' => config('sanctum.expiration'),
-            ],
-            message: 'User successfully registered.'
+            message: 'User successfully registered.',
+            data: collect(new UserResource($user))->mergeRecursive([
+                'meta' => [
+                    'token' => $token,
+                    'token_type' => 'Bearer',
+                    'expires_in' => config('sanctum.expiration'),
+                ]
+            ]),
         );
     }
 
@@ -79,12 +81,14 @@ class UserController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return ApiResponseHelper::successResponse(
-            data: [
-                'token' => $token,
-                'token_type' => 'Bearer',
-                'expires_in' => config('sanctum.expiration'),
-            ],
-            message: 'User logged in successfully.'
+            message: 'User logged in successfully.',
+            data: collect(new UserResource($user))->mergeRecursive([
+                'meta' => [
+                    'token' => $token,
+                    'token_type' => 'Bearer',
+                    'expires_in' => config('sanctum.expiration'),
+                ]
+            ]),
         );
     }
 
