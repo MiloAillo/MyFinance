@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\V1;
 
+use App\Exceptions\API\V1\Auth\NewDeviceLoginDetectedException;
 use App\Http\Helpers\ApiResponseHelper;
 use App\Http\Requests\API\V1\User\Auth\ForgotPasswordRequest;
 use App\Http\Requests\API\V1\User\Auth\LoginRequest;
@@ -71,11 +72,7 @@ class UserController extends Controller
                 } else {
                     $this->authService->sendNewDeviceLoginDetectedNotification($user, $currentDeviceHash);
 
-                    // throw new NewDeviceLoginDetectedException();
-
-                    return ApiResponseHelper::successResponse(
-                        message: 'New device login detected. Please check your email to continue.',
-                    );
+                    throw new NewDeviceLoginDetectedException('Please check your email to continue.');
                 }
             }   
         }
@@ -172,11 +169,11 @@ class UserController extends Controller
         $credentials = $request->validated();
         $user = $request->user();
         $message = null;
-        $mustNotEmptyFields = ['name', 'email', 'password'];
+        $mustNotBeEmptyFields = ['name', 'email', 'password'];
 
         try {
 
-            DB::transaction(function () use ($request, $credentials, $user, $mustNotEmptyFields, &$message) {
+            DB::transaction(function () use ($request, $credentials, $user, $mustNotBeEmptyFields, &$message) {
 
                 // MUST HAVE BEARER TOKEN !!!
                 if ($request->routeIs('api.v1.users.update.verify.new-email')) {
@@ -202,7 +199,7 @@ class UserController extends Controller
                 }
 
                 $data = collect($credentials)
-                    ->only($mustNotEmptyFields)
+                    ->only($mustNotBeEmptyFields)
                     ->filter(function ($value) {
                         return !empty($value);
                     })
