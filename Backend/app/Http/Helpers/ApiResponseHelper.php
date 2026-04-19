@@ -26,8 +26,8 @@ class ApiResponseHelper
         }
 
         if (!empty($data)) {
-            if (method_exists($data, 'resolve')) {
-                $response['data'] = array_merge_recursive($response, $data->resolve());
+            if (method_exists($data, 'resolve') && array_key_exists('data', $data->resolve())) {
+                $response = array_merge_recursive($response, $data->resolve());
             } else {
                 $response['data'] = $data;
             }
