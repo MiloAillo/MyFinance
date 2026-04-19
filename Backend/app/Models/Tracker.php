@@ -14,7 +14,6 @@ class Tracker extends Model
         'user_id',
         'name',
         'description',
-        'initial_balance',
     ];
 
     public function user()
@@ -37,9 +36,7 @@ class Tracker extends Model
         if ($this->relationLoaded('transactions')) {
             $income = $this->transactions->where('type', 'income')->sum('amount');
             $expense = $this->transactions->where('type', 'expense')->sum('amount');
-            return $this->initial_balance
-                    + $income
-                    - $expense;
+            return $income - $expense;
         }
         
         $totals = $this->transactions()
@@ -49,9 +46,7 @@ class Tracker extends Model
             ')
             ->first();
         
-        return $this->initial_balance
-                    + $totals->income
-                    - $totals->expense;
+        return $totals->income - $totals->expense;
     }
 
     public function getTotalTransactionsAttribute()
