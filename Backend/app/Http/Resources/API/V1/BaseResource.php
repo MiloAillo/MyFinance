@@ -17,7 +17,7 @@ class BaseResource extends JsonApiResource
     public function toMeta(Request $request)
     {
         return [
-            'api_version' => '1.x.x',
+            //
         ];
     }
 }

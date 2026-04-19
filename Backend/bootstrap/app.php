@@ -39,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return true;
         })
         ->render(function (Throwable $e, Request $request) {
-            return App\Exceptions\ApiExceptionHandler::handle($e);
+            return App\Exceptions\API\ApiExceptionHandler::handle($e);
         })
         ->dontReport([
             Illuminate\Http\Exceptions\ThrottleRequestsException::class,
