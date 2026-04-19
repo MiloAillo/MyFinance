@@ -14,17 +14,7 @@ class Tracker extends Model
         'name',
         'description',
         'initial_balance',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'initial_balance' => 'decimal:2',
-        'is_active' => 'boolean',
-    ];
-
-    protected $appends = [
-        'current_balance',
-        'total_transactions',
+        'deleted_at',
     ];
 
     public function user()
@@ -37,10 +27,10 @@ class Tracker extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    // public function scopeActive($query)
-    // {
-    //     return $query->where('is_active', true);
-    // }
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 
     public function getCurrentBalanceAttribute()
     {
@@ -68,4 +58,14 @@ class Tracker extends Model
     {
         return $this->transactions()->count();
     }
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('name', 'like', "%{$search}%");
+    }
+
+    // public function scopeSortBy($query, $sortBy, $sortOrder)
+    // {
+    //     return $query->orderBy($sortBy, $sortOrder);
+    // }
 }

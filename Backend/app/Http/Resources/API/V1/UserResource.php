@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\API\V1;
 
-use Illuminate\Http\Request;
+// use Illuminate\Http\Request;
 use App\Http\Resources\API\V1\TrackerResource;
 use App\Http\Resources\API\V1\TransactionResource;
 
