@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exceptions;
+namespace App\Exceptions\API;
 
 use App\Http\Helpers\ApiResponseHelper;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
