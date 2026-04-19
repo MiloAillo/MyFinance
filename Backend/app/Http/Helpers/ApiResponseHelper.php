@@ -26,13 +26,13 @@ class ApiResponseHelper
         }
 
         if (!empty($data)) {
-            match (true) {
-                method_exists($data, 'resolve') => $response += $data->resolve(),
-                method_exists($data, 'toArray') => $response += $data->toArray(),
-                default => $response['data'] = $data,
-            };
+            if (method_exists($data, 'resolve')) {
+                $response['data'] = array_merge_recursive($response, $data->resolve());
+            } else {
+                $response['data'] = $data;
+            }
         }
-
+        
         return response()->json($response, $statusCode);
     }
 
