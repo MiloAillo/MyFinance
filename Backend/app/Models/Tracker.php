@@ -41,8 +41,8 @@ class Tracker extends Model
         
         $totals = $this->transactions()
             ->selectRaw('
-                COALESCE(SUM(CASE WHEN type = "income" THEN amount ELSE 0 END), 0) as income,
-                COALESCE(SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END), 0) as expense
+                COALESCE(SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END), 0) as income,
+                COALESCE(SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END), 0) as expense
             ')
             ->first();
         
@@ -53,14 +53,4 @@ class Tracker extends Model
     {
         return $this->transactions()->count();
     }
-
-    public function scopeSearch($query, $search)
-    {
-        return $query->where('name', 'like', "%{$search}%");
-    }
-
-    // public function scopeSortBy($query, $sortBy, $sortOrder)
-    // {
-    //     return $query->orderBy($sortBy, $sortOrder);
-    // }
 }

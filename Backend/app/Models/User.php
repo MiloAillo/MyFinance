@@ -37,17 +37,13 @@ class User extends Authenticatable
         'known_devices',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function trackers()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'known_devices' => 'collection',
-        ];
+        return $this->hasMany(Tracker::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
     }
 }
