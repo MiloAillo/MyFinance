@@ -10,16 +10,16 @@ use App\Http\Requests\API\V1\Tracker\StoreTrackerRequest;
 use App\Http\Requests\API\V1\Tracker\UpdateTrackerRequest;
 use App\Http\Resources\API\V1\TrackerResource;
 use App\Models\Tracker;
-use App\Services\API\V1\TrackerService;
+// use App\Services\API\V1\TrackerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TrackerController extends Controller
 {
-    public function __construct(protected TrackerService $trackerService)
-    {
-        $this->trackerService = $trackerService;
-    }
+    // public function __construct(protected TrackerService $trackerService)
+    // {
+    //     $this->trackerService = $trackerService;
+    // }
 
     public function index(IndexTrackersRequest $request)
     {
