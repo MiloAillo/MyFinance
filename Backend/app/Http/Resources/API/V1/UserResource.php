@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\API\V1;
 
-// use Illuminate\Http\Request;
+use Illuminate\Http\Request;
 use App\Http\Resources\API\V1\TrackerResource;
 use App\Http\Resources\API\V1\TransactionResource;
 
@@ -20,25 +20,30 @@ class UserResource extends BaseResource
         'transactions' => TransactionResource::class,
     ];
 
-    // public function toLinks(Request $request)
-    // {
-    //     return array_merge_recursive(
-    //         parent::toLinks($request), 
-    //         [
-    //             'trackers' => route('api.v1.users.trackers.index', $this->resource),
-    //             'transactions' => route('api.v1.users.transactions.index', $this->resource),
-    //         ]
-    //     );
-    // }
+    public function toAttributes(Request $request)
+    {
+        $attributes = parent::toAttributes($request);
 
-    // public function toMeta(Request $request)
-    // {
-    //     return array_merge_recursive(
-    //         parent::toMeta($request),
-    //         [
-    //             'tracker_count' => $this->trackers()->count(),
-    //             'transaction_count' => $this->transactions()->count(),
-    //         ]
-    //     );
-    // }
+        return $attributes;
+    }
+
+    public function toLinks(Request $request)
+    {
+        $links = parent::toLinks($request);
+
+        // $links['trackers'] = route('api.v1.trackers.show', $this->resource);
+        // $links['transactions'] = route('api.v1.trackers.transactions.index', $this->resource);
+        
+        return $links;
+    }
+
+    public function toMeta(Request $request)
+    {
+        $meta = parent::toMeta($request);
+
+        // $meta['transaction_count'] = $this->getTotalTransactionsAttribute();
+        // $meta['current_balance'] = $this->getCurrentBalanceAttribute();
+        
+        return $meta;
+    }
 }
