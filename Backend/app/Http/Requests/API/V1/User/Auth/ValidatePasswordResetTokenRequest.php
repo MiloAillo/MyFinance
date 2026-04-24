@@ -4,7 +4,6 @@ namespace App\Http\Requests\API\V1\User\Auth;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -27,32 +26,31 @@ class ValidatePasswordResetTokenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
             'token' => 'required|string',
+            'email' => 'required|email',
         ];
     }
 
     public function prepareForValidation()
     {
-        if (!$this->input('credentials')) {
-            throw new UnprocessableEntityHttpException('Invalid credentials');
+        $token = $this->route('token');
+        $email = $this->route('email');
+
+        if ($token && $email) {
+            $this->merge([
+                'token' => $token,
+                'email' => $email
+            ]);
         }
-
-        $encodedData = Crypt::decrypt($this->credentials);
-        $decodedData = [];
-
-        parse_str($encodedData, $decodedData);
-
-        $this->merge($decodedData);
     }
 
     public function passedValidation()
     {
-        $record = DB::table('password_reset_tokens')->where('email', $this->input('email'))->first();
+        $tokenRecord = DB::table('password_reset_tokens')->where('email', $this->input('email'))->first();
 
-        if (!$record ||
-            !Hash::check($this->input('token'), $record->token) ||
-            Carbon::parse($record->created_at)->addMinutes(config('auth.passwords.users.expire'))->isPast()){
+        if (!$tokenRecord ||
+            !Hash::check($this->input('token'), $tokenRecord->token) ||
+            Carbon::parse($tokenRecord->created_at)->addMinutes(config('auth.passwords.users.expire'))->isPast()){
                 throw new UnprocessableEntityHttpException('Invalid credentials');
         }
     }

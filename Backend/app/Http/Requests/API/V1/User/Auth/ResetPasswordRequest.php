@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\API\V1\User\Auth;
 
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -63,6 +64,7 @@ class ResetPasswordRequest extends BaseRequest
     public function passedValidation()
     {
         $tokenRecord = DB::table('password_reset_tokens')->where('email', $this->input('email'))->first();
+        $user = User::where('email', $this->input('email'))->first();
 
         if (!$tokenRecord ||
             !Hash::check($this->input('token'), $tokenRecord->token) ||
@@ -71,7 +73,7 @@ class ResetPasswordRequest extends BaseRequest
         }
 
         $this->merge([
-            'password' => Hash::make($this->input('password'))
+            'user' => $user
         ]);
     }
 }

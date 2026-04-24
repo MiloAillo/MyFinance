@@ -26,12 +26,7 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'avatar' => [
-                'sometimes',
-                'image',
-                'mimes:jpeg,png,jpg,webp',
-                'max:2048', // 2 MB
-            ],
+            'avatar' => $this->hasFile('avatar') ? 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048' : 'sometimes|string|max:4', // 2 MB
             'name' => 'sometimes|string|min:3|max:50',
             'email' => [
                 'sometimes',
@@ -77,17 +72,25 @@ class UpdateProfileRequest extends FormRequest
                 ]);
             }
         }
+
+        if ($this->routeIs('api.v1.users.update')) {
+            if (is_string($this->input('avatar')) && $this->input('avatar') !== 'null') {
+                throw new UnprocessableEntityHttpException("Invalid avatar data. To remove the avatar, set the value to 'null'.");
+            }
+        }
     }
 
     public function passedValidation()
     {
+        $user = $this->user();
+
         if ($this->routeIs('api.v1.users.update.verify.new-email')) {
-            if ($this->user()->pending_email == null) {
+            if ($user->pending_email == null) {
                 throw new UnprocessableEntityHttpException('No pending email to verify.');
             }
             
             if (empty($this->hash) ||
-                !hash_equals((string) $this->hash, sha1($this->user()->pending_email))) {
+                !hash_equals((string) $this->hash, sha1($user->pending_email))) {
                 throw new UnprocessableEntityHttpException('Invalid credentials.');
             }
         }
@@ -99,5 +102,9 @@ class UpdateProfileRequest extends FormRequest
                 ]);
             }
         }
+
+        $this->merge([
+            'user' => $user
+        ]);
     }
 }

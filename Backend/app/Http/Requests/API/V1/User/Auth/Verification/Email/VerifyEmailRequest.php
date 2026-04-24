@@ -3,6 +3,7 @@
 namespace App\Http\Requests\API\V1\User\Auth\Verification\Email;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
@@ -44,8 +45,10 @@ class VerifyEmailRequest extends FormRequest
     public function passedValidation()
     {
         try{
+
             $user = User::findOrFail($this->id);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            
+        } catch (ModelNotFoundException $e) {
             throw new UnprocessableEntityHttpException('Invalid credentials.');
         }
 

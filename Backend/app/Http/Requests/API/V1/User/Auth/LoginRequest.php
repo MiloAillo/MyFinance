@@ -3,11 +3,11 @@
 namespace App\Http\Requests\API\V1\User\Auth;
 
 use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Services\API\V1\AuthService;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
-class LoginRequest extends FormRequest
+class LoginRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,35 +26,41 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => 'required|email|exists:users,email',
-            'password' => $this->routeIs('api.v1.auth.login.new-device') ? 'sometimes' : 'required|string',
+            'password' => [ $this->routeIs('api.v1.auth.login.new-device') ? 'sometimes' : 'required', 'string' ],
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
     public function messages()
     {
-        return [];
+        return array_merge_recursive(parent::messages(), [
+            //
+        ]);
+    }
+
+    public function prepareForValidation()
+    {
+        if ($this->routeIs('api.v1.auth.login.new-device') && $this->route('email')) {
+            $this->merge([
+                'email' => $this->route('email'),
+            ]);
+        }
     }
 
     protected function passedValidation()
     {
-        $user = User::where('email', $this->input('email'))->first();
-        $data = ['user' => $user];
-        $hash = $this->route('hash');
-        $currentDeviceHash = hash('sha256', "$user->id|{$this->userAgent()}");
+        $data['user'] = User::where('email', $this->input('email'))->first();
+        $data['currentDeviceHash'] = hash('sha256', AuthService::make()->hashDevice($data['user']->id, $this->userAgent()));
 
-        if ($this->routeIs('api.v1.auth.login') && (!$user || !Hash::check($this->input('password'), $user->password))) {
+        if ($this->routeIs('api.v1.auth.login') && (!$data['user'] || !Hash::check($this->input('password'), $data['user']->password))) {
             throw new UnprocessableEntityHttpException('Invalid credentials');
         }
 
         if ($this->routeIs('api.v1.auth.login.new-device')) {
-            if (!hash_equals($hash, $currentDeviceHash)) {
+            $hash = $this->route('hash');
+
+            if (!hash_equals($hash, $data['currentDeviceHash'])) {
                 throw new UnprocessableEntityHttpException('Invalid credentials.');
             }
-
-            $data['hash'] = $hash;
         }
 
         $this->merge($data);
