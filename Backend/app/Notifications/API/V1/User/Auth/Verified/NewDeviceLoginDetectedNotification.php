@@ -3,12 +3,12 @@
 namespace App\Notifications\API\V1\User\Auth\Verified;
 
 use Illuminate\Bus\Queueable;
-// use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 
-class NewDeviceLoginDetectedNotification extends Notification
+class NewDeviceLoginDetectedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -51,12 +51,12 @@ class NewDeviceLoginDetectedNotification extends Notification
         );
         
         return (new MailMessage)
-            ->subject('Verify Your Email Address - ' . config('app.name'))
+            ->subject('Verify Your New Device - ' . config('app.name'))
             ->greeting('Hello!')
-            ->line('You are receiving this email because we received an email verification request for your account.')
-            ->action('Verify Email', $url)
+            ->line('You are receiving this email because we received a new device login request for your account.')
+            ->action('Verify Device', $url)
             ->line('This verification link will expire in ' . config('auth.verification.expire') . ' minutes.')
-            ->line('If you did not request an email verification, no further action is required.')
+            ->line('If you did not request a new device login, no further action is required.')
             ->salutation('Regards, ' . config('app.name'));
     }
 

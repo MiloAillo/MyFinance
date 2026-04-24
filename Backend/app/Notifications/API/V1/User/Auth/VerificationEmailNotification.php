@@ -3,12 +3,12 @@
 namespace App\Notifications\API\V1\User\Auth;
 
 use Illuminate\Bus\Queueable;
-// use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 
-class VerificationEmailNotification extends Notification
+class VerificationEmailNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
