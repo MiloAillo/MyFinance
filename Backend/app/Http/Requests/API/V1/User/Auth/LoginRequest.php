@@ -49,7 +49,7 @@ class LoginRequest extends BaseRequest
     protected function passedValidation()
     {
         $data['user'] = User::where('email', $this->input('email'))->first();
-        $data['currentDeviceHash'] = hash('sha256', AuthService::make()->hashDevice($data['user']->id, $this->userAgent()));
+        $data['currentDeviceHash'] = AuthService::make()->hashDevice($data['user']->id, $this->userAgent());
 
         if ($this->routeIs('api.v1.auth.login') && (!$data['user'] || !Hash::check($this->input('password'), $data['user']->password))) {
             throw new UnprocessableEntityHttpException('Invalid credentials');

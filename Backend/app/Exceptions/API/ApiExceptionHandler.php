@@ -18,7 +18,6 @@ class ApiExceptionHandler
         $statusCode = self::getStatusCode($e);
         $message = self::getExceptionMessage($e, $statusCode);
         $errors = self::getErrors($e);
-        // dd($statusCode);
 
         return ApiResponseHelper::errorResponse(
                 message: $message,
