@@ -16,6 +16,11 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class AuthService
 {
+    public static function make()
+    {
+        return new static();
+    }
+
     public function isVerified(User $user): bool
     {
         return $user->email_verified_at ? true : false;
@@ -28,7 +33,7 @@ class AuthService
 
     public function addDevice(User $user, string $deviceHash): void
     {
-        $devices = $user->known_devices ?? collect();
+        $devices = collect($user->known_devices);
         $maxDevices = config('auth.users.known_devices_limit');
 
         $devices = $devices->push([
@@ -42,7 +47,7 @@ class AuthService
 
     public function updateLastTimeDeviceUsed(User $user, string $deviceHash): void
     {
-        $devices = $user->known_devices ?? null;
+        $devices = collect($user->known_devices);
 
         if (!$devices) {
             throw new UnprocessableEntityHttpException('No known devices found.');
@@ -80,9 +85,10 @@ class AuthService
 
     public function updatePassword(array $credentials): void
     {
-        Password::broker()->reset($credentials, function ($user, $password) {
+        Password::broker()->reset(
+            $credentials, function (User $user, string $password) {
             $user->forceFill([
-                'password' => $password
+                'password' => Hash::make($password)
             ])->save();
         });
     }

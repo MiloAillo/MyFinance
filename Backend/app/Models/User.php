@@ -37,6 +37,13 @@ class User extends Authenticatable
         'known_devices',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'known_devices' => 'collection',
+        ];
+    }
+
     public function trackers()
     {
         return $this->hasMany(Tracker::class);

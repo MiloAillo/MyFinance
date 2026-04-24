@@ -35,7 +35,7 @@ class UserController extends Controller
     // Sign Up
     public function store(RegisterRequest $request)
     {
-        $user = User::create($request->validated());
+        $user = User::create($request->only('name', 'email', 'password'));
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -59,8 +59,8 @@ class UserController extends Controller
         $user = $request['user'];
 
         if ($this->authService->isVerified($user)) {
-            $currentDeviceHash = $this->authService->hashDevice($user->id, $request->userAgent());
-            $devices = $user->known_devices ?? collect();
+            $currentDeviceHash = $request['currentDeviceHash'];
+            $devices = collect($user->known_devices);
 
             if ($devices->contains('hash', $currentDeviceHash)) {
                 $this->authService->updateLastTimeDeviceUsed($user, $currentDeviceHash);
@@ -117,7 +117,7 @@ class UserController extends Controller
     public function resetPassword(ResetPasswordRequest $request)
     {
         $credentials = $request->validated();
-        $user = User::where('email', $credentials['email'])->first();
+        $user = $request['user'];
 
         try {
 
@@ -167,7 +167,8 @@ class UserController extends Controller
     public function update(UpdateProfileRequest $request)
     {
         $credentials = $request->validated();
-        $user = $request->user();
+        $credentials['password'] = $request['password'];
+        $user = $request['user'];
         $message = null;
         $mustNotBeEmptyFields = ['name', 'email', 'password'];
 
@@ -205,11 +206,15 @@ class UserController extends Controller
                     })
                     ->toArray();
 
-                if ($request->hasFile('avatar')) {
+                if ($request->hasFile('avatar') || $request->input('avatar') === 'null') {
                     $oldAvatar = $user->avatar;
                     $newAvatar = $request->file('avatar');
 
-                    $data['avatar'] = $this->userService->addAvatar($user, $newAvatar);
+                    if (!empty($newAvatar)) {
+                        $data['avatar'] = $this->userService->addAvatar($user, $newAvatar);
+                    } else {
+                        $data['avatar'] = null;
+                    }
 
                     if (!empty($oldAvatar) && $this->userService->avatarExists($oldAvatar)) {
                         $this->userService->removeAvatarFromStorage($oldAvatar);
@@ -218,10 +223,26 @@ class UserController extends Controller
 
                 $user->update($data);
                 
-                if (isset($credentials['password'])) {
+                
+                if (isset($credentials['password']) || isset($credentials['email'])) {
+                    if (isset($credentials['password'])) {
+                        $column = 'password';
+                    } else if (isset($credentials['email'])) {
+                        $column = 'email';
+                    } else {
+                        $column = 'email and password';
+                    }
+
+                    $column = match (true) {
+                        isset($credentials['password']) && isset($credentials['email']) => 'email and password',
+                        isset($credentials['password']) => 'password',
+                        isset($credentials['email']) => 'email',
+                        default => 'email and password'
+                    };
+
                     $this->userService->revokeAllTokensExceptCurrent($user);
                     $this->authService->unsetKnownDevices($user);
-                    $this->authService->sendCredentialsChangesNotification($user, 'password');
+                    $this->authService->sendCredentialsChangesNotification($user, $column);
                 }
             });
 

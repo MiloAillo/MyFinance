@@ -21,12 +21,12 @@ class UserService
 
     public function revokeAllTokensExceptCurrent(User $user): void
     {
-        $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+        $user->tokens()->whereKeyNot($user->currentAccessToken()->id)->delete();
     }
 
     public function addAvatar(User $user, $avatar): string
     {
-        $avatarName = time() . '.' . $avatar->getClientOriginalExtension();
+        $avatarName = time() . '.' . $avatar->extension();
         $avatar->storeAs('users/avatars', $avatarName, 'public');
 
         return $avatarName;
