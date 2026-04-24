@@ -9,7 +9,7 @@ class NewDeviceLoginDetectedException extends Exception
     protected $message = "New device login detected.";
     protected $code = 403;
 
-    public function __construct(string $message = null) {
+    public function __construct(?string $message = null) {
         parent::__construct($message ? "{$this->message} {$message}" : $this->message);
     }
 }

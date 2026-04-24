@@ -42,7 +42,7 @@ class ApiResponseHelper
         int $statusCode = Response::HTTP_BAD_REQUEST,
         $errors = null,
         array $extra = [],
-        \Throwable $exception = null
+        ?\Throwable $exception = null
     ): JsonResponse {
 
         $response = [
