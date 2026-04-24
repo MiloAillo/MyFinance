@@ -11,12 +11,12 @@ Route::controller(UserController::class)->group(function () {
     Route::prefix('auth')->name('auth.')->group(function () {
         Route::prefix('tokens')->group(function () {
             Route::post('/', 'login')->name('login');
-            Route::get('new-device/{hash}', 'login')->name('login.new-device')->middleware('signed');
+            Route::get('new-device/{email}/{hash}', 'login')->middleware('signed')->name('login.new-device');
         });
         
         Route::prefix('password-resets')->name('password-resets.')->group(function () {
             Route::post('/', 'forgotPassword')->name('email');
-            Route::get('/', 'validateResetToken')->name('validate');
+            Route::get('/{email}/{token}', 'validateResetToken')->middleware('signed')->name('validate');
             Route::put('/{email}/{token}', 'resetPassword')->middleware('signed')->name('update');
         });
 
