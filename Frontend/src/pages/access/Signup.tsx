@@ -67,7 +67,7 @@ export function Signup(): JSX.Element {
 
         try {
             setIsLoading(true)
-            const res = await axios.post(`${ApiUrl}/api/auth/register`, {
+            const res = await axios.post(`${ApiUrl}/users`, {
                 name: values.username,
                 email: values.email,
                 password: values.password,
@@ -80,9 +80,9 @@ export function Signup(): JSX.Element {
                 password_confirmation: values.password
             })
             const data = await res.data
-            console.log(data.data.token)
-            if(data.data.token) {
-                localStorage.setItem("Authorization", data.data.token)
+            console.log("token :", data.data.meta.token)
+            if(data.data.meta.token) {
+                localStorage.setItem("Authorization", data.data.meta.token)
                 setIsOut(true)
                 setTimeout(() => {
                     window.location.href = "/app"

@@ -3,8 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-
-use App\Notifications\API\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
     ];
 
     /**
@@ -34,23 +33,24 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'pending_email',
+        'known_devices',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'known_devices' => 'collection',
         ];
     }
 
-    public function sendPasswordResetNotification($token)
+    public function trackers()
     {
-        $this->notify(new ResetPasswordNotification($token));
+        return $this->hasMany(Tracker::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
     }
 }

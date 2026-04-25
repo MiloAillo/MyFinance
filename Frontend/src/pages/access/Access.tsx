@@ -42,21 +42,22 @@ export function Access(): JSX.Element {
         setIsInvalidCredentials(false)
         setIsError(false)
         try {
-            const res = await axios.post(`${ApiUrl}/api/auth/login`, {
+            const res = await axios.post(`${ApiUrl}/auth/tokens`, {
                 email: values.email,
                 password: values.password
             })
     
             const data = await res.data
-            localStorage.setItem("Authorization", data.data.token)
+            console.log("response :", data)
+            localStorage.setItem("Authorization", data.data.meta.token)
             setIsOut(true)
-            setTimeout(() => {
+            setTimeout(() => { 
                 window.location.href = "/app"
             }, 500)
         } catch(err) {
             if(isAxiosError(err)) {
                 console.log("error", err)
-                if(err.response?.status === 401) {
+                if(err.response?.status === 422) {
                     setIsInvalidCredentials(true)
                     setIsError(true)
                 } else {

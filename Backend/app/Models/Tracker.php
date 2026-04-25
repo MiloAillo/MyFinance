@@ -4,22 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tracker extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     
     protected $fillable = [
         'user_id',
         'name',
         'description',
-        'initial_balance',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'initial_balance' => 'decimal:2',
-        'is_active' => 'boolean',
     ];
 
     public function user()
@@ -32,21 +26,31 @@ class Tracker extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function scopeActive($query)
+    public function isForceDeletable()
     {
-        return $query->where('is_active', true);
+        return $this->deleted_at !== null;
     }
 
     public function getCurrentBalanceAttribute()
     {
-        $totalIncome = $this->transactions()
-            ->where('type', 'income')
-            ->sum('amount');
+        if ($this->relationLoaded('transactions')) {
+            $income = $this->transactions->where('type', 'income')->sum('amount');
+            $expense = $this->transactions->where('type', 'expense')->sum('amount');
+            return $income - $expense;
+        }
+        
+        $totals = $this->transactions()
+            ->selectRaw('
+                COALESCE(SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END), 0) as income,
+                COALESCE(SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END), 0) as expense
+            ')
+            ->first();
+        
+        return $totals->income - $totals->expense;
+    }
 
-        $totalExpense = $this->transactions()
-            ->where('type', 'expense')
-            ->sum('amount');
-
-        return $this->initial_balance + $totalIncome - $totalExpense;
+    public function getTotalTransactionsAttribute()
+    {
+        return $this->transactions()->count();
     }
 }

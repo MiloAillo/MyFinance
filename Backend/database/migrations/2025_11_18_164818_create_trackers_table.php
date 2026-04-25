@@ -16,11 +16,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('initial_balance', 15, 2)->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
 
-            $table->index(['user_id', 'is_active']);
+            $table->index(['user_id', 'deleted_at']);
         });
     }
 

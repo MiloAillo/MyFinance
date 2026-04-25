@@ -5,7 +5,7 @@ const dashboardLoader = async () => {
     const authToken = localStorage.getItem("Authorization")
 
     try {
-        const res = await axios.get(`${ApiUrl}/api/trackers`, {
+        const res = await axios.get(`${ApiUrl}/trackers`, {
             headers: {
                 Authorization: `Bearer ${authToken}`
             }

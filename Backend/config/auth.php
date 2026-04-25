@@ -112,4 +112,11 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'verification' => [
+        'expire' => env('AUTH_VERIFICATION_EXPIRE', 60),
+    ],
+
+    'users' => [
+        'known_devices_limit' => env('AUTH_KNOWN_DEVICES_LIMIT', 5),
+    ],
 ];
