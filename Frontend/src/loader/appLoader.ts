@@ -12,7 +12,7 @@ const appLoader = async () => {
     console.log("localDb", localDb)
 
     // =[bug prevent]=
-    if(!authToken && !localDb) window.location.href = "/access"
+    if(!authToken && authToken == undefined && !localDb) window.location.href = "/access"
 
     // =[Output 1: when both exist]=
     if(authToken && localDb) {
