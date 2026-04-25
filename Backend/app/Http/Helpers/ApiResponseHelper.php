@@ -11,12 +11,13 @@ class ApiResponseHelper
     public static function successResponse(
         $data = null,
         string $message = 'Success',
-        int $statusCode = Response::HTTP_OK
+        string $status = 'SUCCESS',
+        int $statusCode = Response::HTTP_OK,
     ): JsonResponse {
 
         $response = [
             'status_code' => $statusCode,
-            'status' => 'Success',
+            'status' => $status,
             'message' => $message,
         ];
 
@@ -25,10 +26,24 @@ class ApiResponseHelper
         }
 
         if (!empty($data)) {
-            if (method_exists($data, 'resolve') && array_key_exists('data', $data->resolve())) {
-                $response = array_merge_recursive($response, $data->resolve());
-            } else if (method_exists($data, 'toArray') && array_key_exists('data', $data->toArray())) {
-                $response = array_merge_recursive($response, $data->toArray());
+            if (method_exists($data, 'resolve')) {
+                $resolved = $data->resolve();
+
+                if (is_array($resolved) && array_key_exists('data', $resolved)) {
+                    $response = array_merge_recursive($response, $resolved);
+                } else {
+                    $response['data'] = $resolved;
+                }
+
+            } else if (method_exists($data, 'toArray')) {
+                $arrayData = $data->toArray();
+
+                if (is_array($arrayData['data']) && array_key_exists('data', $arrayData)) {
+                    $response = array_merge_recursive($response, $arrayData);
+                } else {
+                    $response['data'] = $arrayData['data'];
+                }
+                
             } else {
                 $response['data'] = $data;
             }
@@ -39,6 +54,7 @@ class ApiResponseHelper
 
     public static function errorResponse(
         string $message = 'Error',
+        string $status = 'ERROR',
         int $statusCode = Response::HTTP_BAD_REQUEST,
         $errors = null,
         array $extra = [],
@@ -47,7 +63,7 @@ class ApiResponseHelper
 
         $response = [
             'status_code' => $statusCode,
-            'status' => 'Error',
+            'status' => $status,
             'message' => $message,
         ];
 

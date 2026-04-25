@@ -15,12 +15,14 @@ class ApiExceptionHandler
 {
     public static function handle(Throwable $e): JsonResponse
     {
+        $status = self::getStatus($e);
         $statusCode = self::getStatusCode($e);
         $message = self::getExceptionMessage($e, $statusCode);
         $errors = self::getErrors($e);
 
         return ApiResponseHelper::errorResponse(
                 message: $message,
+                status: $status,
                 statusCode: $statusCode,
                 errors: $errors,
                 exception: $e
@@ -35,6 +37,14 @@ class ApiExceptionHandler
             $e instanceof ThrottleRequestsException => 'Too many requests. Please try again later.',
             $statusCode >= 500 => config('app.debug') ? $e->getMessage() : 'Server error',
             default => $e->getMessage() ?: 'An error occurred'
+        };
+    }
+
+    public static function getStatus(Throwable $e): string
+    {
+        return match (true) {
+            property_exists($e, 'customStatus') => strtoupper($e->customStatus),
+            default => 'ERROR'
         };
     }
 
