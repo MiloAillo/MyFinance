@@ -48,9 +48,10 @@ export function Access(): JSX.Element {
             })
     
             const data = await res.data
-            localStorage.setItem("Authorization", data.data.token)
+            console.log("response :", data)
+            localStorage.setItem("Authorization", data.data.meta.token)
             setIsOut(true)
-            setTimeout(() => {
+            setTimeout(() => { 
                 window.location.href = "/app"
             }, 500)
         } catch(err) {
