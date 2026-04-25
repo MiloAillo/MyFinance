@@ -20,8 +20,9 @@ return new class extends Migration
             $table->enum('type', ['income', 'expense']);
             $table->decimal('amount', 15, 2);
             $table->text('description')->nullable();
-            $table->string('image')->nullable();
+            $table->json('files')->nullable();
             $table->timestamp('transaction_date');
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['tracker_id', 'transaction_date']);

@@ -12,7 +12,7 @@ const appLoader = async () => {
     console.log("localDb", localDb)
 
     // =[bug prevent]=
-    if(!authToken && !localDb) window.location.href = "/access"
+    if(!authToken && authToken == undefined && !localDb) window.location.href = "/access"
 
     // =[Output 1: when both exist]=
     if(authToken && localDb) {
@@ -48,7 +48,7 @@ const appLoader = async () => {
 
     if(authToken) {
         try {
-            const res = await axios.get(`${ApiUrl}/api/user/profile`, {
+            const res = await axios.get(`${ApiUrl}/users/profile`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }

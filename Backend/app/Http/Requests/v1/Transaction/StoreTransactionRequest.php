@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Http\Requests\v1;
+
+use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Helpers\ResponseHelper;
+use Carbon\Traits\Timestamp;
+use DateTime;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+
+class StoreTransactionRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        $tracker = $this->route('tracker');
+        $user = $this->user();
+
+        return $tracker && $user->id === $tracker->user_id;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:50',
+            'type' => ['required', Rule::in(['income', 'expense'])],
+            'amount' => 'required|numeric|min:0.01',
+            'description' => 'nullable|string|max:255',
+            'image' => 'nullable|image|max:10240', // max 10MB
+            'transaction_date' => 'required|date',
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages()
+    {
+        return [];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'user_id' => $this->user()->id,
+            'tracker_id' => $this->route('tracker')->id,
+        ]);
+    }
+
+    /**
+     * Handle a failed validation attempt.
+     */
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(
+            ResponseHelper::validationErrorResponse($validator)
+        );
+    }
+}

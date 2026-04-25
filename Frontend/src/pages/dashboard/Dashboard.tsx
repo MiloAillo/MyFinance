@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type JSX } from "react";
 import { motion, AnimatePresence, spring } from "motion/react";
 import { useRouteLoaderData } from "react-router-dom";
 import { faTrashAlt, faUser } from "@fortawesome/free-regular-svg-icons";
-import { ApiUrl, StorageUrl } from "@/lib/variable";
+import { ApiUrl } from "@/lib/variable";
 import axios, { isAxiosError } from "axios";
 import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -31,7 +31,7 @@ export function Dashboard(): JSX.Element {
         const authToken = localStorage.getItem("Authorization")
 
         try {
-            const res = await axios.get(`${ApiUrl}/api/trackers`, {
+            const res = await axios.get(`${ApiUrl}/trackers`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -260,7 +260,7 @@ export function Dashboard(): JSX.Element {
                                     <motion.div
                                         key="accountDetailsClosed"
                                         onClick={() => setIsAccountOpen(true)}
-                                        style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
+                                        style={{backgroundImage: session === "cloud" ? `url(${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
                                         className={`w-10 h-10 rounded-full shadow ring ring-input ${mainLoaderData?.avatar === null || mainLoaderData?.avatar === undefined  ? "flex justify-center items-center bg-white/60 backdrop-blur-[2px] dark:backdrop-blur-xs dark:bg-white/3" : ""}`}
                                         initial={{
                                             opacity: 0
@@ -295,7 +295,7 @@ export function Dashboard(): JSX.Element {
                             <AnimatePresence>
                                 {isAccountOpen && !isOut && <motion.div
                                     key="accountDetails"
-                                    className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 dark:bg-neutral-800/60 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] dark:backdrop-blur-[6px] backdrop-grayscale-50 z-20 md:right-auto md:translate-x-17 md:w-60"
+                                    className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 dark:bg-neutral-800/60 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] dark:backdrop-blur-[6px] backdrop-grayscale-50 z-20 md:right-auto md:translate-x-17 md:min-w-60"
                                     initial = {{
                                         x: 10,
                                         opacity: 0
@@ -324,12 +324,12 @@ export function Dashboard(): JSX.Element {
                                     <div className="flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-2.5">
                                             <motion.div
-                                                style={{backgroundImage: session === "cloud" ? `url(${StorageUrl}${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full dark:bg-transparent ${mainLoaderData.avatar === null || mainLoaderData.avatar === undefined ? "flex justify-center items-center border" : ""}`}>
+                                                style={{backgroundImage: session === "cloud" ? `url(${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full dark:bg-transparent ${mainLoaderData.avatar === null || mainLoaderData.avatar === undefined ? "flex justify-center items-center border" : ""}`}>
                                                 {!mainLoaderData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700 dark:text-neutral-400" />}
                                             </motion.div>
                                             <div>
-                                                <h3 className="font-medium text-[15px]">{mainLoaderData?.name}</h3>
-                                                <p className="font-medium text-xs text-black/80 dark:text-white/80">{mainLoaderData?.email}</p>
+                                                <h3 className="font-medium text-[15px]">{session === "cloud" ? mainLoaderData?.attributes.name : mainLoaderData?.name}</h3>
+                                                <p className="font-medium text-xs text-black/80 dark:text-white/80">{session === "cloud" ? mainLoaderData?.attributes.email : mainLoaderData?.email}</p>
                                             </div>
                                             
                                         </div>

@@ -18,13 +18,13 @@ class ForceJsonResponse
         // Force the request to accept JSON responses
         $request->headers->set('Accept', 'application/json');
 
-        $response = $next($request);
+        // $response = $next($request);
 
-        // Ensure the response is in JSON format
-        if (!$response->headers->get('Content-Type')) {
-            $response->header('Content-Type', 'application/json');
-        }
+        // // Ensure the response is in JSON format
+        // if (!$response->headers->get('Content-Type')) {
+        //     $response->header('Content-Type', 'application/json');
+        // }
         
-        return $response;
+        return $next($request);
     }
 }
