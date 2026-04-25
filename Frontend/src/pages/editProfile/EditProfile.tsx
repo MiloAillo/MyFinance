@@ -31,7 +31,9 @@ export function EditProfile(): JSX.Element {
         const session = localStorage.getItem("session")
         if(session === null) window.location.href = "/access"
         setSession(session as "cloud" | "local")
+    }, [])
 
+    useEffect(() => {
         if(session === "cloud" && username.current && email.current) {
             // set the initial input
             username.current.value = userData.name
@@ -41,7 +43,7 @@ export function EditProfile(): JSX.Element {
         if(session === "local" && username.current) {
             username.current.value = userData.name
         }
-    }, [])
+    }, [session])
 
     useEffect(() => {
         const sameUsername = usernameUsestate === userData.username
