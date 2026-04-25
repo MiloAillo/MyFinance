@@ -22,8 +22,8 @@ export function EditProfile(): JSX.Element {
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ failed, setFailed ] = useState<boolean>(false)
     const [ profileState, setProfileState ] = useState<boolean>(false)
-    const [ imageExist, isImageExist ] = useState<boolean>(false)
-    const [ imageName, setImageName ] = useState<string>("")
+    const [ imageExist, setImageExist ] = useState<boolean>(false)
+    const [ imageName, _setImageName ] = useState<string>("")
 
     const username = useRef<HTMLInputElement | null>(null)
     const email = useRef<HTMLInputElement | null>(null)
@@ -62,7 +62,7 @@ export function EditProfile(): JSX.Element {
 
         if(session === "cloud" && username.current?.value && email.current?.value) {
             try {
-                const res = await axios.patch(`${ApiUrl}/users/profile`, {
+                await axios.patch(`${ApiUrl}/users/profile`, {
                     "name": username.current?.value,
                     "email": email.current?.value
                 }, {
