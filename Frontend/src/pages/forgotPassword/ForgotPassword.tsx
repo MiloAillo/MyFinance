@@ -13,8 +13,10 @@ import { ApiUrl } from "@/lib/variable";
 import { OrbitProgress } from "react-loading-indicators";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 export function ForgotPassword(): JSX.Element {
+    const navigate = useNavigate()
     const [isOut, setIsOut] = useState<boolean>(false)
     const [isError, setIsError] = useState<boolean>(false)
     const [isNotFound, setIsNotFound] = useState<boolean>(false)
@@ -47,7 +49,9 @@ export function ForgotPassword(): JSX.Element {
             setIsSuccess(true)
 
             setIsOut(true)
-            setTimeout(() => {window.location.href = ""}, 400)
+            setTimeout(() => {
+                navigate(`/forgot-password/email-sent/${encodeURIComponent(values.email)}`)
+            }, 400)
 
         } catch (err) {
             setIsLoading(false)

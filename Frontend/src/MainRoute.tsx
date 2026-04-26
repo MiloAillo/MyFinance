@@ -15,6 +15,7 @@ import TermsOfServiceRoute from "./routes/TermsOfServiceRoute";
 import PrivacyPolicyRoute from "./routes/PrivacyPolicyRoute";
 import FAQRoute from "./routes/FAQRoute";
 import forgotPassword from "./routes/ForgotPasswordRoute";
+import forgotPasswordEmailSent from "./routes/ForgotPasswordEmailSentRoute";
 
 const routes = createBrowserRouter([
     {path: "/app", element: <MainPage />, id: "main", loader: appLoader, children: [
@@ -29,6 +30,7 @@ const routes = createBrowserRouter([
     signup,
     signupLocal,
     forgotPassword,
+    forgotPasswordEmailSent,
     notFound,
     TermsOfServiceRoute,
     PrivacyPolicyRoute,
