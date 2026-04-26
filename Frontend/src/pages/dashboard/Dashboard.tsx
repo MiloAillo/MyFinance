@@ -267,7 +267,7 @@ export function Dashboard(): JSX.Element {
                                         key="accountDetailsClosed"
                                         onClick={() => setIsAccountOpen(true)}
                                         style={{backgroundImage: session === "cloud" ? `url(${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
-                                        className={`w-10 h-10 rounded-full shadow ring ring-input ${mainLoaderData?.avatar === null || mainLoaderData?.avatar === undefined  ? "flex justify-center items-center bg-white/60 backdrop-blur-[2px] dark:backdrop-blur-xs dark:bg-white/3" : ""}`}
+                                        className={`w-10 h-10 rounded-full shadow ring ring-input ${mainLoaderData?.attributes?.avatar === null || mainLoaderData?.attributes?.avatar === undefined  ? "flex justify-center items-center bg-white/60 backdrop-blur-[2px] dark:backdrop-blur-xs dark:bg-white/3" : "flex justify-center items-center bg-white/60 backdrop-blur-[2px] dark:backdrop-blur-xs dark:bg-white/3"}`}
                                         initial={{
                                             opacity: 0
                                         }}
@@ -275,7 +275,8 @@ export function Dashboard(): JSX.Element {
                                             opacity: 100
                                         }}
                                     >
-                                        {!mainLoaderData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-800 dark:text-neutral-400" />}
+                                        {mainLoaderData?.attributes?.avatar && <img src={mainLoaderData.attributes.avatar} className="w-full h-full rounded-full object-cover" />}
+                                        {!mainLoaderData?.attributes?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-800 dark:text-neutral-400" />}
                                     </motion.div>}
                                 {isAccountOpen &&
                                     <motion.div
@@ -330,8 +331,10 @@ export function Dashboard(): JSX.Element {
                                     <div className="flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-2.5">
                                             <motion.div
-                                                style={{backgroundImage: session === "cloud" ? `url(${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full dark:bg-transparent ${mainLoaderData.avatar === null || mainLoaderData.avatar === undefined ? "flex justify-center items-center border" : ""}`}>
-                                                {!mainLoaderData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700 dark:text-neutral-400" />}
+                                                style={{backgroundImage: session === "cloud" ? `url(${mainLoaderData?.avatar}` : "none", backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className={`w-10 h-10 rounded-full dark:bg-transparent ${mainLoaderData.avatar === null || mainLoaderData.avatar === undefined ? "flex justify-center items-center border" : ""}`}
+                                            >
+                                                {mainLoaderData?.attributes?.avatar && <img src={mainLoaderData.attributes.avatar} className="w-full h-full rounded-full object-cover" />}
+                                                {!mainLoaderData?.attributes?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700 dark:text-neutral-400" />}
                                             </motion.div>
                                             <div>
                                                 <h3 className="font-medium text-[15px]">{session === "cloud" ? mainLoaderData?.attributes.name : mainLoaderData?.name}</h3>
