@@ -1,5 +1,5 @@
 services:
-    laravel.test:
+    app:
         container_name: myfinance-app
         build:
             context: './docker/8.5'
