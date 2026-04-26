@@ -186,7 +186,11 @@ export function EditProfile(): JSX.Element {
         try {
             setVerificationLoading(true)
 
-
+            await axios.post(`${ApiUrl}/auth/email/send`, {}, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("Authorization")}`      
+                }
+            })
 
             setVerificationCooldown(120)
             setVerificationLoading(false)
@@ -369,8 +373,13 @@ export function EditProfile(): JSX.Element {
                                 }
                             </div>
                         }
-                        {failed &&
-                            <p className="font-medium text-sm text-center self-center text-black/50">{session === "local" ? "Attempt failed, reopen the app and try again" : "Internal server error. Try again later"}</p>
+                        { emailUsestate !== userData.attributes.email && userData.attributes.email_verified_at &&
+                            <div className="relative w-full border-yellow-500/50 border px-3 py-2 rounded-xl">
+                                <p className="font-semibold text-sm  w-full text-yellow-500">To complete email update, we'll send confirmation link to your verified email address.</p>
+                            </div>
+                        } 
+                        {failed &&  
+                            <p className="font-medium text-sm text-center self-center text-black/50">{session === "local" ? "Attempt failed, reopen the app and try again" : "Internal server error. Try again later"}</p>  
                         }
                     </div>
                 </motion.div>}

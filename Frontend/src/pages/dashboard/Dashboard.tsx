@@ -142,7 +142,7 @@ export function Dashboard(): JSX.Element {
 
     const signout = async () => {
         try {
-            await axios.post(`${ApiUrl}/api/auth/logout`, {}, {
+            await axios.delete(`${ApiUrl}/auth/tokens/current`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
@@ -156,6 +156,12 @@ export function Dashboard(): JSX.Element {
             if(isAxiosError(err)) {
                 console.log(err)
             }
+
+            localStorage.removeItem("Authorization")
+            setIsOut(true)
+            setTimeout(() => {
+                window.location.href = "/access"
+            }, 500)
         }
     }
 
@@ -373,12 +379,13 @@ export function Dashboard(): JSX.Element {
                                         {session === "cloud" &&
                                             <motion.div 
                                                 className="flex items-center gap-2.5 bg-green-500/20 dark:bg-violet-700/40 rounded-full py-2 px-4 w-full"
+                                                onClick={() => signout()}
                                                 whileTap={{
                                                     scale: 0.95
                                                 }}
                                             >
                                                 <FontAwesomeIcon icon={faArrowRightFromBracket} />
-                                                <p onClick={() => signout()} className="font-medium text-[15px]">Signout</p>
+                                                <p className="font-medium text-[15px]">Signout</p>
                                             </motion.div>
                                         }
                                     </div>
