@@ -43,7 +43,7 @@ class ApiExceptionHandler
     public static function getStatus(Throwable $e): string
     {
         return match (true) {
-            property_exists($e, 'customStatus') => strtoupper($e->customStatus),
+            method_exists($e, 'getCustomStatus') => $e->getCustomStatus(),
             default => 'ERROR'
         };
     }
