@@ -14,6 +14,7 @@ import appLoader from "./loader/appLoader";
 import TermsOfServiceRoute from "./routes/TermsOfServiceRoute";
 import PrivacyPolicyRoute from "./routes/PrivacyPolicyRoute";
 import FAQRoute from "./routes/FAQRoute";
+import forgotPassword from "./routes/ForgotPasswordRoute";
 
 const routes = createBrowserRouter([
     {path: "/app", element: <MainPage />, id: "main", loader: appLoader, children: [
@@ -30,7 +31,8 @@ const routes = createBrowserRouter([
     notFound,
     TermsOfServiceRoute,
     PrivacyPolicyRoute,
-    FAQRoute
+    FAQRoute,
+    forgotPassword
 ])
 
 export default routes

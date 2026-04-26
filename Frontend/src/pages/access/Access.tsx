@@ -220,7 +220,7 @@ export function Access(): JSX.Element {
                                                 )}
                                             />
                                         </div>
-                                        <p className="font-medium text-sm text-blue-500 hover:text-blue-400">Forgot password?</p>
+                                        <p onClick={() => { setIsOut(true); setTimeout(() => window.location.href = "/access/forgot-password", 700) }} className="font-medium text-sm text-blue-500 hover:text-blue-400 cursor-pointer">Forgot password?</p>
                                     </div>
                                     <motion.div className="w-full flex justify-center items-center self-center " whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}>
                                         <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Sign in</Button>
