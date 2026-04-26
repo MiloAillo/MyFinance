@@ -10,6 +10,8 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class UpdateProfileRequest extends FormRequest
 {
+    public ?string $newPassword = null;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -86,9 +88,7 @@ class UpdateProfileRequest extends FormRequest
 
         if ($this->routeIs('api.v1.users.update')) {
             if (!empty($this->input('new_password'))) {
-                $this->merge([
-                    'password' => Hash::make($this->input('new_password')),
-                ]);
+                $this->newPassword = Hash::make($this->input('new_password'));
             }
         }
     }
