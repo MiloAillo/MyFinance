@@ -30,10 +30,12 @@ export function EditProfile(): JSX.Element {
     const [ loadingChangeImage, setLoadingChangeImage ] = useState<boolean>(false)
     const [ changeImageStatus, setChangeImageStatus ] = useState<"success" | "reject" | "null">("null")
     const [ deleteConfirmation, setDeleteConfirmation ] = useState<boolean>(false)
+    const [ verificationCooldown, setVerificationCooldown ] = useState<number>(0)
+    const [ verificationLoading, setVerificationLoading ] = useState<boolean>(false)
 
     const username = useRef<HTMLInputElement | null>(null)
     const email = useRef<HTMLInputElement | null>(null)
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         console.log("userData :", userData)
@@ -41,6 +43,17 @@ export function EditProfile(): JSX.Element {
         if(session === null) window.location.href = "/access"
         setSession(session as "cloud" | "local")
     }, [])
+
+    // verification cooldown timer
+    useEffect(() => {
+        if (verificationCooldown <= 0) return
+
+        const intervalId = window.setInterval(() => {
+            setVerificationCooldown((prev) => Math.max(prev - 1, 0))
+        }, 1000)
+
+        return () => window.clearInterval(intervalId)
+    }, [verificationCooldown > 0])
 
     useEffect(() => {
         const sameUsername = usernameUsestate === userData.attributes.name
@@ -167,6 +180,21 @@ export function EditProfile(): JSX.Element {
     //     }
     // }
 
+    const handleSendVerification = async () => {
+        if (verificationLoading || verificationCooldown > 0) return
+
+        try {
+            setVerificationLoading(true)
+
+
+
+            setVerificationCooldown(120)
+            setVerificationLoading(false)
+        } catch (err) {
+            setVerificationLoading(false)
+        }
+    }
+
     const isConfirmSuccess = !imageExist && changeImageStatus === "success"
     const isConfirmReject = !imageExist && changeImageStatus === "reject"
     const isConfirmEnabled = imageExist
@@ -271,7 +299,7 @@ export function EditProfile(): JSX.Element {
                 </motion.div>}
                 {!isOut && <motion.div
                     key={"main"}
-                    className="flex flex-col items-center mt-18 w-[87%] gap-10"
+                    className="flex flex-col items-center mt-18 w-full gap-10"
                     initial={{
                         x: 30,
                         opacity: 0,
@@ -308,7 +336,7 @@ export function EditProfile(): JSX.Element {
                                 </DrawerContent>
                             </Drawer>
                     }
-                    <div className="flex flex-col gap-3 w-full sm:w-90">
+                    <div className="flex flex-col gap-3 w-screen px-10 sm:px-0 sm:w-90">
                         <div className="border px-4 py-3 rounded-2xl">
                             <p className="text-base font-normal text-neutral-500">Username</p>
                             <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0" ref={username} onChange={(e) => {setUsernameUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your username..." defaultValue={session === "cloud" ? userData.attributes.name : userData.name}></Input>
@@ -318,23 +346,25 @@ export function EditProfile(): JSX.Element {
                                 <p className="text-base font-normal text-neutral-500">Email</p>
                                 <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0" ref={email} onChange={(e) => {setEmailUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your email..." defaultValue={userData.attributes.email}></Input>
                                 { session === "cloud" && !userData.attributes.email_verified_at &&
-                                    <div className="absolute flex gap-23 translate-y-5">
-                                        <p className="text-sm">Email is unverified.</p>
-                                        <Drawer>
-                                            <DrawerTrigger className="text-sm text-right text-blue-500 underline">send verification</DrawerTrigger>
-                                            <DrawerContent className="w-screen md:w-[50%] md:absolute md:left-0 md:translate-x-[50%]">
-                                                <DrawerHeader>
-                                                    <DrawerTitle className="text-xl">Send Verification?</DrawerTitle>
-                                                    <DrawerDescription className="text-normal">We'll send you a verification through email. After verification, we can reliably contact the email incase anything bad happens.</DrawerDescription>
-                                                </DrawerHeader>
-                                                <DrawerFooter>
-                                                    <Button>Send</Button>
-                                                    <DrawerClose className="w-full">
-                                                        <Button className="w-full">Close</Button>
-                                                    </DrawerClose>
-                                                </DrawerFooter>
-                                            </DrawerContent>
-                                        </Drawer>
+                                    <div className="flex justify-center w-full "> 
+                                        <div className="absolute flex gap-3 sm:gap-20 translate-y-5">
+                                            <p className="text-sm">Email is unverified.</p>
+                                            <Drawer>
+                                                <DrawerTrigger className="text-sm text-right text-blue-500 underline flex sm:flex-col">send verification {verificationCooldown > 0 ? `(${verificationCooldown})` : ""}</DrawerTrigger>
+                                                <DrawerContent className="w-screen md:w-[50%] md:absolute md:left-0 md:translate-x-[50%]">
+                                                    <DrawerHeader>
+                                                        <DrawerTitle className="text-xl">Send Verification?</DrawerTitle>
+                                                        <DrawerDescription className="text-normal">We'll send you a verification through email. After verification, we can reliably contact the email incase anything bad happens.</DrawerDescription>
+                                                    </DrawerHeader>
+                                                    <DrawerFooter>
+                                                        <Button onClick={handleSendVerification} className={`${verificationCooldown <= 0 ? "bg-blue-600" : "bg-transparent border-2 border-blue-600 text-blue-600"}`}>Send {verificationLoading ? <Spinner></Spinner> : ""} {verificationCooldown > 0 ? `(${verificationCooldown})` : ""}</Button>
+                                                        <DrawerClose className="w-full">
+                                                            <Button className="w-full bg-transparent border-2 border-neutral-800 text-neutral-800">Close</Button>
+                                                        </DrawerClose>
+                                                    </DrawerFooter>
+                                                </DrawerContent>
+                                            </Drawer>
+                                        </div>
                                     </div>
                                 }
                             </div>
