@@ -4,7 +4,7 @@ namespace App\Http\Resources\API\V1;
 
 use Illuminate\Http\Request;
 use App\Http\Resources\API\V1\TrackerResource;
-use App\Http\Resources\API\V1\TransactionResource;
+// use App\Http\Resources\API\V1\TransactionResource;
 
 class UserResource extends BaseResource
 {
@@ -12,7 +12,6 @@ class UserResource extends BaseResource
         'name',
         'email',
         'email_verified_at',
-        'avatar',
     ];
 
     public $relationships = [
@@ -23,6 +22,7 @@ class UserResource extends BaseResource
     public function toAttributes(Request $request)
     {
         $attributes = parent::toAttributes($request);
+        $attributes['avatar'] = $this->resource->getAvatarUrlAttribute();
 
         return $attributes;
     }

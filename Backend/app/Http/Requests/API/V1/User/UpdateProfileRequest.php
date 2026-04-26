@@ -10,6 +10,8 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class UpdateProfileRequest extends FormRequest
 {
+    public ?string $newPassword = null;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -45,20 +47,9 @@ class UpdateProfileRequest extends FormRequest
                     ->mixedCase()
                     ->numbers()
                     ->symbols()
-            ]
-        ];
-    }
-
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages()
-    {
-        return [
-            // 'avatar.required' => 'Please upload an avatar image.',
-            // 'avatar.image'    => 'The uploaded file must be an image.',
-            // 'avatar.mimes'    => 'Allowed image formats: :values.',
-            // 'avatar.max'      => 'Avatar must not exceed :max kilobytes (2 MB).',
+            ],
+            'id' => $this->routeIs('api.v1.users.update.verify.new-email') ? 'required|exists:users,id' : 'prohibited',
+            'hash' => $this->routeIs('api.v1.users.update.verify.new-email') ? 'required|string' : 'prohibited',
         ];
     }
 
@@ -97,14 +88,8 @@ class UpdateProfileRequest extends FormRequest
 
         if ($this->routeIs('api.v1.users.update')) {
             if (!empty($this->input('new_password'))) {
-                $this->merge([
-                    'password' => Hash::make($this->input('new_password'))
-                ]);
+                $this->newPassword = Hash::make($this->input('new_password'));
             }
         }
-
-        $this->merge([
-            'user' => $user
-        ]);
     }
 }

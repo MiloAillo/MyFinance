@@ -9,6 +9,8 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class VerifyEmailRequest extends FormRequest
 {
+    public User $user;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -60,6 +62,6 @@ class VerifyEmailRequest extends FormRequest
             throw new UnprocessableEntityHttpException('Email is already verified.');
         }
 
-        $this->merge(['user' => $user]);
+        $this->user = $user;
     }
 }

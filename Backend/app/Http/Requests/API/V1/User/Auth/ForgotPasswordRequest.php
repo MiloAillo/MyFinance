@@ -6,6 +6,8 @@ use App\Models\User;
 
 class ForgotPasswordRequest extends BaseRequest
 {
+    public User $user;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -35,7 +37,6 @@ class ForgotPasswordRequest extends BaseRequest
 
     public function passedValidation()
     {
-        $user = User::where('email', $this->input('email'))->first();
-        $this->merge(['user' => $user]);
+        $this->user = User::where('email', $this->input('email'))->first();
     }
 }

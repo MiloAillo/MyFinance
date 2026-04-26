@@ -34,7 +34,5 @@ class SendVerificationEmailRequest extends FormRequest
         if ($user->email_verified_at) {
             throw new UnprocessableEntityHttpException('Email is already verified.');
         }
-
-        $this->merge(['user' => $user]);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Helpers\ApiResponseHelper;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,11 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')->prefix('api')->group(base_path('routes/api.php'));
             
             Route::fallback(function () {
-                return response()->json([
-                    'response_code' => 404,
-                    'status' => 'error',
-                    'message' => 'API endpoint not found'
-                ], 404);
+                return ApiResponseHelper::errorResponse(
+                    message: 'Endpoint not found.',
+                    statusCode: 404
+                );
             });
         }
     )

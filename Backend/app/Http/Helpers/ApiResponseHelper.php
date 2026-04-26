@@ -3,6 +3,7 @@
 namespace App\Http\Helpers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\JsonApi\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
 class ApiResponseHelper
@@ -11,12 +12,13 @@ class ApiResponseHelper
     public static function successResponse(
         $data = null,
         string $message = 'Success',
-        int $statusCode = Response::HTTP_OK
+        string $status = 'SUCCESS',
+        int $statusCode = Response::HTTP_OK,
     ): JsonResponse {
 
         $response = [
             'status_code' => $statusCode,
-            'status' => 'Success',
+            'status' => $status,
             'message' => $message,
         ];
 
@@ -25,12 +27,34 @@ class ApiResponseHelper
         }
 
         if (!empty($data)) {
-            if (method_exists($data, 'resolve') && array_key_exists('data', $data->resolve())) {
-                $response = array_merge_recursive($response, $data->resolve());
-            } else if (method_exists($data, 'toArray') && array_key_exists('data', $data->toArray())) {
-                $response = array_merge_recursive($response, $data->toArray());
+            $normalized = $data;
+
+            if ($data instanceof AnonymousResourceCollection || $data instanceof JsonResponse) {
+                if ($data instanceof AnonymousResourceCollection) {
+                    $normalized = $data->response()->getData(true);
+
+                } else {
+                    $normalized = $data->getData(true);
+                }
+                
+            } else if (is_object($data) && method_exists($data, 'resolve')) {
+                $normalized = $data->resolve();
+
+            } else if (is_object($data) && method_exists($data, 'toArray')) {
+                $normalized = $data->toArray();
+            }
+
+            if (is_array($normalized) && array_key_exists('data', $normalized)) {
+                $response['data'] = $normalized['data'];
+
+                foreach (['meta', 'links'] as $key) {
+                    if (array_key_exists($key, $normalized)) {
+                        $response[$key] = $normalized[$key];
+                    }
+                }
+                
             } else {
-                $response['data'] = $data;
+                $response['data'] = $normalized;
             }
         }
         
@@ -39,15 +63,16 @@ class ApiResponseHelper
 
     public static function errorResponse(
         string $message = 'Error',
+        string $status = 'ERROR',
         int $statusCode = Response::HTTP_BAD_REQUEST,
         $errors = null,
         array $extra = [],
-        \Throwable $exception = null
+        ?\Throwable $exception = null
     ): JsonResponse {
 
         $response = [
             'status_code' => $statusCode,
-            'status' => 'Error',
+            'status' => $status,
             'message' => $message,
         ];
 

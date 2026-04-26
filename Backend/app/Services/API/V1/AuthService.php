@@ -49,7 +49,7 @@ class AuthService
     {
         $devices = collect($user->known_devices);
 
-        if (!$devices) {
+        if ($devices->isEmpty()) {
             throw new UnprocessableEntityHttpException('No known devices found.');
         }
 

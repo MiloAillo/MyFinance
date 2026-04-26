@@ -11,6 +11,8 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class ResetPasswordRequest extends BaseRequest
 {
+    public User $user;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -72,8 +74,6 @@ class ResetPasswordRequest extends BaseRequest
                 throw new UnprocessableEntityHttpException('Invalid credentials');
         }
 
-        $this->merge([
-            'user' => $user
-        ]);
+        $this->user = $user;
     }
 }

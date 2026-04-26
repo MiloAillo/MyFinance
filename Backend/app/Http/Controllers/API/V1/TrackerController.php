@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API\V1;
 
-use App\Exceptions\API\V1\ModelIsNotDeletedException;
+use App\Exceptions\API\V1\ModelHasNotBeenSoftDeletedException;
 use App\Http\Helpers\ApiResponseHelper;
 use App\Http\Requests\API\V1\Tracker\IndexTrackersRequest;
 // use App\Http\Requests\API\V1\Tracker\ShowTrackerRequest;
@@ -114,7 +114,7 @@ class TrackerController extends Controller
                         $tracker->transactions()->onlyTrashed()->restore();
                     }
                 } else {
-                    throw new ModelIsNotDeletedException('Tracker is not deleted, cannot be restored.');
+                    throw new ModelHasNotBeenSoftDeletedException('Tracker has not been soft deleted, cannot be restored.');
                 }
             });
 

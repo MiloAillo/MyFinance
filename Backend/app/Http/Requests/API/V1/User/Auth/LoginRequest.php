@@ -9,6 +9,9 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class LoginRequest extends BaseRequest
 {
+    public User $user;
+    public string $currentDeviceHash;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -48,21 +51,19 @@ class LoginRequest extends BaseRequest
 
     protected function passedValidation()
     {
-        $data['user'] = User::where('email', $this->input('email'))->first();
-        $data['currentDeviceHash'] = AuthService::make()->hashDevice($data['user']->id, $this->userAgent());
+        $this->user = User::where('email', $this->input('email'))->first();
+        $this->currentDeviceHash = AuthService::make()->hashDevice($this->user->id, $this->userAgent());
 
-        if ($this->routeIs('api.v1.auth.login') && (!$data['user'] || !Hash::check($this->input('password'), $data['user']->password))) {
+        if ($this->routeIs('api.v1.auth.login') && (!$this->user || !Hash::check($this->input('password'), $this->user->password))) {
             throw new UnprocessableEntityHttpException('Invalid credentials');
         }
 
         if ($this->routeIs('api.v1.auth.login.new-device')) {
             $hash = $this->route('hash');
 
-            if (!hash_equals($hash, $data['currentDeviceHash'])) {
+            if (!hash_equals($hash, $this->currentDeviceHash)) {
                 throw new UnprocessableEntityHttpException('Invalid credentials.');
             }
         }
-
-        $this->merge($data);
     }
 }
