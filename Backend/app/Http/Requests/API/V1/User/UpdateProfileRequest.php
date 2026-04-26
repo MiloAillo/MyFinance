@@ -10,7 +10,7 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class UpdateProfileRequest extends FormRequest
 {
-    public string $newPassword;
+    public ?string $newPassword = null;
 
     /**
      * Determine if the user is authorized to make this request.

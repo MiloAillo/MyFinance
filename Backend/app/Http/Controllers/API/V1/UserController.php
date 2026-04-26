@@ -167,10 +167,13 @@ class UserController extends Controller
     public function update(UpdateProfileRequest $request)
     {
         $credentials = $request->validated();
-        $credentials['password'] = $request->newPassword ?? null;
         $user = $request->user();
         $message = null;
         $mustNotBeEmptyFields = ['name', 'email', 'password'];
+
+        if (array_key_exists('new_password', $credentials)) {
+            $credentials['password'] = $credentials['new_password'];
+        }
 
         try {
 
