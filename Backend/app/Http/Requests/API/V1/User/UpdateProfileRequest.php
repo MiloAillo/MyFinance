@@ -28,6 +28,13 @@ class UpdateProfileRequest extends FormRequest
      */
     public function rules(): array
     {
+        if ($this->routeIs('api.v1.users.update.verify.new-email')) {
+            return [
+                'id' => 'required|exists:users,id',
+                'hash' => 'required|string',
+            ];
+        }
+
         return [
             'avatar' => $this->hasFile('avatar') ? 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048' : 'sometimes|string|max:4', // 2 MB
             'name' => 'sometimes|string|min:3|max:50',
@@ -49,8 +56,6 @@ class UpdateProfileRequest extends FormRequest
                     ->numbers()
                     ->symbols()
             ],
-            'id' => $this->routeIs('api.v1.users.update.verify.new-email') ? 'required|exists:users,id' : 'prohibited',
-            'hash' => $this->routeIs('api.v1.users.update.verify.new-email') ? 'required|string' : 'prohibited',
         ];
     }
 

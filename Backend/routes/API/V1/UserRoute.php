@@ -14,10 +14,10 @@ Route::controller(UserController::class)->group(function () {
             Route::get('new-device/{email}/{hash}', 'login')->middleware('signed')->name('login.new-device');
         });
         
-        Route::prefix('password-resets')->name('password-resets.')->group(function () {
-            Route::post('/', 'forgotPassword')->name('email');
-            Route::get('/{email}/{token}', 'validateResetToken')->middleware('signed')->name('validate');
-            Route::put('/{email}/{token}', 'resetPassword')->middleware('signed')->name('update');
+        Route::prefix('password-resets')->middleware('signed')->name('password-resets.')->group(function () {
+            Route::post('/', 'forgotPassword')->withoutMiddleware('signed')->name('email');
+            Route::get('/{email}/{token}', 'validateResetToken')->name('validate');
+            Route::put('/{email}/{token}', 'resetPassword')->name('update');
         });
 
         Route::delete('tokens/current', 'logout')->name('logout')->middleware('auth:sanctum');
@@ -36,7 +36,7 @@ Route::controller(UserController::class)->group(function () {
     Route::prefix('users/profile')->name('users.')->middleware('auth:sanctum')->group(function () {
         Route::get('/', 'show')->name('show');
         Route::patch('/', 'update')->name('update');
-        Route::get('/verify-new-email/{id}/{hash}', 'update')->middleware('signed')->name('update.verify.new-email'); // For email change verification
+        Route::get('/verify-new-email/{id}/{hash}', 'update')->withoutMiddleware('auth:sanctum')->middleware('signed')->name('update.verify.new-email'); // For email change verification
         Route::delete('/', 'destroy')->name('destroy');
     });
 });
