@@ -84,8 +84,8 @@ export function PasswordReset(): JSX.Element {
         console.log("Token:", token)
         console.log("search :", search)
 
-        setStatus("checking")
-        checkValidityAndSetStatus()
+        setStatus("ok")
+        // checkValidityAndSetStatus()
     }, []);
 
     return (
@@ -197,9 +197,9 @@ export function PasswordReset(): JSX.Element {
                         }}
                     >
                         <div className="flex flex-col items-center gap-3">
-                            <FontAwesomeIcon icon={faPencil} className="text-6xl text-blue-500"></FontAwesomeIcon>
+                            <FontAwesomeIcon icon={faPencil} className="text-6xl text-stone-900"></FontAwesomeIcon>
                             <h1 className="text-2xl font-bold text-stone-900 dark:text-background-primary">Create New Password</h1>
-                            <p className="text-sm text-stone-600 dark:text-stone-400">Make sure to remember this one!</p>
+                            <p className="text-base text-stone-600 dark:text-stone-400">Make sure to remember this one!</p>
                         </div>
 
                         <AnimatePresence>

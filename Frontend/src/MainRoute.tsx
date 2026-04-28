@@ -17,6 +17,7 @@ import FAQRoute from "./routes/FAQRoute";
 import forgotPassword from "./routes/ForgotPasswordRoute";
 import forgotPasswordEmailSent from "./routes/ForgotPasswordEmailSentRoute";
 import passwordReset from "./routes/PasswordResetRoute";
+import changePassword from "./routes/ChangePasswordRoute";
 
 const routes = createBrowserRouter([
     {path: "/app", element: <MainPage />, id: "main", loader: appLoader, children: [
@@ -24,7 +25,8 @@ const routes = createBrowserRouter([
         tracker,
         trackerHistory,
         editProfile,
-        report
+        report,
+        changePassword
     ]},
     transfer,
     access,
