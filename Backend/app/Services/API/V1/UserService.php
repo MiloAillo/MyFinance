@@ -6,8 +6,14 @@ use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 class UserService
 {
+    public function createUser(array $data): User
+    {
+        return User::create($data);
+    }
+
     public function changeVerifiedEmail(User $user): void
     {
+        $user->email_verified_at = null;
         $user->email = $user->pending_email;
         $user->pending_email = null;
         $user->save();

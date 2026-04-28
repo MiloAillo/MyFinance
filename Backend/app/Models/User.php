@@ -63,4 +63,9 @@ class User extends Authenticatable
 
         return null;
     }
+
+    public function isVerified(): bool
+    {
+        return $this->email_verified_at ? true : false;
+    }
 }

@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 class UpdateProfileRequest extends FormRequest
 {
     public ?string $newPassword = null;
+    public ?string $currentEmail = null;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -74,6 +75,9 @@ class UpdateProfileRequest extends FormRequest
     public function passedValidation()
     {
         $user = $this->user();
+        if ($this->hasAny(['email', 'id', 'old_password'])) {
+            $this->currentEmail = $user->getEmailForVerification();
+        }
 
         if ($this->routeIs('api.v1.users.update.verify.new-email')) {
             if ($user->pending_email == null) {
@@ -81,7 +85,7 @@ class UpdateProfileRequest extends FormRequest
             }
             
             if (empty($this->hash) ||
-                !hash_equals((string) $this->hash, sha1($user->pending_email))) {
+                !hash_equals($this->hash, sha1($user->pending_email))) {
                 throw new UnprocessableEntityHttpException('Invalid credentials.');
             }
         }

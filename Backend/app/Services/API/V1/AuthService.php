@@ -11,6 +11,7 @@ use App\Notifications\API\V1\User\Auth\Verified\VerifiedEmailChangedNotification
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
@@ -21,55 +22,13 @@ class AuthService
         return new static();
     }
 
-    public function isVerified(User $user): bool
-    {
-        return $user->email_verified_at ? true : false;
-    }
-
-    public function hashDevice($userId, string $userAgent): string
-    {
-        return hash('sha256', "$userId|$userAgent");
-    }
-
-    public function addDevice(User $user, string $deviceHash): void
-    {
-        $devices = collect($user->known_devices);
-        $maxDevices = config('auth.users.known_devices_limit');
-
-        $devices = $devices->push([
-                        "hash" => $deviceHash,
-                        "last_used_at" => now(),
-                    ]);
-
-        $user->known_devices = $devices->sortByDesc('last_used_at')->take($maxDevices)->values();
-        $user->save();
-    }
-
-    public function updateLastTimeDeviceUsed(User $user, string $deviceHash): void
-    {
-        $devices = collect($user->known_devices);
-
-        if ($devices->isEmpty()) {
-            throw new UnprocessableEntityHttpException('No known devices found.');
-        }
-
-        $devices = $devices->map(function ($device) use ($deviceHash) {
-            if ($device['hash'] === $deviceHash) {
-                $device['last_used_at'] = now();
-            }
-            return $device;
-        });
-
-        $user->known_devices = $devices->sortByDesc('last_used_at')->values()->all();
-        $user->save();
-    }
-
+    // Password Reset
     public function makePasswordResetToken(User $user): string
     {
         return Password::broker()->createToken($user);
     }
 
-    public function validatePasswordResetToken(string $email, string $token): bool
+    public function isPasswordResetTokenValid(string $email, string $token): bool
     {
         $record = DB::table('password_reset_tokens')->where('email', $email)->first();
 
@@ -93,12 +52,70 @@ class AuthService
         });
     }
 
+    // Device Management
+    public function hashDevice($userId, string $userAgent): string
+    {
+        return hash('sha256', "$userId|$userAgent");
+    }
+
+    public function addDevice(User $user, string $deviceHash): void
+    {
+        $devices = collect($user->known_devices);
+        $maxDevices = config('auth.users.known_devices_limit');
+
+        $devices = $devices->push([
+                        "hash" => $deviceHash,
+                        "last_used_at" => now(),
+                    ]);
+
+        $user->known_devices = $devices->sortByDesc('last_used_at')->take($maxDevices)->values();
+        $user->save();
+    }
+
+    public function isDeviceKnown(User $user, string $deviceHash): bool
+    {
+        $devices = collect($user->known_devices);
+
+        return $devices->contains(fn($device) => $device['hash'] === $deviceHash);
+    }
+
+    public function updateLastTimeDeviceUsed(User $user, string $deviceHash): void
+    {
+        $devices = collect($user->known_devices);
+
+        if ($devices->isEmpty()) {
+            throw new UnprocessableEntityHttpException('No known devices found.');
+        }
+
+        $devices = $devices->map(function ($device) use ($deviceHash) {
+            if ($device['hash'] === $deviceHash) {
+                $device['last_used_at'] = now();
+            }
+            return $device;
+        });
+
+        $user->known_devices = $devices->sortByDesc('last_used_at')->values();
+        $user->save();
+    }
+
+    public function unsetKnownDevicesExceptCurrent(User $user): void
+    {
+        $devices = collect($user->known_devices);
+        $currentDeviceHash = $this->hashDevice($user->id, request()->userAgent());
+
+        $devices = $devices->filter(fn($device) => $device['hash'] === $currentDeviceHash);
+
+        $user->known_devices = $devices->values();
+        $user->save();
+    }
+
     public function unsetKnownDevices(User $user): void
     {
         $user->known_devices = null;
         $user->save();
     }
 
+    // Notifications
     public function sendNewDeviceLoginDetectedNotification(User $user, string $deviceHash): void
     {
         $user->notify(new NewDeviceLoginDetectedNotification($deviceHash));
@@ -109,9 +126,9 @@ class AuthService
         $user->notify(new ResetPasswordNotification($token));
     }
 
-    public function sendCredentialsChangesNotification(User $user, string $fields): void
+    public function sendVerificationEmailNotification(User $user): void
     {
-        $user->notify(new CredentialsChangesNotification($fields));
+        $user->notify(new VerificationEmailNotification());
     }
 
     public function sendVerifiedEmailChangedNotification(User $user, string $newEmail): void
@@ -119,8 +136,8 @@ class AuthService
         $user->notify(new VerifiedEmailChangedNotification($newEmail));
     }
 
-    public function sendVerificationEmailNotification(User $user): void
+    public function sendCredentialsChangesNotification(string $email, string $fields): void
     {
-        $user->notify(new VerificationEmailNotification());
+        Notification::route('mail', $email)->notify(new CredentialsChangesNotification($fields));
     }
 }

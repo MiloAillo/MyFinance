@@ -13,7 +13,6 @@ use App\Http\Requests\API\V1\User\Auth\Verification\Email\SendVerificationEmailR
 use App\Http\Requests\API\V1\User\Auth\Verification\Email\VerifyEmailRequest;
 use App\Http\Requests\API\V1\User\UpdateProfileRequest;
 use App\Http\Resources\API\V1\UserResource;
-use App\Models\User;
 use App\Services\API\V1\AuthService;
 use App\Services\API\V1\UserService;
 use Illuminate\Http\Request;
@@ -35,8 +34,7 @@ class UserController extends Controller
     // Sign Up
     public function store(RegisterRequest $request)
     {
-        $user = User::create($request->only('name', 'email', 'password'));
-
+        $user = $this->userService->createUser($request->only('name', 'email', 'password'));
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return ApiResponseHelper::successResponse(
@@ -58,11 +56,10 @@ class UserController extends Controller
     {
         $user = $request->user;
 
-        if ($this->authService->isVerified($user)) {
+        if ($user->isVerified()) {
             $currentDeviceHash = $request->currentDeviceHash;
-            $devices = collect($user->known_devices);
 
-            if ($devices->contains('hash', $currentDeviceHash)) {
+            if ($this->authService->isDeviceKnown($user, $currentDeviceHash)) {
                 $this->authService->updateLastTimeDeviceUsed($user, $currentDeviceHash);
 
             } else {
@@ -97,7 +94,6 @@ class UserController extends Controller
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         $user = $request->user;
-
         $token = $this->authService->makePasswordResetToken($user);
 
         $this->authService->sendResetPasswordNotification($user, $token);
@@ -118,17 +114,18 @@ class UserController extends Controller
     {
         $credentials = $request->validated();
         $user = $request->user;
+        $email = $credentials['email'];
 
         try {
 
-            DB::transaction(function () use ($credentials, $user) {
+            DB::transaction(function () use ($credentials, $user, $email) {
                 $this->authService->updatePassword($credentials);
                 $user->tokens()->delete();
                 $this->authService->unsetKnownDevices($user);
-                $this->authService->sendCredentialsChangesNotification($user, 'password');
+                $this->authService->sendCredentialsChangesNotification($email, 'password');
             });
         
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -140,8 +137,7 @@ class UserController extends Controller
     // Sign Out
     public function logout(Request $request)
     {
-        $user = $request->user();
-        $user->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()->delete();
 
         return ApiResponseHelper::successResponse(
             message: 'User logged out successfully.',
@@ -155,43 +151,42 @@ class UserController extends Controller
     // Get User Data
     public function show(Request $request)
     {
-        $user = $request->user();
-
         return ApiResponseHelper::successResponse(
             message: 'User data retrieved successfully.',
-            data: new UserResource($user),
+            data: new UserResource($request->user()),
         );
     }
 
     // Update User Data
     public function update(UpdateProfileRequest $request)
     {
+        $user = $request->user();
         $credentials = $request->validated();
         $credentials['password'] = $request->newPassword;
-        $user = $request->user();
+        $currentEmail = $request->currentEmail;
         $message = null;
         $mustNotBeEmptyFields = ['name', 'email', 'password'];
 
         try {
 
-            DB::transaction(function () use ($request, $credentials, $user, $mustNotBeEmptyFields, &$message) {
+            DB::transaction(function () use ($request, $user, $credentials, $currentEmail, $mustNotBeEmptyFields, &$message) {
 
                 // MUST HAVE BEARER TOKEN !!!
                 if ($request->routeIs('api.v1.users.update.verify.new-email')) {
                     $this->userService->changeVerifiedEmail($user);
                     $user->markEmailAsVerified();
-                    $this->authService->unsetKnownDevices($user);
                     $this->userService->revokeAllTokensExceptCurrent($user);
-                    $this->authService->sendCredentialsChangesNotification($user, 'email');
+                    $this->authService->unsetKnownDevicesExceptCurrent($user);
+                    $this->authService->sendCredentialsChangesNotification($currentEmail, 'email');
 
                     $message = 'Email updated and verified successfully.';
 
                     return;
                 }
 
-                if ($this->authService->isVerified($user) &&
+                if ($user->isVerified() &&
                     !empty($credentials['email']) &&
-                    $credentials['email'] !== $user->getEmailForVerification()) {
+                    $credentials['email'] !== $currentEmail) {
                         $this->userService->moveEmailToPending($user, $credentials['email']);
                         unset($credentials['email']);
                         $this->authService->sendVerifiedEmailChangedNotification($user, $user->pending_email);
@@ -201,9 +196,7 @@ class UserController extends Controller
 
                 $data = collect($credentials)
                     ->only($mustNotBeEmptyFields)
-                    ->filter(function ($value) {
-                        return !empty($value);
-                    })
+                    ->filter(fn($value) => !empty($value))
                     ->toArray();
 
                 if ($request->hasFile('avatar') || $request->input('avatar') === 'null') {
@@ -221,21 +214,21 @@ class UserController extends Controller
                     }
                 }
 
-                $oldEmail = $user->email;
                 $user->update($data);
                 
-                
-                if (isset($credentials['password']) || (isset($credentials['email']) && $credentials['email'] !== $oldEmail)) {
-                    $column = match (true) {
-                        isset($credentials['password']) && isset($credentials['email']) => 'email and password',
-                        isset($credentials['password']) => 'password',
-                        isset($credentials['email']) => 'email',
-                        default => 'email and password'
-                    };
+                /**
+                 * the email parameter here is only for unverified users.
+                 * since verified users will have their new email moved to pending and later the email from array will be unset,
+                 * so the email from array here will be skipped in the check
+                **/
 
+                if (isset($credentials['password']) || (!empty($credentials['email']) && $credentials['email'] !== $currentEmail)) {
                     $this->userService->revokeAllTokensExceptCurrent($user);
-                    $this->authService->unsetKnownDevices($user);
-                    $this->authService->sendCredentialsChangesNotification($user, $column);
+                    $this->authService->unsetKnownDevicesExceptCurrent($user);
+
+                    if ($user->isVerified()) {
+                        $this->authService->sendCredentialsChangesNotification($currentEmail, 'password');
+                    }
                 }
             });
 
@@ -244,7 +237,7 @@ class UserController extends Controller
                 data: new UserResource($user->fresh()),
             );
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
     }
@@ -252,9 +245,7 @@ class UserController extends Controller
     // Email Verification
     public function sendVerificationEmail(SendVerificationEmailRequest $request)
     {
-        $user = $request->user();
-
-        $this->authService->sendVerificationEmailNotification($user);
+        $this->authService->sendVerificationEmailNotification($request->user());
 
         return ApiResponseHelper::successResponse(
             message: 'Verification email sent successfully.',

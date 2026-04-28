@@ -3,6 +3,7 @@
 namespace App\Http\Requests\API\V1\User\Auth;
 
 use App\Models\User;
+use App\Services\API\V1\AuthService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +31,7 @@ class ResetPasswordRequest extends BaseRequest
     {
         return [
             'token' => 'required|string',
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email',
             'password' => [
                 'required',
                 'confirmed',
@@ -65,15 +66,10 @@ class ResetPasswordRequest extends BaseRequest
 
     public function passedValidation()
     {
-        $tokenRecord = DB::table('password_reset_tokens')->where('email', $this->input('email'))->first();
-        $user = User::where('email', $this->input('email'))->first();
-
-        if (!$tokenRecord ||
-            !Hash::check($this->input('token'), $tokenRecord->token) ||
-            Carbon::parse($tokenRecord->created_at)->addMinutes(config('auth.passwords.users.expire'))->isPast()){
-                throw new UnprocessableEntityHttpException('Invalid credentials');
+        if (!AuthService::make()->isPasswordResetTokenValid($this->input('email'), $this->input('token'))) {
+            throw new UnprocessableEntityHttpException('Invalid credentials');
         }
 
-        $this->user = $user;
+        $this->user = User::where('email', $this->input('email'))->first();
     }
 }
