@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\API\V1\Tracker;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class IndexTrackersRequest extends FormRequest
@@ -12,7 +11,7 @@ class IndexTrackersRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('viewAny');
     }
 
     /**
@@ -23,19 +22,25 @@ class IndexTrackersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
-            'transaction_size' => 'sometimes|integer|min:1',
-            'size' => 'sometimes|integer|min:1',
+            'transaction_size' => 'sometimes|integer|min:1|max:15',
+            'size' => 'sometimes|integer|min:1|max:25',
             'page' => 'sometimes|integer|min:1',
+            'include.*' => 'sometimes|string',
+            'fields' => 'sometimes|array',
+            'fields.*' => 'sometimes|string',
+            'filter' => 'sometimes|array',
+            'filter.name' => 'sometimes|string|max:255',
+            'filter.description' => 'sometimes|string|max:255',
+            'sort' => 'sometimes|array',
+            'sort.*' => 'sometimes|string',
         ];
     }
 
     public function prepareForValidation()
     {
         $this->merge([
-            'user_id' => $this->user()->id,
-            'transaction_size' => $this->input('transaction_size', 7),
-            'size' => $this->input('size', 10),
+            'transaction_size' => $this->input('transaction_size', 5),
+            'size' => $this->input('size', 15),
             'page' => $this->input('page', 1),
         ]);
     }

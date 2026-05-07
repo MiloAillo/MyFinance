@@ -2,16 +2,16 @@
 
 namespace App\Http\Requests\API\V1\Tracker;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
-class UpdateTrackerRequest extends FormRequest
+class ShowDeletedTrackerRequest extends ShowTrackerRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('tracker'));
+        return $this->user()->can('viewDeleted', $this->route('tracker'));
     }
 
     /**
@@ -21,9 +21,8 @@ class UpdateTrackerRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => 'sometimes|string|max:100',
-            'description' => 'sometimes|nullable|string|max:500',
-        ];
+        return array_merge_recursive(parent::rules(), [
+            //
+        ]);
     }
 }

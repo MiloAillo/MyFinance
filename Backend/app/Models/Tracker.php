@@ -16,6 +16,13 @@ class Tracker extends Model
         'description',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'current_balance' => 'decimal:2',
+        ];
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -29,24 +36,6 @@ class Tracker extends Model
     public function isForceDeletable()
     {
         return $this->deleted_at !== null;
-    }
-
-    public function getCurrentBalanceAttribute()
-    {
-        if ($this->relationLoaded('transactions')) {
-            $income = $this->transactions->where('type', 'income')->sum('amount');
-            $expense = $this->transactions->where('type', 'expense')->sum('amount');
-            return $income - $expense;
-        }
-        
-        $totals = $this->transactions()
-            ->selectRaw('
-                COALESCE(SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END), 0) as income,
-                COALESCE(SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END), 0) as expense
-            ')
-            ->first();
-        
-        return $totals->income - $totals->expense;
     }
 
     public function getTotalTransactionsAttribute()
