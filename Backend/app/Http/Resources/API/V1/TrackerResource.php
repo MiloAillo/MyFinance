@@ -11,6 +11,10 @@ class TrackerResource extends BaseResource
     public $attributes = [
         'name',
         'description',
+        'current_balance',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     public $relationships = [
@@ -40,7 +44,6 @@ class TrackerResource extends BaseResource
         $meta = parent::toMeta($request);
 
         $meta['transaction_count'] = $this->getTotalTransactionsAttribute();
-        $meta['current_balance'] = $this->getCurrentBalanceAttribute();
         
         return $meta;
     }

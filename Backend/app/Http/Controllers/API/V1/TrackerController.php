@@ -2,38 +2,86 @@
 
 namespace App\Http\Controllers\API\V1;
 
-use App\Exceptions\API\V1\ModelHasNotBeenSoftDeletedException;
 use App\Http\Helpers\ApiResponseHelper;
+use App\Http\Requests\API\V1\Tracker\IndexDeletedTrackerRequest;
 use App\Http\Requests\API\V1\Tracker\IndexTrackersRequest;
-// use App\Http\Requests\API\V1\Tracker\ShowTrackerRequest;
+use App\Http\Requests\API\V1\Tracker\ShowDeletedTrackerRequest;
+use App\Http\Requests\API\V1\Tracker\ShowTrackerRequest;
 use App\Http\Requests\API\V1\Tracker\StoreTrackerRequest;
 use App\Http\Requests\API\V1\Tracker\UpdateTrackerRequest;
 use App\Http\Resources\API\V1\TrackerResource;
 use App\Models\Tracker;
-// use App\Services\API\V1\TrackerService;
+use App\Services\API\V1\TrackerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Spatie\QueryBuilder\AllowedInclude;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class TrackerController extends Controller
 {
-    // public function __construct(protected TrackerService $trackerService)
-    // {
-    //     $this->trackerService = $trackerService;
-    // }
+    public function __construct(protected TrackerService $trackerService)
+    {
+        $this->trackerService = $trackerService;
+    }
 
     public function index(IndexTrackersRequest $request)
     {
         $validated = $request->validated();
-        $transaction_size = $validated['transaction_size'];
+        $transactionSize = $validated['transaction_size'];
+        $trackerSize = $validated['size'];
 
-        $trackers = Tracker::with(['transactions' => function ($query) use ($transaction_size) {
-            $query->latest()->limit($transaction_size); }])
-            ->where('user_id', $validated['user_id'])
-            ->latest()
-            ->paginate(perPage: $validated['size'], page: $validated['page'],);
+        $trackers = QueryBuilder::for(Tracker::class)
+            ->where('user_id', $request->user()->id)
+            ->allowedIncludes(
+                AllowedInclude::callback(
+                    name: 'recent_transactions',
+                    callback: fn($query) => $query->with(['transactions' => fn($q) => $q->latest('updated_at')->limit($transactionSize)]),
+                    internalName: 'transactions'
+                ),
+            )
+            ->allowedFields(
+                'id', 'name', 'description', 'current_balance', 'created_at', 'updated_at',
+                'transactions.id','transactions.amount', 'transactions.type'
+            )
+            ->allowedFilters('name', 'description')
+            ->allowedSorts('name', 'created_at', 'updated_at')
+            ->defaultSort('-updated_at')
+            ->paginate($trackerSize);
 
         return ApiResponseHelper::successResponse(
             message: 'Trackers retrieved successfully.',
+            data: TrackerResource::collection($trackers),
+        );
+    }
+
+    public function indexDeleted(IndexDeletedTrackerRequest $request)
+    {
+        $validated = $request->validated();
+        $transactionSize = $validated['transaction_size'];
+        $trackerSize = $validated['size'];
+
+        $trackers = QueryBuilder::for(Tracker::class)
+            ->onlyTrashed()
+            ->where('user_id', $request->user()->id)
+            ->allowedIncludes(
+                AllowedInclude::callback(
+                    name: 'recent_transactions',
+                    callback: fn($query) => $query->with(['transactions' => fn($q) => $q->onlyTrashed()->latest('updated_at')->limit($transactionSize)]),
+                    internalName: 'transactions'
+                ),
+            )
+            ->allowedFields(
+                'id', 'name', 'description', 'current_balance', 'created_at', 'updated_at', 'deleted_at',
+                'transactions.id','transactions.amount', 'transactions.type'
+            )
+            ->allowedFilters('name', 'description')
+            ->allowedSorts('name', 'created_at', 'updated_at', 'deleted_at')
+            ->defaultSort('-deleted_at')
+            ->paginate($trackerSize);
+
+        return ApiResponseHelper::successResponse(
+            message: 'Deleted trackers retrieved successfully.',
             data: TrackerResource::collection($trackers),
         );
     }
@@ -48,12 +96,29 @@ class TrackerController extends Controller
         );
     }
 
-    public function show(Request $request, Tracker $tracker)
+    public function show(ShowTrackerRequest $request, Tracker $tracker)
     {
-        // rule for auth, dont forget to add in policy
+        $tracker = QueryBuilder::for(Tracker::class)
+            ->where('id', $tracker->id)
+            ->allowedFields('id', 'name', 'description', 'current_balance', 'created_at', 'updated_at')
+            ->firstOrFail();
 
         return ApiResponseHelper::successResponse(
             message: 'Tracker retrieved successfully.',
+            data: new TrackerResource($tracker),
+        );
+    }
+
+    public function showDeleted(ShowDeletedTrackerRequest $request, Tracker $tracker)
+    {
+        $tracker = QueryBuilder::for(Tracker::class)
+            ->onlyTrashed()
+            ->where('id', $tracker->id)
+            ->allowedFields('id', 'name', 'description', 'current_balance', 'created_at', 'updated_at', 'deleted_at')
+            ->firstOrFail();
+
+        return ApiResponseHelper::successResponse(
+            message: 'Deleted tracker retrieved successfully.',
             data: new TrackerResource($tracker),
         );
     }
@@ -68,26 +133,17 @@ class TrackerController extends Controller
         );
     }
 
-    public function destroy(Request $request, Tracker $tracker)
+    public function delete(Request $request, Tracker $tracker)
     {
-        // rule for auth, dont forget to add in policy
+        Gate::authorize('delete', $tracker);
 
         try {
 
             DB::transaction(function () use ($tracker) {
-                if ($tracker->isForceDeletable()) {
-                    $tracker->forceDelete();
+                $tracker->delete();
 
-                    if ($tracker->transactions()->onlyTrashed()->exists()) {
-                        $tracker->transactions()->onlyTrashed()->forceDelete();
-                    }
-
-                } else {
-                    $tracker->delete();
-
-                    if ($tracker->transactions()->exists()) {
-                        $tracker->transactions()->delete();
-                    }
+                if ($tracker->transactions()->exists()) {
+                    $tracker->transactions()->delete();
                 }
             });
 
@@ -95,26 +151,45 @@ class TrackerController extends Controller
                 message: 'Tracker deleted successfully.',
             );
             
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    public function forceDelete(Request $request, Tracker $tracker)
+    {
+        Gate::authorize('forceDelete', $tracker);
+
+        try {
+
+            DB::transaction(function () use ($tracker) {
+                $tracker->forceDelete();
+
+                if ($tracker->transactions()->onlyTrashed()->exists()) {
+                    $tracker->transactions()->onlyTrashed()->forceDelete();
+                }
+            });
+
+            return ApiResponseHelper::successResponse(
+                message: 'Tracker permanently deleted successfully.',
+            );
+            
+        } catch (\Throwable $e) {
             throw $e;
         }
     }
 
     public function restore(Request $request, Tracker $tracker)
     {
-        // rule for auth, dont forget to add in policy
-        
+        Gate::authorize('restore', $tracker);
+
         try {
                 
             DB::transaction(function () use ($tracker) {
-                if ($tracker->trashed()) {
-                    $tracker->restore();
+                $tracker->restore();
 
-                    if ($tracker->transactions()->onlyTrashed()->exists()) {
-                        $tracker->transactions()->onlyTrashed()->restore();
-                    }
-                } else {
-                    throw new ModelHasNotBeenSoftDeletedException('Tracker has not been soft deleted, cannot be restored.');
+                if ($tracker->transactions()->onlyTrashed()->exists()) {
+                    $tracker->transactions()->onlyTrashed()->restore();
                 }
             });
 
@@ -122,7 +197,7 @@ class TrackerController extends Controller
                 message: 'Tracker restored successfully.',
             );
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
     }

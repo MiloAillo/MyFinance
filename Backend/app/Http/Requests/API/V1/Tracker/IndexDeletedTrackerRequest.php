@@ -4,16 +4,15 @@ namespace App\Http\Requests\API\V1\Tracker;
 
 use App\Models\Tracker;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTrackerRequest extends FormRequest
+class IndexDeletedTrackerRequest extends IndexTrackersRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->can('create', Tracker::class);
+        return $this->user()->can('viewAnyDeleted', Tracker::class);
     }
 
     /**
@@ -23,17 +22,17 @@ class StoreTrackerRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'user_id' => 'required|exists:users,id',
-            'name' => 'required|string|max:100',
-            'description' => 'nullable|string|max:500',
-        ];
+        return array_merge_recursive(parent::rules(), [
+            //
+        ]);
     }
 
     public function prepareForValidation()
     {
         $this->merge([
-            'user_id' => $this->user()->id,
+            'transaction_size' => $this->input('transaction_size', 5),
+            'size' => $this->input('size', 15),
+            'page' => $this->input('page', 1),
         ]);
     }
 }

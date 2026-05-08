@@ -7,7 +7,6 @@ use App\Services\API\V1\AuthService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class UpdateProfileRequest extends FormRequest
@@ -40,14 +39,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'avatar' => $this->hasFile('avatar') ? 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048' : 'sometimes|string|max:4', // 2 MB
             'name' => 'sometimes|string|min:3|max:50',
-            'email' => [
-                'sometimes',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($this->user()->id)
-                ->where(fn($query) => $query->where('email', $this->email)->orWhere('pending_email', $this->email)),
-            ],
+            'email' => "sometimes|string|email|max:255|unique:users,email,{$this->user()->id}|unique:users,pending_email,{$this->user()->id}",
             'old_password' => 'sometimes|required_with:new_password|current_password',
             'new_password' => [
                 'sometimes',
@@ -58,6 +50,13 @@ class UpdateProfileRequest extends FormRequest
                     ->numbers()
                     ->symbols()
             ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'email.unique' => 'Invalid email address.',
         ];
     }
 

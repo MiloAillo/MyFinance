@@ -76,7 +76,7 @@ class AuthService
     // Cache Management
     public function encryptAndCacheData(string $keyType, mixed $value, int $minutes): string
     {
-        $id = (string) Str::uuid();
+        $id = (string) Str::ulid();
         $key = "{$keyType}_{$id}";
         $value = Crypt::encrypt($value);
 

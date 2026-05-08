@@ -26,13 +26,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => 'required|string|min:3|max:50',
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->where(fn($query) => $query->orWhere('pending_email', $this->input('email')))
-            ],
+            'email' => 'required|string|email|max:255|unique:users,email|unique:users,pending_email',
             'password' => [
                 'required',
                 'confirmed',
@@ -50,7 +44,9 @@ class RegisterRequest extends FormRequest
      */
     public function messages()
     {
-        return [];
+        return [
+            'email.unique' => 'Invalid email address.',
+        ];
     }
 
     public function passedValidation()

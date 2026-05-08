@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
+            $table->decimal('current_balance', 15, 2)->default(0);
             $table->softDeletes();
             $table->timestamps();
 
