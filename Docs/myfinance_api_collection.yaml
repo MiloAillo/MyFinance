@@ -11,7 +11,7 @@ collection:
     meta:
       id: fld_28ea515bf28e4dd3a34cd9e7834e0070
       created: 1775348019636
-      modified: 1776993073514
+      modified: 1778319164610
       sortKey: -1775348048210
       description: ""
     children:
@@ -20,7 +20,7 @@ collection:
         meta:
           id: req_1eed7909b5894b2cafdc18b8c2d995ba
           created: 1775457167776
-          modified: 1776515599449
+          modified: 1777816274628
           isPrivate: false
           description: ""
           sortKey: -1775442143835
@@ -46,7 +46,7 @@ collection:
         meta:
           id: req_a55dec636bfb4a76a4cf3364d1f5164a
           created: 1775458872192
-          modified: 1776992558142
+          modified: 1778319381860
           isPrivate: false
           description: ""
           sortKey: -1775442143785
@@ -57,9 +57,9 @@ collection:
             {
             	"name": "",
             	"email": "",
-            	"old_password": "{{ password }}",
-            	"new_password": "{{ new_password }}",
-            	"new_password_confirmation": "{{ new_password }}"
+              "old_password": "{{ password }}",
+              "new_password": "{{ new_password }}",
+              "new_password_confirmation": "{{ new_password }}"
             }
         headers:
           - name: Content-Type
@@ -85,7 +85,7 @@ collection:
         meta:
           id: req_159e9dcd98eb4beda6eb1aa3f2204f0d
           created: 1775461912765
-          modified: 1776992729086
+          modified: 1778319243297
           isPrivate: false
           description: ""
           sortKey: -1775441064988.5
@@ -98,9 +98,10 @@ collection:
               description: ""
               disabled: false
             - name: avatar
-              value: "{% faker 'randomAvatarImage' %}"
+              value: ""
               description: ""
               disabled: false
+              type: file
             - name: avatar
               value: "null"
               description: ""
@@ -197,7 +198,7 @@ collection:
             meta:
               id: req_97f0e9bbae9d48539565140496bc32fd
               created: 1775439998216
-              modified: 1776920287908
+              modified: 1778318949663
               isPrivate: false
               description: ""
               sortKey: -1775439413526
@@ -518,6 +519,14 @@ collection:
         'b64::JC5kYXRhLmF0dHJpYnV0ZXMubmFtZQ==::46b', 'never', 60 %}"
       signed_up_email: "{% response 'body', 'req_8ceeb55c59e943f3a3ce564952baba95',
         'b64::JC5kYXRhLmF0dHJpYnV0ZXMuZW1haWw=::46b', 'never', 60 %}"
+    environmentPropertyOrder:
+      "&":
+        - name
+        - email
+        - password
+        - new_password
+        - signed_up_name
+        - signed_up_email
   - name: Trackers
     meta:
       id: fld_fb85fe5144a3489a86085a28b0d211e3
@@ -540,8 +549,8 @@ collection:
           mimeType: application/json
           text: |-
             {
-				"name": "{{ name }}",
-				"description": "{{ description }}"
+            	"name": "{{ name }}",
+            	"description": "{{ description }}"
             }
         headers:
           - name: Content-Type
@@ -563,7 +572,7 @@ collection:
         meta:
           id: req_1100d010c26a4acb8b5082549a17fc56
           created: 1775544509722
-          modified: 1778213076870
+          modified: 1778318797562
           isPrivate: false
           description: ""
           sortKey: -1775493270446.5
@@ -572,39 +581,39 @@ collection:
           - name: page
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: size
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: transaction_size
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: include
             value: recent_transactions
             description: ""
-            disabled: true
+            disabled: false
           - name: fields[trackers]
             value: id,name,description,current_balance,created_at,updated_at
             description: ""
-            disabled: true
+            disabled: false
           - name: fields[transactions]
             value: id,amount,type
             description: ""
-            disabled: true
+            disabled: false
           - name: filter[name]
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: filter[description]
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: sort
             value: name,created_at,updated_at,-name,-created_at,-updated_at
             description: ""
-            disabled: true
+            disabled: false
         headers:
           - name: User-Agent
             value: insomnia/12.4.0
@@ -632,8 +641,8 @@ collection:
           mimeType: application/json
           text: |-
             {
-				"name": "",
-				"description": ""
+            	"name": "",
+            	"description": ""
             }
         headers:
           - name: Content-Type
@@ -678,7 +687,7 @@ collection:
         meta:
           id: req_9397eb4346af48ccb1480b79b4634e21
           created: 1775544821223
-          modified: 1778212683426
+          modified: 1778318841144
           isPrivate: false
           description: ""
           sortKey: -1775480488793.625
@@ -687,7 +696,7 @@ collection:
           - name: fields[trackers]
             value: id,name,description,current_balance,created_at,updated_at
             description: ""
-            disabled: true
+            disabled: false
         headers:
           - name: User-Agent
             value: insomnia/12.4.0
@@ -752,7 +761,7 @@ collection:
         meta:
           id: req_822e8a043d9d4cd5824e7a71a4709c69
           created: 1778054501055
-          modified: 1778213093752
+          modified: 1778318826636
           isPrivate: false
           description: ""
           sortKey: -1775486879620.0625
@@ -761,39 +770,39 @@ collection:
           - name: page
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: size
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: transaction_size
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: include
             value: recent_transactions
             description: ""
-            disabled: true
+            disabled: false
           - name: fields[trackers]
             value: id,name,description,current_balance,created_at,updated_at,deleted_at
             description: ""
-            disabled: true
+            disabled: false
           - name: fields[transactions]
             value: id,amount,type
             description: ""
-            disabled: true
+            disabled: false
           - name: filter[name]
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: filter[description]
             value: ""
             description: ""
-            disabled: true
+            disabled: false
           - name: sort
             value: name,created_at,updated_at,deleted_at,-name,-created_at,-updated_at,-deleted_at
             description: ""
-            disabled: true
+            disabled: false
         headers:
           - name: User-Agent
             value: insomnia/12.4.0
@@ -812,7 +821,7 @@ collection:
         meta:
           id: req_1ccf4ef903e847d2aa4a2b4386ad6911
           created: 1778054539520
-          modified: 1778213152494
+          modified: 1778318846113
           isPrivate: false
           description: ""
           sortKey: -1775474097967.1875
@@ -821,7 +830,7 @@ collection:
           - name: fields[trackers]
             value: id,name,description,current_balance,created_at,updated_at,deleted_at
             description: ""
-            disabled: true
+            disabled: false
         headers:
           - name: User-Agent
             value: insomnia/12.4.0
@@ -852,240 +861,6 @@ collection:
       modified: 1776733573472
       sortKey: -1775348048172.5
       description: ""
-    children:
-      - url: "{{ base_url }}/trackers/{{ tracker_id }}/transactions"
-        name: Transactions
-        meta:
-          id: req_c01dc5cafe774a18aebe0fe99fc63112
-          created: 1775544982131
-          modified: 1776762958039
-          isPrivate: false
-          description: ""
-          sortKey: -1775544985172
-        method: POST
-        body:
-          mimeType: multipart/form-data
-          params:
-            - name: tracker_id
-              value: ""
-            - name: user_id
-              value: ""
-              description: ""
-              disabled: false
-            - name: name
-              value: ""
-              description: ""
-              disabled: false
-            - name: type
-              value: "{ income / expense }"
-              description: ""
-              disabled: false
-            - name: amount
-              value: ""
-              description: ""
-              disabled: false
-            - name: description
-              value: ""
-              description: ""
-              disabled: false
-            - name: files
-              value: ""
-              description: ""
-              disabled: false
-              type: file
-            - name: transaction_date
-              value: ""
-              description: ""
-              disabled: false
-        headers:
-          - name: Content-Type
-            value: multipart/form-data
-          - name: User-Agent
-            value: insomnia/12.4.0
-            description: ""
-            disabled: false
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ base_url }}/trackers/{{ tracker_id }}/transactions"
-        name: Transactions
-        meta:
-          id: req_90ab27fd04454ed4948059c5b3a81ef3
-          created: 1775545092380
-          modified: 1776762725105
-          isPrivate: false
-          description: ""
-          sortKey: -1775544691115
-        method: GET
-        parameters:
-          - name: search
-            value: ""
-            description: ""
-            disabled: true
-          - name: page
-            value: ""
-            description: ""
-            disabled: true
-          - name: size
-            value: ""
-            description: ""
-            disabled: true
-          - name: size
-            value: all
-            description: ""
-            disabled: true
-          - name: sort
-            value: oldest
-            description: ""
-            disabled: true
-          - name: sort
-            value: latest
-            description: ""
-            disabled: true
-        headers:
-          - name: User-Agent
-            value: insomnia/12.4.0
-            description: ""
-            disabled: false
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ base_url }}/transactions/{{ transaction_id }}"
-        name: Transaction
-        meta:
-          id: req_fa508e3422b2473eb716f2046101fabc
-          created: 1775545111959
-          modified: 1776762823241
-          isPrivate: false
-          description: ""
-          sortKey: -1775544544086.5
-        method: GET
-        headers:
-          - name: User-Agent
-            value: insomnia/12.4.0
-            description: ""
-            disabled: false
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ base_url }}/transactions/{{ transaction_id }}"
-        name: Transaction
-        meta:
-          id: req_b3bfee985a2a4485a0dc2729e2b576df
-          created: 1775545262297
-          modified: 1776763043669
-          isPrivate: false
-          description: ""
-          sortKey: -1775544433815.125
-        method: DELETE
-        headers:
-          - name: User-Agent
-            value: insomnia/12.4.0
-            description: ""
-            disabled: false
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ base_url }}/transactions/{{ transaction_id }}"
-        name: PATCH Transactions
-        meta:
-          id: req_d0d32016b89d42699016543b0475e6fd
-          created: 1775552661567
-          modified: 1776763007248
-          isPrivate: false
-          description: ""
-          sortKey: -1775544488950.8125
-        method: POST
-        body:
-          mimeType: multipart/form-data
-          params:
-            - name: _method
-              value: PATCH
-              description: ""
-              disabled: false
-            - name: name
-              value: ""
-              description: ""
-              disabled: false
-            - name: type
-              value: "{ income / expense }"
-              description: ""
-              disabled: false
-            - name: amount
-              value: ""
-              description: ""
-              disabled: false
-            - name: description
-              value: ""
-              description: ""
-              disabled: false
-            - name: files
-              value: ""
-              description: ""
-              disabled: false
-              type: file
-            - name: transaction_date
-              value: ""
-              description: ""
-              disabled: false
-        headers:
-          - name: Content-Type
-            value: multipart/form-data
-          - name: User-Agent
-            value: insomnia/12.4.0
-            description: ""
-            disabled: false
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ base_url }}/transactions/{{ transaction_id }}/restore"
-        name: Restore Transaction
-        meta:
-          id: req_df2999fef98140c8bb5f30066dbdeb67
-          created: 1776763129701
-          modified: 1776763153307
-          isPrivate: false
-          description: ""
-          sortKey: -1775544415436.5625
-        method: PATCH
-        headers:
-          - name: User-Agent
-            value: insomnia/12.4.0
-            description: ""
-            disabled: false
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
     authentication:
       type: bearer
       token: "{{ user_token }}"
@@ -1128,7 +903,7 @@ collection:
         meta:
           id: req_96c6fce42bb34e24bcf28fc6334ea2eb
           created: 1776139080170
-          modified: 1776992839803
+          modified: 1778318876381
           isPrivate: false
           description: ""
           sortKey: -1775439699884
@@ -1140,7 +915,7 @@ collection:
             disabled: false
         authentication:
           type: bearer
-          disabled: true
+          disabled: false
           token: "{{ user_token }}"
         settings:
           renderRequestBody: true
@@ -1173,9 +948,9 @@ environments:
       meta:
         id: env_4c2d56be003a4d279da20715aa8e5d3f
         created: 1775456406243
-        modified: 1776733767889
+        modified: 1777816307950
         isPrivate: false
         sortKey: 1775456406243
       data:
-        user_token: "{% response 'body', 'req_c2cee613b53f4eae8934dcf27b1ce7fa',
+        user_token: "{% response 'body', 'req_97f0e9bbae9d48539565140496bc32fd',
           'b64::JC5kYXRhLm1ldGEudG9rZW4=::46b', 'never', 60 %}"
