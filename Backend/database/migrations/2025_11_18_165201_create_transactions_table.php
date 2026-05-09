@@ -21,13 +21,13 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->text('description')->nullable();
             $table->json('files')->nullable();
-            $table->timestamp('transaction_date');
+            $table->timestamp('date');
             $table->softDeletes();
             $table->timestamps();
 
-            $table->index(['tracker_id', 'transaction_date']);
-            $table->index(['user_id', 'type', 'transaction_date']);
-            $table->index(['name', 'transaction_date']);
+            $table->index(['tracker_id', 'date']);
+            $table->index(['user_id', 'type', 'date']);
+            $table->index(['name', 'date']);
         });
     }
 

@@ -3,7 +3,7 @@
 namespace App\Http\Resources\API\V1;
 
 use Illuminate\Http\Request;
-// use App\Http\Resources\API\V1\TransactionResource;
+use App\Http\Resources\API\V1\TransactionResource;
 use App\Http\Resources\API\V1\UserResource;
 
 class TrackerResource extends BaseResource
@@ -19,7 +19,7 @@ class TrackerResource extends BaseResource
 
     public $relationships = [
         'user' => UserResource::class,
-        // 'transactions' => TransactionResource::class
+        'transactions' => TransactionResource::class
     ];
 
     public function toAttributes(Request $request)

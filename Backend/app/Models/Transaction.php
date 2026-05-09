@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Transaction extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    const TYPES = ['income', 'expense'];
-    
     protected $fillable = [
         'tracker_id',
         'user_id',
@@ -18,18 +20,17 @@ class Transaction extends Model
         'type',
         'amount',
         'description',
-        'image',
-        'transaction_date',
+        'files',
+        'date',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'transaction_date' => 'datetime',
-    ];
-
-    public function tracker()
+    protected function casts(): array
     {
-        return $this->belongsTo(Tracker::class);
+        return [
+            'amount' => 'decimal:2',
+            'files' => 'collection',
+            'date' => 'datetime',
+        ];
     }
 
     public function user()
@@ -37,35 +38,32 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeFilterByType($query, $type = null)
+    public function tracker()
     {
-        if (is_null($type)) {
-            return $query->whereRaw('1 = 0');
-        }
-
-        if ($type === 'both') {
-            return $query->whereIn('type', self::TYPES);
-        }
-
-        if (in_array($type, self::TYPES)) {
-            return $query->where('type', $type);
-        }
-
-        return $query->whereRaw('1 = 0');
+        return $this->belongsTo(Tracker::class);
     }
 
-    public function scopeByDateRange($query, $startDate, $endDate)
+    public function scopeStartsBefore(Builder $query, $date)
     {
-        return $query->whereBetween('transaction_date', [$startDate, $endDate]);
-    }
-    
-    public function scopeByName($query, $name)
-    {
-        return $query->where('name', 'like', "%{$name}%");
+        return $query->where('date', '<=',Carbon::parse($date));
     }
 
-    public function getImageUrlAttribute()
+    public function scopeInBetween(Builder $query, $startDate, $endDate)
     {
-        return $this->image ? asset('storage/' . $this->image) : null;
+        return $query->whereBetween('date', [Carbon::parse($startDate), Carbon::parse($endDate)]);
+    }
+
+    public function scopeEndsAfter(Builder $query, $date)
+    {
+        return $query->where('date', '>=', Carbon::parse($date));
+    }
+
+    public function getFileUrlAttribute()
+    {
+        if ($this->files->isNotEmpty()) {
+            return $this->files->map(fn ($file) => Storage::disk('public')->url("transactions/{$this->id}/files/{$file}"));
+        }
+
+        return null;
     }
 }

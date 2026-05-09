@@ -76,7 +76,7 @@ class TrackerPolicy
     public function restore(User $user, Tracker $tracker): bool|Response
     {
         if (!$tracker->trashed()) {
-            return Response::deny('Tracker must be soft-deleted before it can be restored.');
+            return Response::deny('Tracker must be deleted first.');
         }
 
         return $user->id === $tracker->user_id;
@@ -87,8 +87,8 @@ class TrackerPolicy
      */
     public function forceDelete(User $user, Tracker $tracker): bool|Response
     {
-        if (!$tracker->isForceDeletable()) {
-            return Response::deny('Tracker must be soft-deleted before it can be permanently deleted.');
+        if (!$tracker->trashed()) {
+            return Response::deny('Tracker must be deleted first.');
         }
 
         return $user->id === $tracker->user_id;

@@ -33,11 +33,6 @@ class Tracker extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function isForceDeletable()
-    {
-        return $this->deleted_at !== null;
-    }
-
     public function getTotalTransactionsAttribute()
     {
         return $this->transactions()->count();
