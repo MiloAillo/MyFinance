@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { faArrowDown19, faArrowRightFromBracket, faCloud, faEllipsisV, faLock, faMagnifyingGlass, faMoneyBillWave, faQuestion, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Cloud, PlusIcon, XIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { motion, AnimatePresence, spring } from "motion/react";
 import { useRouteLoaderData } from "react-router-dom";
@@ -11,6 +11,7 @@ import axios, { isAxiosError } from "axios";
 import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ModeToggle } from "@/components/mode-toggle";
+import toast from "@/components/CustomToast";
 
 export function Dashboard(): JSX.Element {
     const mainLoaderData = useRouteLoaderData("main")
@@ -25,7 +26,6 @@ export function Dashboard(): JSX.Element {
     const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
 
-    const [ searching, setSearching ] = useState<boolean>(false)
     const [ actualSearchValue, setActualSearchValue ] = useState<string>("")
     
     const [ needPagination, setNeedPagination ] = useState<boolean>(false)
@@ -33,12 +33,23 @@ export function Dashboard(): JSX.Element {
     const [ paginationAnimation, setPaginationAnimation ] = useState<boolean>(false)
     const [ searchValue, setSearchValue ] = useState<string>("")
     const [ page, setPage ] = useState<number>(1)
+    const [ gettingTracker, setGettingTracker ] = useState<boolean>(false)
 
     const createBoxTitle = useRef<HTMLInputElement | null>(null)
     const createBoxDescription = useRef<HTMLInputElement | null>(null)
+    const abortControllerRef = useRef<AbortController | null>(null)
 
     const cloudGetTrackers = async () => {
-        setSearching(false)
+        // Abort previous request if it exists
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+        }
+
+        // Create new abort controller for this request
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
+
+        setGettingTracker(true)
 
         const authToken = localStorage.getItem("Authorization")
 
@@ -46,18 +57,29 @@ export function Dashboard(): JSX.Element {
             const res = await axios.get(`${ApiUrl}/trackers?page=${page}${actualSearchValue !== "" ? `&filter[name]=${actualSearchValue}` : ""}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
-                }
+                },
+                signal: abortController.signal
             })
 
-            const data = await res.data
-            console.log("cloud trackers initial fetch", data.data.trackers)
-            setTrackers(data.data)
-            setLinks(data.links)
-            setMeta(data.meta)
+            // Only update state if this request wasn't aborted
+            if (!abortController.signal.aborted) {
+                const data = await res.data
+                console.log("cloud trackers initial fetch", data.data.trackers)
+                setTrackers(data.data)
+                setLinks(data.links)
+                setMeta(data.meta)
+            }
+
         } catch(err) {
-            if(isAxiosError(err)) {
+            // Don't log abort errors, they're expected when a new request is made
+            if (axios.isAxiosError(err) && err.code !== 'ERR_CANCELED') {
                 console.log("dashboardLoader", err)
                 // error catcher required
+            }
+        } finally {
+            // Only clear loading if this is still the current request
+            if (abortControllerRef.current === abortController) {
+                setGettingTracker(false)
             }
         }
     }
@@ -202,6 +224,11 @@ export function Dashboard(): JSX.Element {
     }
 
     const deleteTracker = async (id: number) => {
+        toast({
+            "title": "Deleting tracker",
+            "type": "loading"
+        })
+
         if(session === "cloud") {
             try {
                 await axios.delete(`${ApiUrl}/trackers/${id}`, {
@@ -210,6 +237,11 @@ export function Dashboard(): JSX.Element {
                     }
                 })
                 reloadTracker()
+
+                toast({
+                    "title": "Tracker deleted",
+                    "type": "success"
+                })
             } catch(err) {
                 // reloadTracker()
             }
@@ -217,6 +249,11 @@ export function Dashboard(): JSX.Element {
         if(session === "local") {
             try {
                 // await DBdeletetransaction(id)
+                    
+                toast({
+                    "title": "Tracker deleted",
+                    "type": "success"
+                })
             } catch(err) {
                 console.log(err)
             }
@@ -476,6 +513,38 @@ export function Dashboard(): JSX.Element {
 
                 {/* trackers */}
                 <AnimatePresence>
+                    { session === "cloud" && gettingTracker &&
+                    <motion.div
+                        className="relative shadow my-2 bg-white p-1.5 rounded-full z-999"
+                        key="cloud-loading"
+                        initial={{
+                            y: -30,
+                            opacity: 0,
+                            filter: "blur(5px)"
+                        }}
+                        animate={{
+                            y: 0,
+                            opacity: 100,
+                            filter: "blur(0px)"
+                        }}
+                        transition={{
+                            layout: {
+                                type: 'spring',
+                                mass: 1,
+                                stiffness: 160,
+                                damping: 19
+                            }
+                        }}
+                        exit={{
+                            y: -30,
+                            opacity: 0,
+                            filter: "blur(5px)"
+                        }}
+                    >
+                        <Loader2Icon className="size-6 animate-spin" />
+                    </motion.div>
+                    }
+
                     {!isOut && trackers?.map((item: any, i: number) => (
                         <motion.div 
                             key={i}
@@ -650,6 +719,8 @@ export function Dashboard(): JSX.Element {
                 >
                     <PlusIcon onClick={(e) => {e.stopPropagation(); setIsCreateBoxOpen(true)}} className="text-white" size={30} />
                 </motion.div>}
+
+                {/* <Headless /> */}
 
                 {/* pagination open */}
                 {!isOut && !paginationOpen && needPagination && <motion.div
