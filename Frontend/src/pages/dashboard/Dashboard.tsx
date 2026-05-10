@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { faArrowDown19, faArrowRightFromBracket, faCloud, faEllipsisV, faLock, faMagnifyingGlass, faMoneyBillWave, faQuestion, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { PlusIcon, XIcon } from "lucide-react";
+import { Cloud, PlusIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { motion, AnimatePresence, spring } from "motion/react";
 import { useRouteLoaderData } from "react-router-dom";
@@ -204,14 +204,14 @@ export function Dashboard(): JSX.Element {
     const deleteTracker = async (id: number) => {
         if(session === "cloud") {
             try {
-                await axios.delete(`${ApiUrl}/api/trackers/${id}`, {
+                await axios.delete(`${ApiUrl}/trackers/${id}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                     }
                 })
                 reloadTracker()
             } catch(err) {
-                reloadTracker()
+                // reloadTracker()
             }
         }
         if(session === "local") {
@@ -523,14 +523,14 @@ export function Dashboard(): JSX.Element {
                                             <h2 className="font-semibold text-base text-wrap wrap-break-word">{item.attributes.name}</h2>
                                             <p className="text-base font-normal text-wrap wrap-break-word text-black/80 dark:text-white/80">{item.attributes.description}</p>
                                         </div>
-                                        <div>
+                                        {/* <div>
                                             {item.transactions?.map((item: any) => (
                                                 <p className="text-sm font-normal text-black/80 dark:text-white/80">
                                                     {item.type === "expense" ? "-" : "+"} Rp. {item.amount.toLocaleString("ID")}
                                                 </p>
                                             ))}
                                             {item.transactions?.length === 0 && <p className="font-medium text-sm text-black/50 dark:text-white/50">{(item.name).toLowerCase()} last transactions will apear here.</p>}
-                                        </div>
+                                        </div> */}
                                     </div>
                                     <Popover>
                                         <PopoverTrigger className="w-3 self-start" onClick={(e) => e.stopPropagation()}>
@@ -539,9 +539,10 @@ export function Dashboard(): JSX.Element {
                                         <PopoverContent className="w-fit px-0 py-2 dark:bg-neutral-800/60 backdrop-blur-xs">
                                             <motion.div 
                                                 className="flex items-center gap-1 px-3"
+                                                onClick={(e) => {e.stopPropagation(); deleteTracker(item.id)}}
                                             >
                                                 <FontAwesomeIcon icon={faTrashAlt} />
-                                                <p className="font-medium text-base" onClick={(e) => {e.stopPropagation(); deleteTracker(item.id)}}>Delete</p>
+                                                <p className="font-medium text-base">Delete</p>
                                             </motion.div>
                                         </PopoverContent>
                                     </Popover>
