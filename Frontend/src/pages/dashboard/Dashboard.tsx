@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { faArrowRightFromBracket, faCloud, faEllipsisV, faLock, faMagnifyingGlass, faMoneyBillWave, faQuestion, faUserPen } from "@fortawesome/free-solid-svg-icons";
+import { faArrowDown19, faArrowRightFromBracket, faCloud, faEllipsisV, faLock, faMagnifyingGlass, faMoneyBillWave, faQuestion, faUserPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState, type JSX } from "react";
@@ -15,14 +15,21 @@ import { ModeToggle } from "@/components/mode-toggle";
 export function Dashboard(): JSX.Element {
     const mainLoaderData = useRouteLoaderData("main")
     
-    const [ trackers, setTrackers ] = useState<{id: number, user_id: number, description: string, initial_balance: number, name: string, transactions: {amount: number, type: "income" | "expense"}[]}[] | []>([])
+    // const [ trackers, setTrackers ] = useState<{id: number, user_id: number, description: string, initial_balance: number, name: string, transactions: {amount: number, type: "income" | "expense"}[]}[] | []>([])
+    const [ trackers, setTrackers ] = useState<any>([])
+    const [ links, setLinks ] = useState<any>()
+    const [ meta, setMeta ] = useState<any>()
     const [ _user, setUser ] = useState<any[]>([])
     const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ isCreateBoxOpen, setIsCreateBoxOpen ] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
-    const [ initialBalance, setInitialBalance ] = useState<string>("")
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
+    
+    const [ needPagination, setNeedPagination ] = useState<boolean>(false)
+    const [ paginationOpen, setPaginationOpen ] = useState<boolean>(false)
+    const [ paginationAnimation, setPaginationAnimation ] = useState<boolean>(false)
     const [ searchValue, setSearchValue ] = useState<string>("")
+    const [ page, setPage ] = useState<number>(1)
 
     const createBoxTitle = useRef<HTMLInputElement | null>(null)
     const createBoxDescription = useRef<HTMLInputElement | null>(null)
@@ -31,7 +38,7 @@ export function Dashboard(): JSX.Element {
         const authToken = localStorage.getItem("Authorization")
 
         try {
-            const res = await axios.get(`${ApiUrl}/trackers`, {
+            const res = await axios.get(`${ApiUrl}/trackers?page=${page}${searchValue !== "" ? `&filter[name]=${searchValue}` : ""}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -39,7 +46,9 @@ export function Dashboard(): JSX.Element {
 
             const data = await res.data
             console.log("cloud trackers initial fetch", data.data.trackers)
-            setTrackers(data.data.trackers)
+            setTrackers(data.data)
+            setLinks(data.links)
+            setMeta(data.meta)
         } catch(err) {
             if(isAxiosError(err)) {
                 console.log("dashboardLoader", err)
@@ -69,35 +78,50 @@ export function Dashboard(): JSX.Element {
         setSession(session as "cloud" | "local")
     }, [])
 
+    useEffect(() => {
+        console.log(links)
+        
+        if(meta?.current_page) setPage(meta.current_page)
+
+        if(!links?.next && !links?.prev) setNeedPagination(false)
+        else setNeedPagination(true)
+    }, [trackers])
+
+    useEffect(() => {
+        if (!paginationOpen) {
+            const timer = setTimeout(() => {
+                setPaginationAnimation(false)
+            }, 300)
+            return () => clearTimeout(timer)
+        }
+    }, [paginationOpen])
+
     const reloadTracker = () => {
         if(session === "cloud") cloudGetTrackers()
         if(session === "local") localGetTrackers()
     }
 
-    const modifyInitialBalance = (value: string) => {
-        const cleaned = value.replace(/[^0-9.]/g, "")
-        setInitialBalance(cleaned)
-    }
+    useEffect(() => {
+        reloadTracker()
+    }, [page])
 
     const decideCreateBox = async () => {
         // not created output
-        if(createBoxTitle.current?.value === "" || createBoxDescription.current?.value === "" || initialBalance === "") {
+        if(createBoxTitle.current?.value === "" || createBoxDescription.current?.value === "") {
             setIsCreateBoxOpen(false)
             console.log("not created!")
             return
         }
 
         if(createBoxTitle.current && createBoxDescription.current) {
-            // clean the dot in balance
-            const cleanedBalance = parseInt(initialBalance.replace(/[.]/g, ""), 10)
             const name = createBoxTitle.current.value
             const desc = createBoxDescription.current.value
 
-            console.log(name, desc, cleanedBalance)
+            console.log(name, desc)
     
             if(session === "local") {
                 try {
-                    await DBcreatetracker(name, desc, cleanedBalance)
+                    await DBcreatetracker(name, desc, 0)
                     setIsCreateBoxOpen(false)
                     console.log("created!")
                     // get the tracker and render!
@@ -118,10 +142,9 @@ export function Dashboard(): JSX.Element {
             if(session === "cloud") {
                 try {
                     setIsCreateBoxOpen(false)
-                    const res = await axios.post(`${ApiUrl}/api/trackers`, {
+                    const res = await axios.post(`${ApiUrl}/trackers`, {
                         name: name,
-                        description: desc,
-                        initial_balance: cleanedBalance
+                        description: desc
                     }, {
                         headers: {
                             Authorization: `Bearer ${window.localStorage.getItem("Authorization")}`
@@ -194,38 +217,62 @@ export function Dashboard(): JSX.Element {
         }
     }
 
-    const searchTracker = async () => {
-        try {            
-            if(session === "cloud") {
-                const res = await axios.get(`${ApiUrl}/api/search/trackers?q=${encodeURIComponent(searchValue)}`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("Authorization")}`
-                    }
-                })
-            
-                const data = await res.data
-                console.log("cloud trackers search fetch", data.data.trackers)
-                setTrackers(data.data.trackers)
-            }
-        } catch(err) {
-            console.log(err)
-        }
+    const changePage = (command: "first"|"prev"|"next"|"last") => {
+        switch (command) {
+            case "prev":
+                if (page <= 1) return
+                setPage(page - 1)
+                break
+
+            case "next":
+                setPage(page + 1)
+                break
+        }  
     }
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            console.log("triggered!")
-            searchTracker()
-        }, 750)
+    // const searchTracker = async () => {
+    //     try {            
+    //         if(session === "cloud") {
+    //             const res = await axios.get(`${ApiUrl}/api/search/trackers?q=${encodeURIComponent(searchValue)}`, {
+    //                 headers: {
+    //                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+    //                 }
+    //             })
+            
+    //             const data = await res.data
+    //             console.log("cloud trackers search fetch", data.data.trackers)
+    //             setTrackers(data.data.trackers)
+    //         }
+    //     } catch(err) {
+    //         console.log(err)
+    //     }
+    // }
 
-        return () => {
-            console.log("debounced")
-            clearTimeout(timer)
-        }
-    }, [searchValue])
+    // useEffect(() => {
+    //     const timer = setTimeout(() => {
+    //         console.log("triggered!")
+    //         searchTracker()
+    //     }, 750)
+
+    //     return () => {
+    //         console.log("debounced")
+    //         clearTimeout(timer)
+    //     }
+    // }, [searchValue])
 
     return (
-        <section onClick={() => decideCreateBox()} className="flex flex-col items-center gap-5 min-h-screen md:max-w-[650px]">
+        <section onClick={() => {
+                
+            // screen click 
+                if (paginationOpen) {
+                    setPaginationOpen(false) 
+                    setPaginationAnimation(true)
+                } 
+                else decideCreateBox()
+            
+            }} 
+        
+            className="flex flex-col items-center gap-5 min-h-screen md:max-w-[650px]">
             <div className="flex justify-center max-w-[650px]">
                 <AnimatePresence>
                     {!isOut && <motion.div
@@ -403,6 +450,8 @@ export function Dashboard(): JSX.Element {
                 className="flex flex-col sm:grid sm:grid-cols-2 w-full px-7 justify-center items-center gap-2.5 mt-15"
                 // layout
             >
+
+                {/* create box */}
                 <AnimatePresence mode="popLayout">
                     {isCreateBoxOpen &&
                         <motion.div
@@ -431,19 +480,17 @@ export function Dashboard(): JSX.Element {
                                         <Input ref={createBoxTitle}  className="border-0 shadow-none font-semibold dark:text-base p-0 m-0 focus-visible:ring-0 dark:bg-transparent" placeholder="Put your tittle here..." />
                                         <Input ref={createBoxDescription}  className="text-base font-normal p-0 m-0 border-0 shadow-none focus-visible:ring-0 dark:bg-transparent dark:text-white/75 dark:text-base" placeholder="Put your description here..." />
                                     </div>
-                                    <div className="flex items-center">
-                                        <p className="font-medium text-neutral-500 mr-1">Rp.</p>
-                                        <Input value={initialBalance} onChange={(e) => {modifyInitialBalance(e.target.value)}} type="text" className="px-0 focus-visible:ring-0 focus-visible:border-none border-none shadow-none font-regular font-[Inter] text-base text-neutral-800 dark:bg-transparent dark:text-white/50" placeholder="Put your initial balance here..."/>
-                                    </div>
                                 </div>
                             </div>
                     </motion.div>}
                 </AnimatePresence>
+
+                {/* trackers */}
                 <AnimatePresence>
-                    {!isOut && trackers?.map((item, i) => (
-                        <motion.div
+                    {!isOut && trackers?.map((item: any, i: number) => (
+                        <motion.div 
                             key={i}
-                            className="bg-white w-full flex-1 px-5 py-4 rounded-xl z-0 dark:bg-neutral-800/60"
+                            className="bg-white w-[77vw] sm:w-[40vw] md:w-70 px-5 py-4 rounded-xl z-0 dark:bg-neutral-800/60"
                             initial={{
                                 x: 30,
                                 opacity: 0,
@@ -484,11 +531,11 @@ export function Dashboard(): JSX.Element {
                                 <div className="w-full flex justify-between gap-3">
                                     <div className="flex flex-col gap-3.5 min-w-0">
                                         <div className="flex flex-col gap-0.5">
-                                            <h2 className="font-semibold text-base text-wrap wrap-break-word">{item.name}</h2>
-                                            <p className="text-base font-normal text-wrap wrap-break-word text-black/80 dark:text-white/80">{item.description}</p>
+                                            <h2 className="font-semibold text-base text-wrap wrap-break-word">{item.attributes.name}</h2>
+                                            <p className="text-base font-normal text-wrap wrap-break-word text-black/80 dark:text-white/80">{item.attributes.description}</p>
                                         </div>
                                         <div>
-                                            {item.transactions?.map((item) => (
+                                            {item.transactions?.map((item: any) => (
                                                 <p className="text-sm font-normal text-black/80 dark:text-white/80">
                                                     {item.type === "expense" ? "-" : "+"} Rp. {item.amount.toLocaleString("ID")}
                                                 </p>
@@ -573,9 +620,15 @@ export function Dashboard(): JSX.Element {
                         </motion.div>
                     }
                 </AnimatePresence>
+
             </motion.div>
+
+            {/* Floating icons */}
             <AnimatePresence>
+                
+                {/* plus icon */}
                 {!isOut && <motion.div
+                    key="plusicon"
                     className="flex justify-center items-center w-12 h-12 fixed bottom-0 right-0 mr-6 mb-8 rounded-md bg-green-400/60 dark:bg-violet-700/60 backdrop-blur-[2px] backdrop-grayscale-50 sm:right-[4%] border-[0.5px] shadow md:bottom-0 md:right-auto md:translate-x-70"
                     initial={{
                         y: 50,
@@ -606,6 +659,73 @@ export function Dashboard(): JSX.Element {
                     }}
                 >
                     <PlusIcon onClick={(e) => {e.stopPropagation(); setIsCreateBoxOpen(true)}} className="text-white" size={30} />
+                </motion.div>}
+
+                {/* pagination open */}
+                {!isOut && !paginationOpen && needPagination && <motion.div
+                    key="paginationicon"
+                    className="flex justify-center items-center w-12 h-12 fixed bottom-0 right-0 mr-21 md:mr-35 mb-8 rounded-md bg-white dark:bg-violet-700/60 backdrop-blur-[2px] backdrop-grayscale-50 sm:right-[4%] border shadow md:bottom-0 md:right-auto md:translate-x-70"
+                    layoutId="pagination"
+                    initial={ !paginationAnimation && {
+                        y: 50,
+                        opacity: 0,
+                        filter: "blur(5px)"
+                    }}
+                    animate={{
+                        y: 0,
+                        opacity: 100,
+                        filter: "blur(0px)",
+                        transition: {
+                            type: spring,
+                            stiffness: 200,
+                            damping: 15,
+                            mass: 1,
+                        delay: 0.9
+                        }
+                    }}
+                    whileTap={{
+                        scale: 0.95
+                    }}
+                    exit={{
+                        x: -30,
+                        opacity: 0,
+                        transition: {
+                            delay: 0.3
+                        }
+                    }}
+                >
+                    <FontAwesomeIcon onClick={(e) => {e.stopPropagation(); setPaginationOpen(!paginationOpen)}} icon={faArrowDown19} className="text-xl" />
+                </motion.div>}
+
+                {/* pagination */}
+                {paginationOpen && <motion.div
+                    className="flex justify-center items-center flex-col md:flex-row gap-3 fixed bottom-0 right-0 mr-21 md:mr-121 mb-8 px-4 py-3 rounded-lg bg-white dark:bg-neutral-800/60 backdrop-blur-[2px] backdrop-grayscale-50 border-[0.5px] border-neutral-200 dark:border-neutral-700 shadow z-5 sm:right-[4%] md:right-auto md:translate-x-70 md:w-100"
+                    layoutId="pagination"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* closes button */}
+                    <div 
+                        onClick={(e) => {e.stopPropagation(); setPaginationOpen(false); setPaginationAnimation(true)}}
+                        className="bg-red-400 fixed -mt-62 ml-32 md:-mt-20 md:mr-129 flex justify-center items-center w-7 h-7 rounded-full cursor-pointer hover:bg-red-500 transition-colors"
+                    >
+                        <XIcon size={20} className="text-white" />
+                    </div>
+
+                    <button className="px-3 py-2 rounded-md text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                        &lt;&lt; First
+                    </button>
+                    <button onClick={() => changePage("prev")}  className="px-3 py-2 rounded-md text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                        &lt; Previous
+                    </button>
+                    <div className="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-50 dark:bg-neutral-700/50 rounded-md min-w-[60px] text-center">
+                        Page {page}
+                    </div>
+                    <button onClick={() => changePage("next")} className="px-3 py-2 rounded-md text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                        Next &gt;
+                    </button>
+                    <button className="px-3 py-2 rounded-md text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                        Last &gt;&gt;
+                    </button>
                 </motion.div>}
             </AnimatePresence>
         </section>
