@@ -24,6 +24,9 @@ export function Dashboard(): JSX.Element {
     const [ isCreateBoxOpen, setIsCreateBoxOpen ] = useState<boolean>(false)
     const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
+
+    const [ searching, setSearching ] = useState<boolean>(false)
+    const [ actualSearchValue, setActualSearchValue ] = useState<string>("")
     
     const [ needPagination, setNeedPagination ] = useState<boolean>(false)
     const [ paginationOpen, setPaginationOpen ] = useState<boolean>(false)
@@ -35,10 +38,12 @@ export function Dashboard(): JSX.Element {
     const createBoxDescription = useRef<HTMLInputElement | null>(null)
 
     const cloudGetTrackers = async () => {
+        setSearching(false)
+
         const authToken = localStorage.getItem("Authorization")
 
         try {
-            const res = await axios.get(`${ApiUrl}/trackers?page=${page}${searchValue !== "" ? `&filter[name]=${searchValue}` : ""}`, {
+            const res = await axios.get(`${ApiUrl}/trackers?page=${page}${actualSearchValue !== "" ? `&filter[name]=${actualSearchValue}` : ""}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -102,8 +107,9 @@ export function Dashboard(): JSX.Element {
     }
 
     useEffect(() => {
+        console.log("reloading automatically from page changes")
         reloadTracker()
-    }, [page])
+    }, [page, actualSearchValue])
 
     const decideCreateBox = async () => {
         // not created output
@@ -230,35 +236,18 @@ export function Dashboard(): JSX.Element {
         }  
     }
 
-    // const searchTracker = async () => {
-    //     try {            
-    //         if(session === "cloud") {
-    //             const res = await axios.get(`${ApiUrl}/api/search/trackers?q=${encodeURIComponent(searchValue)}`, {
-    //                 headers: {
-    //                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
-    //                 }
-    //             })
-            
-    //             const data = await res.data
-    //             console.log("cloud trackers search fetch", data.data.trackers)
-    //             setTrackers(data.data.trackers)
-    //         }
-    //     } catch(err) {
-    //         console.log(err)
-    //     }
-    // }
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            console.log("triggered!")
+            setPage(1)
+            setActualSearchValue(searchValue)
+        }, 750)
 
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         console.log("triggered!")
-    //         searchTracker()
-    //     }, 750)
-
-    //     return () => {
-    //         console.log("debounced")
-    //         clearTimeout(timer)
-    //     }
-    // }, [searchValue])
+        return () => {
+            console.log("debounced")
+            clearTimeout(timer)
+        }
+    }, [searchValue])
 
     return (
         <section onClick={() => {
