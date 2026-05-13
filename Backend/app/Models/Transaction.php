@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 
 class Transaction extends Model
 {
@@ -20,7 +19,6 @@ class Transaction extends Model
         'type',
         'amount',
         'description',
-        'files',
         'date',
     ];
 
@@ -28,7 +26,6 @@ class Transaction extends Model
     {
         return [
             'amount' => 'decimal:2',
-            'files' => 'collection',
             'date' => 'datetime',
         ];
     }
@@ -43,27 +40,18 @@ class Transaction extends Model
         return $this->belongsTo(Tracker::class);
     }
 
-    public function scopeStartsBefore(Builder $query, $date)
+    public function scopeStartsBefore(Builder $query, string $column, $date)
     {
-        return $query->where('date', '<=',Carbon::parse($date));
+        return $query->where($column, '<=', Carbon::parse($date));
     }
 
-    public function scopeInBetween(Builder $query, $startDate, $endDate)
+    public function scopeInBetween(Builder $query, string $column, $startDate, $endDate)
     {
-        return $query->whereBetween('date', [Carbon::parse($startDate), Carbon::parse($endDate)]);
+        return $query->whereBetween($column, [Carbon::parse($startDate), Carbon::parse($endDate)]);
     }
 
-    public function scopeEndsAfter(Builder $query, $date)
+    public function scopeEndsAfter(Builder $query, string $column, $date)
     {
-        return $query->where('date', '>=', Carbon::parse($date));
-    }
-
-    public function getFileUrlAttribute()
-    {
-        if ($this->files->isNotEmpty()) {
-            return $this->files->map(fn ($file) => Storage::disk('public')->url("transactions/{$this->id}/files/{$file}"));
-        }
-
-        return null;
+        return $query->where($column, '>=', Carbon::parse($date));
     }
 }
