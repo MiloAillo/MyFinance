@@ -14,7 +14,6 @@ class TransactionResource extends BaseResource
         'type',
         'amount',
         'description',
-        'files',
         'date',
         'created_at',
         'updated_at',
@@ -24,6 +23,7 @@ class TransactionResource extends BaseResource
     public $relationships = [
         'user' => UserResource::class,
         'tracker' => TrackerResource::class,
+        'attachments' => AttachmentResource::class,
     ];
 
     public function toLinks(Request $request)
@@ -31,7 +31,7 @@ class TransactionResource extends BaseResource
         $links = parent::toLinks($request);
 
         $links['self'] = route('api.v1.transactions.show', $this->resource);
-        // $links['tracker'] = route('api.v1.trackers.show', $this->resource->tracker);
+        $links['tracker'] = route('api.v1.trackers.show', $this->resource->tracker_id);
         
         return $links;
     }
