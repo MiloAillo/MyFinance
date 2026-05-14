@@ -60,6 +60,7 @@ class TransactionController extends Controller
             $size = $validated['size'];
     
             $transactions = QueryBuilder::for(Transaction::class)
+            ->where('user_id', $request->user()->id)
             ->onlyTrashed()
             ->allowedIncludes(
                 AllowedInclude::callback(
