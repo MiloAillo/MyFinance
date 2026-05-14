@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Tracker;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -41,9 +42,9 @@ class TransactionPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, Tracker $tracker): bool
     {
-        return true;
+        return $user->id === $tracker->user_id;
     }
 
     /**
@@ -91,6 +92,6 @@ class TransactionPolicy
             return Response::deny('Transaction must be deleted first.');
         }
 
-        return false;
+        return $user->id === $transaction->user_id;
     }
 }
