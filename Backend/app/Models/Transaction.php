@@ -66,7 +66,8 @@ class Transaction extends Model
             return $query->where($column, $operator, $date1);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Dynamic Date Filter Error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("[URL Parameters Error] Dynamic Date Filter Error: " . $e->getMessage());
+            
             return $query;
         }
     }
