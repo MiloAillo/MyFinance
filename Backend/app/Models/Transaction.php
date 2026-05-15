@@ -40,23 +40,30 @@ class Transaction extends Model
         return $this->belongsTo(Tracker::class);
     }
 
-    public function scopeDynamicDateFilter(Builder $query, string $value, string $type)
+    public function scopeDynamicDateFilter(Builder $query, string $value, ?string $type = null)
     {
+        // Return early if no value provided
+        if (empty($value)) {
+            return $query;
+        }
+
         $whitelistColumns = ['date', 'created_at', 'updated_at'];
         $whitelistTypes = ['before', 'after', 'between'];
         $parts = explode(',', $value);
         $paramCount = count($parts);
-        $column = $parts[0];
+        $column = $parts[0] ?? null;
         $date1 = $parts[1] ?? null;
         $date2 = $parts[2] ?? null;
 
-        if (!in_array($column, $whitelistColumns) ||
+        if (empty($column) ||
+            !in_array($column, $whitelistColumns) ||
+            empty($type) ||
             !in_array($type, $whitelistTypes) ||
             $paramCount > 3 ||
             $paramCount < 2 ||
-            empty($column) ||
             empty($date1) ||
-            ($type === 'between' && $paramCount < 3 && empty($date2))
+            ($type === 'between' && $paramCount < 3) ||
+            ($type === 'between' && empty($date2))
         ) {
             \Illuminate\Support\Facades\Log::error(
                 "[URL Parameters Error] Dynamic Date Filter Error:
