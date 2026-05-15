@@ -13,6 +13,7 @@ use App\Http\Resources\API\V1\TransactionResource;
 use App\Models\Tracker;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedInclude;
@@ -100,8 +101,17 @@ class TransactionController extends Controller
     public function store(StoreTransactionRequest $request, Tracker $tracker)
     {
         $validated = $request->validated();
+        $transaction = null;
 
-        $transaction = Transaction::create($validated);
+        DB::transaction(function () use ($validated, $tracker, &$transaction) {
+            $transaction = Transaction::create($validated);
+
+            if ($transaction->type === 'income') {
+                $tracker->increment('current_balance', $transaction->amount);
+            } else {
+                $tracker->decrement('current_balance', $transaction->amount);
+            }
+        });
 
         return ApiResponseHelper::successResponse(
             message: 'Transaction created successfully.',
@@ -150,8 +160,46 @@ class TransactionController extends Controller
     public function update(UpdateTransactionRequest $request, Transaction $transaction)
     {
         $validated = $request->validated();
+        $oldType = $transaction->type;
+        $oldAmount = abs($transaction->amount);
+        $newType = $validated['type'] ?? null;
+        $newAmount = isset($validated['amount']) ? abs($validated['amount']) : null;
 
-        $transaction->update($validated);
+        try {
+
+            DB::transaction(function () use ($transaction, $validated, $oldType, $oldAmount, $newType, $newAmount) {
+                // Neutralize tracker's current_balance impact if type or amount is changing
+                if ((!empty($newType) && $newType !== $oldType) ||
+                    (isset($newAmount) && $newAmount != $oldAmount)) {
+                    if ($oldType === 'income') {
+                        $transaction->tracker->decrement('current_balance', $oldAmount);
+                        
+                    } else {
+                        $transaction->tracker->increment('current_balance', $oldAmount);
+                    }
+                }
+
+                $transaction->update($validated);
+                $transaction->refresh();
+
+                // Adjust tracker's current_balance based on new values if type or amount changed
+                if ((!empty($newType) && $newType !== $oldType) ||
+                    (isset($newAmount) && $newAmount != $oldAmount)) {
+                    $updatedType = $transaction->type;
+                    $updatedAmount = abs($transaction->amount);
+
+                    if ($updatedType === 'income') {
+                        $transaction->tracker->increment('current_balance', $updatedAmount);
+                        
+                    } else {
+                        $transaction->tracker->decrement('current_balance', $updatedAmount);
+                    }
+                }
+            });
+
+        } catch (\Throwable $e) {
+            throw $e;
+        }
 
         return ApiResponseHelper::successResponse(
             message: 'Transaction updated successfully.',
@@ -166,7 +214,16 @@ class TransactionController extends Controller
     {
         Gate::authorize('delete', $transaction);
 
-        $transaction->delete();
+        DB::transaction(function () use ($transaction) {
+            if ($transaction->type === 'income') {
+                $transaction->tracker->decrement('current_balance', $transaction->amount);
+
+            } else {
+                $transaction->tracker->increment('current_balance', $transaction->amount);
+            }
+
+            $transaction->delete();
+        });
 
         return ApiResponseHelper::successResponse(
             message: 'Transaction deleted successfully.',
@@ -177,7 +234,16 @@ class TransactionController extends Controller
     {
         Gate::authorize('restore', $transaction);
 
-        $transaction->restore();
+        DB::transaction(function () use ($transaction) {
+            if ($transaction->type === 'income') {
+                $transaction->tracker->increment('current_balance', $transaction->amount);
+                
+            } else {
+                $transaction->tracker->decrement('current_balance', $transaction->amount);
+            }
+
+            $transaction->restore();
+        });
 
         return ApiResponseHelper::successResponse(
             message: 'Transaction restored successfully.',
