@@ -2,14 +2,14 @@ type: collection.insomnia.rest/5.0
 schema_version: "5.1"
 name: MyFinance
 meta:
-  id: wrk_7e55f5a88e1c4be3a475cb7cb49aea7f
-  created: 1777786515492
-  modified: 1777786515492
+  id: wrk_e94eec8679444fb3a4298f6fa07c5ee3
+  created: 1779022278836
+  modified: 1779022278836
   description: ""
 collection:
   - name: Users
     meta:
-      id: fld_28ea515bf28e4dd3a34cd9e7834e0070
+      id: fld_386e8bef211b4cfd990d42798bdf35ac
       created: 1775348019636
       modified: 1778319164610
       sortKey: -1775348048210
@@ -17,7 +17,7 @@ collection:
     children:
       - name: Auth
         meta:
-          id: fld_b0edac59568f4f7393a1a89e60cbf04d
+          id: fld_26daaef02d5f4067bd46d76012bcc306
           created: 1775348011707
           modified: 1776763490032
           sortKey: -1775442143935
@@ -25,7 +25,7 @@ collection:
         children:
           - name: Verification
             meta:
-              id: fld_db9d1c9d89434b7eb31604758aa7febd
+              id: fld_995bd2376f3840398f6fea08b762e5c4
               created: 1775960005669
               modified: 1776535564792
               sortKey: -1775439413138.5
@@ -33,7 +33,7 @@ collection:
             children:
               - name: Email
                 meta:
-                  id: fld_5420b718fd1e445eaf820f2ff477f31b
+                  id: fld_2c7dd6469eaa4855a2a4fcbcc4053097
                   created: 1775962289526
                   modified: 1775962295043
                   sortKey: -1775960027919
@@ -65,7 +65,7 @@ collection:
         - signed_up_email
   - name: Trackers
     meta:
-      id: fld_fb85fe5144a3489a86085a28b0d211e3
+      id: fld_9092a9636a3545ac9aabcb729aad56aa
       created: 1775348028272
       modified: 1778753504333
       sortKey: -1775348048185
@@ -82,16 +82,16 @@ collection:
         'b64::JC5kYXRhLjAuaWQ=::46b', 'never', 60 %}"
   - name: Transactions
     meta:
-      id: fld_941119e183da48039f34697cd50ca1a1
+      id: fld_9a6e6f2f97494338995326a79fe6a292
       created: 1775348048135
-      modified: 1778814278284
+      modified: 1779022315879
       sortKey: -1775348048172.5
       description: ""
     children:
       - url: "{{ base_url }}/trackers/{{ tracker_id }}/transactions"
         name: Transactions
         meta:
-          id: req_c01dc5cafe774a18aebe0fe99fc63112
+          id: req_746900fe698b439a8910687576a28750
           created: 1775544982131
           modified: 1779003761577
           isPrivate: false
@@ -143,9 +143,9 @@ collection:
       - url: "{{ base_url }}/trackers/{{ tracker_id }}/transactions"
         name: Transactions
         meta:
-          id: req_90ab27fd04454ed4948059c5b3a81ef3
+          id: req_61c73209cea34b3cb3d094a1219976b9
           created: 1775545092380
-          modified: 1779002993030
+          modified: 1779022705466
           isPrivate: false
           description: ""
           sortKey: -1775544691115
@@ -179,6 +179,14 @@ collection:
             value: ""
             description: ""
             disabled: false
+          - name: filter[type]
+            value: expense
+            description: ""
+            disabled: false
+          - name: filter[type]
+            value: income
+            description: ""
+            disabled: false
           - name: filter[amount]
             value: "{< | >= | !}{value}"
             description: ""
@@ -196,7 +204,7 @@ collection:
             description: ""
             disabled: false
           - name: sort
-            value: name,amount,date,created_at,updated_at
+            value: name,amount,date,created_at,updated_at,-name,-amount,-date,-created_at,-updated_at
             description: ""
             disabled: false
         headers:
@@ -215,7 +223,7 @@ collection:
       - url: "{{ base_url }}/transactions/{{ transaction_id }}"
         name: Transaction
         meta:
-          id: req_fa508e3422b2473eb716f2046101fabc
+          id: req_e4f13d79dcf140e2a34acdeb944d8597
           created: 1775545111959
           modified: 1779003367929
           isPrivate: false
@@ -243,7 +251,7 @@ collection:
       - url: "{{ base_url }}/transactions/{{ transaction_id }}"
         name: Transaction
         meta:
-          id: req_b3bfee985a2a4485a0dc2729e2b576df
+          id: req_b84f0f64808c4f2d978c38561367f370
           created: 1775545262297
           modified: 1776763043669
           isPrivate: false
@@ -266,7 +274,7 @@ collection:
       - url: "{{ base_url }}/transactions/{{ transaction_id }}"
         name: PATCH Transactions
         meta:
-          id: req_d0d32016b89d42699016543b0475e6fd
+          id: req_037552735f5e48afb1816e0e3b2204e7
           created: 1775552661567
           modified: 1778815101238
           isPrivate: false
@@ -322,7 +330,7 @@ collection:
       - url: "{{ base_url }}/deleted/transactions/{{ transaction_id }}/restore"
         name: Restore Transaction
         meta:
-          id: req_df2999fef98140c8bb5f30066dbdeb67
+          id: req_961205809c56491c80a8226d9cd9df93
           created: 1776763129701
           modified: 1778815225552
           isPrivate: false
@@ -345,7 +353,7 @@ collection:
       - url: "{{ base_url }}/deleted/transactions/{{ transaction_id }}/force"
         name: Permanent Transaction
         meta:
-          id: req_0b0af0e5b9b54a26ba80d8717f55f8a4
+          id: req_269c80534f484d40b8c6f3c706ef8848
           created: 1778815258648
           modified: 1779003707820
           isPrivate: false
@@ -365,12 +373,44 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}/deleted/transactions"
+      - url: "{{ base_url }}/deleted/transactions/{{ transaction_id }}"
+        name: Deleted Transaction
+        meta:
+          id: req_8ca066a597a449be81aa8e3b7193d2ea
+          created: 1779003515032
+          modified: 1779023380030
+          isPrivate: false
+          description: ""
+          sortKey: -1775544516518.6562
+        method: GET
+        parameters:
+          - name: fields[transactions]
+            value: id,tracker_id,name,type,amount,description,date,created_at,updated_at,deleted_at
+            description: ""
+            disabled: false
+          - name: fields[trackers]
+            value: id,name
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/trackers/{{ tracker_id }}/transactions"
         name: Deleted Transactions
         meta:
-          id: req_4ec60b4fcd5743a082c78a510f6cc250
-          created: 1779003023635
-          modified: 1779003156922
+          id: req_5f74c1782bca4f57aaa1dec71b58c883
+          created: 1779022851078
+          modified: 1779023268550
           isPrivate: false
           description: ""
           sortKey: -1775544617600.75
@@ -404,6 +444,14 @@ collection:
             value: ""
             description: ""
             disabled: false
+          - name: filter[type]
+            value: expense
+            description: ""
+            disabled: false
+          - name: filter[type]
+            value: income
+            description: ""
+            disabled: false
           - name: filter[amount]
             value: "{< | >= | !}{value}"
             description: ""
@@ -421,39 +469,11 @@ collection:
             description: ""
             disabled: false
           - name: sort
-            value: name,amount,date,created_at,updated_at,deleted_at
+            value: name,amount,date,created_at,updated_at,deleted_at,-name,-amount,-date,-created_at,-updated_at,-deleted_at
             description: ""
             disabled: false
-        headers:
-          - name: User-Agent
-            value: insomnia/12.4.0
-            description: ""
-            disabled: false
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ base_url }}/deleted/transactions/{{ transaction_id }}"
-        name: Deleted Transaction
-        meta:
-          id: req_3b097496a04b4ec3b0d88c35b24ca6e2
-          created: 1779003515032
-          modified: 1779003583238
-          isPrivate: false
-          description: ""
-          sortKey: -1775544516518.6562
-        method: GET
-        parameters:
-          - name: fields[transactions]
-            value: id,name,type,amount,description,date,created_at,updated_at,deleted_at
-            description: ""
-            disabled: false
-          - name: fields[trackers]
-            value: id,name
+          - name: filter[tracker.id]
+            value: "{id,id,id,...,id}"
             description: ""
             disabled: false
         headers:
@@ -477,14 +497,26 @@ collection:
         'b64::JC5kYXRhLmlk::46b', 'never', 60 %}"
       tracker_id: "{% response 'body', 'req_1100d010c26a4acb8b5082549a17fc56',
         'b64::JC5kYXRhLjAuaWQ=::46b', 'never', 60 %}"
-      transaction_id: "{% response 'body', 'req_90ab27fd04454ed4948059c5b3a81ef3',
+      transaction_id: "{% response 'body', 'req_61c73209cea34b3cb3d094a1219976b9',
         'b64::JC5kYXRhLjAuaWQ=::46b', 'never', 60 %}"
+      deleted_transaction_id: "{% response 'body',
+        'req_61c73209cea34b3cb3d094a1219976b9', 'b64::JC5kYXRhLjAuaWQ=::46b',
+        'never', 60 %}"
       name: "{% faker 'randomBankAccountName' %}"
       description: "{% faker 'randomLoremSentences' %}"
       date: "{% faker 'randomDateRecent' %}"
+    environmentPropertyOrder:
+      "&":
+        - user_id
+        - tracker_id
+        - transaction_id
+        - deleted_transaction_id
+        - name
+        - description
+        - date
   - name: Others
     meta:
-      id: fld_9d5a812cd9a74be79a0f4f3aea1579a2
+      id: fld_50376db191d044d9847e47f9e018cc1a
       created: 1775439596732
       modified: 1776842156529
       sortKey: -1775348048160
@@ -492,13 +524,13 @@ collection:
 cookieJar:
   name: Default Jar
   meta:
-    id: jar_9bd007dc6ccc4deb85a8790d5db3833b
+    id: jar_eed6673ae0194cbdb0218ca77afd0b1b
     created: 1775312032828
     modified: 1775312032828
 environments:
   name: Base
   meta:
-    id: env_45b89697b94b40deaeab37ddcd31ffd4
+    id: env_3dd7af2f6ee64b1d82ded20ed1a2ed43
     created: 1775312032769
     modified: 1775629435509
     isPrivate: false
@@ -510,7 +542,7 @@ environments:
   subEnvironments:
     - name: Development
       meta:
-        id: env_4c2d56be003a4d279da20715aa8e5d3f
+        id: env_c214aa6e039142f9852e363c57873b1b
         created: 1775456406243
         modified: 1777816307950
         isPrivate: false
