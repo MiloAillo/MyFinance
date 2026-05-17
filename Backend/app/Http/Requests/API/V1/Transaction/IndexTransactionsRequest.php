@@ -36,10 +36,10 @@ class IndexTransactionsRequest extends FormRequest
             'filter.amount' => 'sometimes|string|regex:/^[><=!]+-?[0-9]+(\.[0-9]+)?$/',
             // ex:
             // filter[starts_before]=date,2023-12-31 or
-            // filter[starts_before]=date,2023-12-31 23:59:59
+            // filter[starts_before]=created_at,2023-12-31 23:59:59
             'filter.starts_before' => 'sometimes|string|regex:/^([a-z_]+),(\d{4}-\d{2}-\d{2}(\s\d{2}:\d{2}:\d{2})?)$/',
             // ex:
-            // filter[in_between]=date,2023-01-01,2023-12-31 or
+            // filter[in_between]=updated_at,2023-01-01,2023-12-31 or
             // filter[in_between]=date,2023-01-01 00:00:00,2023-12-31 23:59:59
             'filter.in_between' => 'sometimes|string|regex:/^([a-z_]+),(\d{4}-\d{2}-\d{2}(\s\d{2}:\d{2}:\d{2})?),(\d{4}-\d{2}-\d{2}(\s\d{2}:\d{2}:\d{2})?)$/',
             // ex:
