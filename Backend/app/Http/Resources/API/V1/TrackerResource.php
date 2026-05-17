@@ -34,7 +34,6 @@ class TrackerResource extends BaseResource
         $links = parent::toLinks($request);
 
         $links['self'] = route('api.v1.trackers.show', $this->resource);
-        // $links['transactions'] = route('api.v1.trackers.transactions.index', $this->resource);
         
         return $links;
     }
@@ -42,8 +41,6 @@ class TrackerResource extends BaseResource
     public function toMeta(Request $request)
     {
         $meta = parent::toMeta($request);
-
-        $meta['transaction_count'] = $this->getTotalTransactionsAttribute();
         
         return $meta;
     }
