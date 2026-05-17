@@ -30,8 +30,18 @@ class TransactionResource extends BaseResource
     {
         $links = parent::toLinks($request);
 
-        $links['self'] = route('api.v1.transactions.show', $this->resource);
-        $links['tracker'] = route('api.v1.trackers.show', $this->resource->tracker_id);
+        if ($this->resource->id) {
+            $links['self'] = $this->resource->trashed()
+                ? route('api.v1.deleted.transactions.show', $this->resource)
+                : route('api.v1.transactions.show', $this->resource);
+        }
+        
+        if ($this->relationLoaded('tracker')) {
+            $isTrackerTrashed = optional($this->resource->tracker)->trashed() ?? false;
+            $links['tracker'] = $isTrackerTrashed
+                ? route('api.v1.deleted.trackers.show', $this->resource->tracker_id)
+                : route('api.v1.trackers.show', $this->resource->tracker_id);
+        }
         
         return $links;
     }
