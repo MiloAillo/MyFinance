@@ -15,11 +15,13 @@ import { spring } from "motion-dom";
 import axios, { isAxiosError } from "axios";
 import { OrbitProgress } from "react-loading-indicators";
 import { ApiUrl } from "@/lib/variable";
+import useTransition from "@/hooks/useTransition";
 
 
 export function Signup(): JSX.Element {
+    
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const [show, setShow] = useState<boolean>(false)
-    const [ isOut, setIsOut ] = useState<boolean>(false)
 
     // error 
     const [ isPasswordError, setIsPasswordError ] = useState<boolean>(false)
@@ -50,7 +52,7 @@ export function Signup(): JSX.Element {
 
 
     const login = async (values: z.infer<typeof signupSchema>): Promise<void> => {
-        console.log("login values:", values)
+
         // reset error
         setIsError(false)
         setIsPasswordError(false)
@@ -66,6 +68,7 @@ export function Signup(): JSX.Element {
         }
 
         try {
+
             setIsLoading(true)
             const res = await axios.post(`${ApiUrl}/users`, {
                 name: values.username,
@@ -83,14 +86,14 @@ export function Signup(): JSX.Element {
             console.log("token :", data.data.meta.token)
             if(data.data.meta.token) {
                 localStorage.setItem("Authorization", data.data.meta.token)
-                setIsOut(true)
-                setTimeout(() => {
-                    window.location.href = "/app"
-                }, 600)
+
+                transitionTo("/app")
             } else {
                 setIsUnknownError(true)
             }
+
         } catch(err) {
+
             setIsError(true)
 
             if(isAxiosError(err)) {
@@ -115,15 +118,18 @@ export function Signup(): JSX.Element {
             } else {
                 setIsUnknownError(true)
             }
+
         } finally {
+
             setIsLoading(false)
+
         }
     }
 
     return (
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
-                {!isOut && <motion.h1
+                { render && <motion.h1
                     className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary"
                     initial={{
                         x: 30,
@@ -158,7 +164,7 @@ export function Signup(): JSX.Element {
                 </motion.h1>}
             </AnimatePresence>
             <AnimatePresence>
-                {!isOut && <motion.div
+                {render && <motion.div
                     className="flex flex-col gap-8 sm:w-85 w-[75%]"
                     initial={{
                         x: 30,
@@ -296,7 +302,7 @@ export function Signup(): JSX.Element {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Checkbox id="tos" onCheckedChange={(e) => setConsent(e as any)} />
-                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/tos", 600)}}>Terms of Services</span></label>
+                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline" onClick={() => {transitionTo("/tos")}}>Terms of Services</span></label>
                                         </div>
                                     </div>
                                     <AnimatePresence mode="popLayout">
@@ -324,7 +330,7 @@ export function Signup(): JSX.Element {
                                             </motion.div>
                                         }
                                     </AnimatePresence>
-                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access", 700) }} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
+                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {transitionTo("/access")}} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
                                 </div>
                             </form>
                         </Form>
