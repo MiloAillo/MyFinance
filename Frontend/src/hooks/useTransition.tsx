@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 interface useTransitionProps {
     initValue: boolean
@@ -6,6 +7,7 @@ interface useTransitionProps {
 }
 
 const useTransition = ({initValue, transitionDelay}: useTransitionProps) => {
+    const navigate = useNavigate()
     const [render, setRender] = useState<boolean>(initValue)
 
     // === [ proper cleanup purposes ] ===
@@ -18,7 +20,7 @@ const useTransition = ({initValue, transitionDelay}: useTransitionProps) => {
     }, [])
 
     // transition to another page with delay function
-    const transitionTo = (transitionTo: string) => {
+    const transitionTo = (transitionTo: string, replace?: boolean) => {
 
         // clear residual timeout if it exist for some reason
         if (timeoutId.current) clearTimeout(timeoutId.current)
@@ -28,7 +30,8 @@ const useTransition = ({initValue, transitionDelay}: useTransitionProps) => {
 
         // after specified delay, move to url specified
         timeoutId.current = setTimeout(() => {
-            window.location.href = transitionTo
+            // window.location.href = transitionTo
+            navigate(transitionTo, { replace: replace ?? false })
         }, transitionDelay)
  
     }
