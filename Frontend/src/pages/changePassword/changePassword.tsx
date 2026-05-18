@@ -13,9 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon, CheckCircle } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import useTransition from "@/hooks/useTransition";
 
 export function ChangePassword (): JSX.Element {
-    const [ isOut, setIsOut ] = useState<boolean>(false)
+
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const [ showOldPassword, setShowOldPassword ] = useState<boolean>(false)
     const [ showNewPassword, setShowNewPassword ] = useState<boolean>(false)
     const [ showConfirmPassword, setShowConfirmPassword ] = useState<boolean>(false)
@@ -91,7 +93,7 @@ export function ChangePassword (): JSX.Element {
     return (
         <section className="flex flex-col items-center justify-center -mt-5 max-w-[650px] w-[85%]">
             <AnimatePresence>
-                {!isOut && <motion.div
+                { render && <motion.div
                     key={"navbar"}
                     className="flex justify-center z-10 w-full fixed top-0 left-0"
                     initial={{
@@ -111,12 +113,12 @@ export function ChangePassword (): JSX.Element {
                     }}
                 >
                     <div className="flex justify-between items-center gap-2 mt-5 max-w-[650px] w-[85%] z-10">
-                        <FontAwesomeIcon onClick={() => {setIsOut(true); setTimeout(() => {window.location.href = "/app"}, 400)}} icon={faArrowLeft} className="w-10 h-10 text-xl text-neutral-800 dark:text-neutral-400" />
+                        <FontAwesomeIcon onClick={() => {transitionTo("/app")}} icon={faArrowLeft} className="w-10 h-10 text-xl text-neutral-800 dark:text-neutral-400" />
                         <h1 className={`font-medium text-base text-neutral-500`}>Change Password</h1>
                         <FontAwesomeIcon icon={faArrowLeft} className="w-10 h-10 text-xl text-neutral-800 dark:text-neutral-400 opacity-0" />
                     </div>
                 </motion.div>}
-                {!isOut && <motion.div
+                { render && <motion.div
                     key={"form"}
                     className="flex justify-center z-10 w-full mt-24 pb-10 px-4"
                     initial={{
