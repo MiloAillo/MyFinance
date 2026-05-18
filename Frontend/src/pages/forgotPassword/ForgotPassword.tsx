@@ -42,7 +42,7 @@ export function ForgotPassword(): JSX.Element {
         setIsLoading(true)
 
         try {
-            const res = await axios.post(`${ApiUrl}/auth/password-resets`, {
+            await axios.post(`${ApiUrl}/auth/password-resets`, {
                 email: values.email
             })
             setIsLoading(false)

@@ -8,7 +8,7 @@ import { faCamera } from "@fortawesome/free-regular-svg-icons";
 import { useRouteLoaderData } from "react-router-dom";
 import { DBchangename } from "@/lib/db";
 import axios from "axios";
-import { ApiUrl, StorageUrl } from "@/lib/variable";
+import { ApiUrl } from "@/lib/variable";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";

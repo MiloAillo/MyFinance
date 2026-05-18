@@ -8,7 +8,6 @@ import { AlertCircleIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState, type JSX } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { boolean } from "zod";
 
 export function NewLocation(): JSX.Element {
     const { token } = useParams<{token: string }>();

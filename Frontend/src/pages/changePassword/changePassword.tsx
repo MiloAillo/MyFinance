@@ -1,8 +1,7 @@
-import { TrackerNavbar } from "@/components/TrackerNavbar";
 import { faArrowLeft, faPencil, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion, spring } from "motion/react";
-import { useEffect, useState, type JSX } from "react";
+import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";

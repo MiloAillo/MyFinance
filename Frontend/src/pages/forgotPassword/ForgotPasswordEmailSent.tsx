@@ -3,7 +3,7 @@ import { AlertCircleIcon, CheckCircleIcon } from "lucide-react";
 import { useState, type JSX } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AnimatePresence, motion, spring } from "motion/react";
-import axios, { isAxiosError } from "axios";
+import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
 import { OrbitProgress } from "react-loading-indicators";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
