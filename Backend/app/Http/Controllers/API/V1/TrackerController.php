@@ -37,8 +37,7 @@ class TrackerController extends Controller
             array_intersect($whitelistedTransactionAttributes, explode(',', $requestedTransactionFields))
         );
 
-        $trackers = QueryBuilder::for(Tracker::class)
-            ->where('user_id', $request->user()->id)
+        $trackers = QueryBuilder::for(Tracker::where('user_id', $request->user()->getKey()))
             ->allowedFields(
                 'id', 'name', 'description', 'current_balance', 'created_at', 'updated_at',
                 'transactions.id', 'transactions.tracker_id', 'transactions.amount', 'transactions.type'
@@ -129,8 +128,7 @@ class TrackerController extends Controller
             array_intersect($whitelistedTransactionAttributes, explode(',', $requestedTransactionFields))
         );
 
-        $trackers = QueryBuilder::for(Tracker::onlyTrashed())
-            ->where('user_id', $request->user()->id)
+        $trackers = QueryBuilder::for(Tracker::onlyTrashed()->where('user_id', $request->user()->getKey()))
             ->allowedFields(
                 'id', 'name', 'description', 'current_balance', 'created_at', 'updated_at', 'deleted_at',
                 'transactions.id', 'transactions.tracker_id', 'transactions.amount', 'transactions.type'
@@ -215,14 +213,13 @@ class TrackerController extends Controller
 
         return ApiResponseHelper::successResponse(
             message: 'Tracker created successfully.',
-            data: new TrackerResource($tracker->fresh()),
+            data: new TrackerResource($tracker),
         );
     }
 
     public function show(ShowTrackerRequest $request, Tracker $tracker)
     {
-        $tracker = QueryBuilder::for(Tracker::class)
-            ->where('id', $tracker->id)
+        $tracker = QueryBuilder::for($tracker->newQuery()->whereKey($tracker->getKey()))
             ->allowedFields('id', 'name', 'description', 'current_balance', 'created_at', 'updated_at')
             ->firstOrFail();
 
@@ -234,9 +231,7 @@ class TrackerController extends Controller
 
     public function showDeleted(ShowDeletedTrackerRequest $request, Tracker $tracker)
     {
-        $tracker = QueryBuilder::for(Tracker::class)
-            ->onlyTrashed()
-            ->where('id', $tracker->id)
+        $tracker = QueryBuilder::for($tracker->newQuery()->onlyTrashed()->whereKey($tracker->getKey()))
             ->allowedFields('id', 'name', 'description', 'current_balance', 'created_at', 'updated_at', 'deleted_at')
             ->firstOrFail();
 
@@ -248,11 +243,11 @@ class TrackerController extends Controller
 
     public function update(UpdateTrackerRequest $request, Tracker $tracker)
     {
-        $tracker->update($request->validated());
+        DB::transaction(fn() => $tracker->newQuery()->lockForUpdate()->whereKey($tracker->getKey())->update($request->validated()));
 
         return ApiResponseHelper::successResponse(
             message: 'Tracker updated successfully.',
-            data: new TrackerResource($tracker->fresh()),
+            data: new TrackerResource($tracker->refresh()),
         );
     }
 
@@ -260,19 +255,15 @@ class TrackerController extends Controller
     {
         Gate::authorize('delete', $tracker);
 
-        try {
+        DB::transaction(function () use ($tracker) {
+            // Lock the tracker record without retrieving it for efficiency
+            $tracker->newQuery()->lockForUpdate()->whereKey($tracker->getKey())->exists();
 
-            DB::transaction(function () use ($tracker) {
-                if ($tracker->transactions()->exists()) {
-                    $tracker->transactions()->delete();
-                }
+            $tracker->transactions()->lockForUpdate()->exists();
+            $tracker->transactions()->delete();
 
-                $tracker->delete();
-            });
-            
-        } catch (\Throwable $e) {
-            throw $e;
-        }
+            $tracker->delete();
+        });
 
         return ApiResponseHelper::successResponse(
             message: 'Tracker deleted successfully.',
@@ -282,20 +273,15 @@ class TrackerController extends Controller
     public function restore(Request $request, Tracker $tracker)
     {
         Gate::authorize('restore', $tracker);
+ 
+        DB::transaction(function () use ($tracker) {
+            // Lock the tracker record without retrieving it for efficiency
+            $tracker->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($tracker->getKey())->exists();
+            $tracker->restore();
 
-        try {
-                
-            DB::transaction(function () use ($tracker) {
-                $tracker->restore();
-
-                if ($tracker->transactions()->onlyTrashed()->exists()) {
-                    $tracker->transactions()->onlyTrashed()->restore();
-                }
-            });
-
-        } catch (\Throwable $e) {
-            throw $e;
-        }
+            $tracker->transactions()->lockForUpdate()->onlyTrashed()->exists();
+            $tracker->transactions()->onlyTrashed()->restore();
+        });
 
         return ApiResponseHelper::successResponse(
             message: 'Tracker restored successfully. 
@@ -308,22 +294,20 @@ class TrackerController extends Controller
     {
         Gate::authorize('forceDelete', $tracker);
 
-        try {
+        DB::transaction(function () use ($tracker) {
+            // Lock the tracker record without retrieving it for efficiency
+            $tracker->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($tracker->getKey())->exists();
 
-            DB::transaction(function () use ($tracker) {
-                if ($tracker->transactions()->onlyTrashed()->exists()) {
-                    $tracker->transactions()->onlyTrashed()->forceDelete();
-                }
+            $tracker->transactions()->lockForUpdate()->onlyTrashed()->exists();
+            $tracker->transactions()->onlyTrashed()->forceDelete();
 
-                $tracker->forceDelete();
-            });
-            
-        } catch (\Throwable $e) {
-            throw $e;
-        }
+            $tracker->forceDelete();
+        });
 
         return ApiResponseHelper::successResponse(
-            message: 'Tracker permanently deleted successfully.',
+            message: 'Tracker permanently deleted successfully.
+            All associated transactions have also been permanently deleted.
+            You will not be able to recover any of these records.',
         );
     }
 }
