@@ -33,8 +33,7 @@ class TransactionController extends Controller
         $isTrackerFieldsFilled = $request->filled('fields.tracker');
         $isTrackerIncluded = in_array('tracker', explode(',', $request->input('include', '')));
 
-        $transactions = QueryBuilder::for(Transaction::where('tracker_id', $trackerId))
-            ->where('user_id', $request->user()->id)
+        $transactions = QueryBuilder::for(Transaction::where('tracker_id', $trackerId)->where('user_id', $request->user()->getKey()))
             ->allowedIncludes('tracker')
             ->allowedFields(
                 'id', 'tracker_id', 'name', 'type', 'amount', 'description', 'date', 'created_at', 'updated_at',
@@ -80,8 +79,7 @@ class TransactionController extends Controller
         $validated = $request->validated();
         $size = $validated['size'];
 
-        $transactions = QueryBuilder::for(Transaction::onlyTrashed())
-        ->where('user_id', $request->user()->id)
+        $transactions = QueryBuilder::for(Transaction::onlyTrashed()->where('user_id', $request->user()->getKey()))
         ->allowedIncludes(
             AllowedInclude::callback(
                 name: 'tracker',
@@ -135,13 +133,14 @@ class TransactionController extends Controller
         $transaction = null;
 
         DB::transaction(function () use ($validated, $tracker, &$transaction) {
-            $lockedTracker = Tracker::lockForUpdate()->find($tracker->id);
             $transaction = Transaction::create($validated);
+            
+            $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
 
             if ($transaction->type === 'income') {
-                $lockedTracker->increment('current_balance', $transaction->amount);
+                $tracker->increment('current_balance', $transaction->amount);
             } else {
-                $lockedTracker->decrement('current_balance', $transaction->amount);
+                $tracker->decrement('current_balance', $transaction->amount);
             }
         });
 
@@ -156,7 +155,7 @@ class TransactionController extends Controller
      */
     public function show(ShowTransactionRequest $request, Transaction $transaction)
     {
-        $transaction = QueryBuilder::for(Transaction::whereKey($transaction->id))
+        $transaction = QueryBuilder::for(Transaction::whereKey($transaction->getKey()))
             ->allowedFields(
                 'id', 'name', 'type', 'amount', 'description', 'date', 'created_at', 'updated_at',
             )
@@ -170,8 +169,7 @@ class TransactionController extends Controller
 
     public function showDeleted(ShowDeletedTransactionRequest $request, Transaction $transaction)
     {
-        $transaction = QueryBuilder::for(Transaction::onlyTrashed())
-            ->whereKey($transaction->id)
+        $transaction = QueryBuilder::for(Transaction::onlyTrashed()->whereKey($transaction->getKey()))
             ->allowedFields(
                 'id', 'tracker_id', 'name', 'type', 'amount', 'description', 'date', 'created_at', 'updated_at', 'deleted_at',
                 'tracker.id', 'tracker.name'
@@ -206,26 +204,28 @@ class TransactionController extends Controller
         $validated = $request->validated();
 
         DB::transaction(function () use ($transaction, $validated) {
-            $lockedTransaction = Transaction::lockForUpdate()->find($transaction->id);
-            $lockedTracker = Tracker::lockForUpdate()->find($lockedTransaction->tracker_id);
+            $transaction->newQuery()->lockForUpdate()->whereKey($transaction->getKey())->exists();
+
+            $tracker = $transaction->tracker;
+            $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
 
             // Neutralize tracker's current_balance impact if type or amount is changing
-            $oldMultiplier = $lockedTransaction->type === 'income' ? 1 : -1;
-            $oldAmountImpact = abs($lockedTransaction->amount) * $oldMultiplier;
+            $oldMultiplier = $transaction->type === 'income' ? 1 : -1;
+            $oldAmountImpact = abs($transaction->amount) * $oldMultiplier;
 
-            $lockedTransaction->update($validated);
-            $lockedTransaction->refresh();
+            $transaction->update($validated);
+            $transaction->refresh();
 
             // Adjust tracker's current_balance based on new values if type or amount changed
-            $newMultiplier = $lockedTransaction->type === 'income' ? 1 : -1;
-            $newAmountImpact = abs($lockedTransaction->amount) * $newMultiplier;
+            $newMultiplier = $transaction->type === 'income' ? 1 : -1;
+            $newAmountImpact = abs($transaction->amount) * $newMultiplier;
 
             $difference = $newAmountImpact - $oldAmountImpact;
 
             if ($difference > 0) {
-                $lockedTracker->increment('current_balance', $difference);
+                $tracker->increment('current_balance', $difference);
             } elseif ($difference < 0) {
-                $lockedTracker->decrement('current_balance', abs($difference));
+                $tracker->decrement('current_balance', abs($difference));
             }
         });
 
@@ -243,17 +243,18 @@ class TransactionController extends Controller
         Gate::authorize('delete', $transaction);
 
         DB::transaction(function () use ($transaction) {
-            $lockedTransaction = Transaction::lockForUpdate()->find($transaction->id);
-            $lockedTracker = Tracker::lockForUpdate()->find($lockedTransaction->tracker_id);
+            $transaction->newQuery()->lockForUpdate()->whereKey($transaction->getKey())->exists();
 
-            if ($lockedTransaction->type === 'income') {
-                $lockedTracker->decrement('current_balance', $lockedTransaction->amount);
+            $tracker = $transaction->tracker;
+            $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
 
+            $transaction->delete();
+
+            if ($transaction->type === 'income') {
+                $tracker->decrement('current_balance', $transaction->amount);
             } else {
-                $lockedTracker->increment('current_balance', $lockedTransaction->amount);
+                $tracker->increment('current_balance', $transaction->amount);
             }
-
-            $lockedTransaction->delete();
         });
 
         return ApiResponseHelper::successResponse(
@@ -266,17 +267,18 @@ class TransactionController extends Controller
         Gate::authorize('restore', $transaction);
 
         DB::transaction(function () use ($transaction) {
-            $lockedTransaction = Transaction::withTrashed()->lockForUpdate()->find($transaction->id);
-            $lockedTracker = Tracker::withTrashed()->lockForUpdate()->find($lockedTransaction->tracker_id);
+            $transaction->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($transaction->getKey())->exists();
 
-            if ($lockedTransaction->type === 'income') {
-                $lockedTracker->increment('current_balance', $lockedTransaction->amount);
-                
+            $tracker = $transaction->tracker;
+            $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
+
+            $transaction->restore();
+
+            if ($transaction->type === 'income') {
+                $tracker->increment('current_balance', $transaction->amount);
             } else {
-                $lockedTracker->decrement('current_balance', $lockedTransaction->amount);
+                $tracker->decrement('current_balance', $transaction->amount);
             }
-
-            $lockedTransaction->restore();
         });
 
         return ApiResponseHelper::successResponse(
@@ -288,7 +290,7 @@ class TransactionController extends Controller
     {
         Gate::authorize('forceDelete', $transaction);
 
-        DB::transaction(fn() => Transaction::withTrashed()->lockForUpdate()->find($transaction->id)->forceDelete());
+        DB::transaction(fn() => $transaction->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($transaction->getKey())->forceDelete());
 
         return ApiResponseHelper::successResponse(
             message: 'Transaction permanently deleted successfully.',
