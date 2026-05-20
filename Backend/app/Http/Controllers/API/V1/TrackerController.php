@@ -260,6 +260,8 @@ class TrackerController extends Controller
             $tracker->newQuery()->lockForUpdate()->whereKey($tracker->getKey())->exists();
 
             $tracker->transactions()->delete();
+            $tracker->update(['current_balance' => 0]);
+
             $tracker->delete();
         });
 
@@ -274,10 +276,33 @@ class TrackerController extends Controller
  
         DB::transaction(function () use ($tracker) {
             $tracker->transactions()->lockForUpdate()->onlyTrashed()->exists();
-            $tracker->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($tracker->getKey())->exists();
+            $tracker = $tracker->newQuery()->lockForUpdate()->onlyTrashed()->findOrFail($tracker->getKey());
 
             $tracker->restore();
-            $tracker->transactions()->onlyTrashed()->restore();
+
+            if ($tracker->transactions()->onlyTrashed()->restore() > 0) {
+                $tracker->refresh();
+
+                $totals = $tracker->transactions()
+                ->selectRaw("
+                    SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+                    SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense
+                ")
+                ->first();
+
+                $totalIncome = $totals->total_income ?? 0;
+                $totalExpenses = $totals->total_expense ?? 0;
+                $totalBalance = $totalIncome - $totalExpenses;
+                
+                if ($totalBalance > 0) {
+                    $tracker->increment('current_balance', $totalBalance);
+                } elseif ($totalBalance < 0) {
+                    $tracker->decrement('current_balance', abs($totalBalance));
+                }
+                
+            } else {
+                $tracker->update(['current_balance' => 0]);
+            }
         });
 
         return ApiResponseHelper::successResponse(
