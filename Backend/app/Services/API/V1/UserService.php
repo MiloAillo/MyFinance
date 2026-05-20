@@ -33,20 +33,20 @@ class UserService
     public function addAvatar(User $user, $avatar): string
     {
         $avatarName = time() . '.' . $avatar->extension();
-        $avatar->storeAs('users/avatars', $avatarName, 'public');
+        $avatar->storeAs('', $avatarName, 'avatars');
 
         return $avatarName;
     }
 
     public function avatarExists(string $avatarName): bool
     {
-        return Storage::disk('public')->exists('users/avatars/' . $avatarName);
+        return Storage::disk('avatars')->exists($avatarName);
     }
 
     public function removeAvatarFromStorage(string $avatarName): void
     {
         if ($this->avatarExists($avatarName)) {
-            Storage::disk('public')->delete('users/avatars/' . $avatarName);
+            Storage::disk('avatars')->delete($avatarName);
         }
     }
 }

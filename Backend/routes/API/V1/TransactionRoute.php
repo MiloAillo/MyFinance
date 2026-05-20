@@ -11,13 +11,13 @@ Route::controller(TransactionController::class)->middleware('auth:sanctum')->gro
         Route::get('', 'index')->name('.index');
     });
     Route::delete('transactions/{transaction}', 'delete')->name('transactions.delete');
-
-    Route::apiResource('deleted/transactions', TransactionController::class)->withTrashed()->only(['index', 'show'])->names([
-        'index' => 'deleted.transactions.index',
-        'show' => 'deleted.transactions.show',
-    ]);
+    
+    Route::prefix('deleted/transactions')->name('deleted.transactions')->group(function () {
+        Route::get('', 'indexDeleted')->name('.index');
+    });
     
     Route::prefix('deleted/transactions/{transaction}')->name('deleted.transactions')->group(function () {
+        Route::get('', 'showDeleted')->withTrashed()->name('.show');
         Route::patch('/restore', 'restore')->withTrashed()->name('.restore');
         Route::delete('/force', 'forceDelete')->withTrashed()->name('.force');
     });

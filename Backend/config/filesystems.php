@@ -35,16 +35,41 @@ return [
             'root' => storage_path('app/private'),
             'serve' => true,
             'throw' => false,
-            'report' => false,
+            'report' => true,
         ],
 
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL').'/api/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+        ],
+
+        'private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'avatars' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/users/avatars'),
+            'url' => env('APP_URL').'/api/storage/avatars',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'attachments' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/transactions/attachments'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
         ],
 
         's3' => [
@@ -74,7 +99,8 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        public_path('api/storage/public') => storage_path('app/public'),
+        public_path('api/storage/avatars') => storage_path('app/public/users/avatars'),
     ],
 
 ];

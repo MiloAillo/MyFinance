@@ -246,14 +246,14 @@ class UserController extends Controller
                 }
             });
 
-            return ApiResponseHelper::successResponse(
-                message: $message ?? 'User data updated successfully.',
-                data: new UserResource($user->fresh()),
-            );
-
         } catch (\Throwable $e) {
             throw $e;
         }
+
+        return ApiResponseHelper::successResponse(
+            message: $message ?? 'User data updated successfully.',
+            data: new UserResource($user->fresh()),
+        );
     }
 
     // Email Verification

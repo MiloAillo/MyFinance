@@ -1,0 +1,428 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: MyFinance
+meta:
+  id: wrk_cd5b95d42e8945a3973e0bb16b3d6b87
+  created: 1779003927803
+  modified: 1779003927803
+  description: ""
+collection:
+  - name: Users
+    meta:
+      id: fld_216747267a2444129d4b5fc2fa9e2b01
+      created: 1775348019636
+      modified: 1778319164610
+      sortKey: -1775348048210
+      description: ""
+    children:
+      - name: Auth
+        meta:
+          id: fld_5f56d0ad62084b738e59a109ae02e17d
+          created: 1775348011707
+          modified: 1776763490032
+          sortKey: -1775442143935
+          description: ""
+        children:
+          - name: Verification
+            meta:
+              id: fld_2e54e5c3def949189bf9bdf6c779edb6
+              created: 1775960005669
+              modified: 1776535564792
+              sortKey: -1775439413138.5
+              description: ""
+            children:
+              - name: Email
+                meta:
+                  id: fld_322c368969e948c08ae0bb7181017b5b
+                  created: 1775962289526
+                  modified: 1775962295043
+                  sortKey: -1775960027919
+                  description: ""
+            authentication:
+              type: bearer
+              token: "{{ user_token }}"
+        authentication:
+          type: none
+    authentication:
+      type: bearer
+      token: "{{ user_token }}"
+    environment:
+      name: ""
+      email: ""
+      password: ""
+      new_password: ""
+      signed_up_name: "{% response 'body', 'req_9a8ee7b1cd99454bb582ce29a3567247',
+        'b64::JC5kYXRhLmF0dHJpYnV0ZXMubmFtZQ==::46b', 'never', 60 %}"
+      signed_up_email: "{% response 'body', 'req_9a8ee7b1cd99454bb582ce29a3567247',
+        'b64::JC5kYXRhLmF0dHJpYnV0ZXMuZW1haWw=::46b', 'never', 60 %}"
+    environmentPropertyOrder:
+      "&":
+        - name
+        - email
+        - password
+        - new_password
+        - signed_up_name
+        - signed_up_email
+  - name: Trackers
+    meta:
+      id: fld_7136dd022e5649ca80bbf68c383c077e
+      created: 1775348028272
+      modified: 1778116740499
+      sortKey: -1775348048185
+      description: ""
+    children:
+      - url: "{{ base_url }}/trackers"
+        name: Trackers
+        meta:
+          id: req_aa23db1f4764427e8fa927b2a0072bd0
+          created: 1775544393743
+          modified: 1777946495935
+          isPrivate: false
+          description: ""
+          sortKey: -1775544397058
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"name": "{{ name }}",
+            	"description": "{{ description }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/trackers"
+        name: Trackers
+        meta:
+          id: req_8266c9eee1de4409bb9ab9c65d3d6f19
+          created: 1775544509722
+          modified: 1778318797562
+          isPrivate: false
+          description: ""
+          sortKey: -1775493270446.5
+        method: GET
+        parameters:
+          - name: page
+            value: ""
+            description: ""
+            disabled: false
+          - name: size
+            value: ""
+            description: ""
+            disabled: false
+          - name: transaction_size
+            value: ""
+            description: ""
+            disabled: false
+          - name: include
+            value: recent_transactions
+            description: ""
+            disabled: false
+          - name: fields[trackers]
+            value: id,name,description,current_balance,created_at,updated_at
+            description: ""
+            disabled: false
+          - name: fields[transactions]
+            value: id,amount,type
+            description: ""
+            disabled: false
+          - name: filter[name]
+            value: ""
+            description: ""
+            disabled: false
+          - name: filter[description]
+            value: ""
+            description: ""
+            disabled: false
+          - name: sort
+            value: name,created_at,updated_at,-name,-created_at,-updated_at
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/trackers/{{ tracker_id }}"
+        name: Tracker
+        meta:
+          id: req_c33cf37d95574759b2baa59dc4ae1791
+          created: 1775544531844
+          modified: 1778140717751
+          isPrivate: false
+          description: ""
+          sortKey: -1775467707140.75
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"name": "",
+            	"description": ""
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/trackers/{{ tracker_id }}"
+        name: Tracker
+        meta:
+          id: req_b6029d5be7e040b08539c253ac0d6928
+          created: 1775544777890
+          modified: 1778138523196
+          isPrivate: false
+          description: ""
+          sortKey: -1775454925487.875
+        method: DELETE
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/trackers/{{ tracker_id }}"
+        name: Tracker
+        meta:
+          id: req_65e323ca81b145209d390d7120223f71
+          created: 1775544821223
+          modified: 1778318841144
+          isPrivate: false
+          description: ""
+          sortKey: -1775480488793.625
+        method: GET
+        parameters:
+          - name: fields[trackers]
+            value: id,name,description,current_balance,created_at,updated_at
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/deleted/trackers/{{ deleted_tracker_id }}/restore"
+        name: Restore Tracker
+        meta:
+          id: req_8cea168a385f457393a6c1a2d03316ba
+          created: 1776603623033
+          modified: 1778117504440
+          isPrivate: false
+          description: ""
+          sortKey: -1775448534661.4375
+        method: PATCH
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/deleted/trackers/{{ deleted_tracker_id }}/force"
+        name: Permanent Tracker
+        meta:
+          id: req_2e6b0387a1bc459aa96c1c74c9b26439
+          created: 1778052287485
+          modified: 1778117514871
+          isPrivate: false
+          description: ""
+          sortKey: -1775448534561.4375
+        method: DELETE
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/deleted/trackers"
+        name: Deleted Trackers
+        meta:
+          id: req_a4128a6e3e404a439bc0c71081e5d062
+          created: 1778054501055
+          modified: 1778318826636
+          isPrivate: false
+          description: ""
+          sortKey: -1775486879620.0625
+        method: GET
+        parameters:
+          - name: page
+            value: ""
+            description: ""
+            disabled: false
+          - name: size
+            value: ""
+            description: ""
+            disabled: false
+          - name: transaction_size
+            value: ""
+            description: ""
+            disabled: false
+          - name: include
+            value: recent_transactions
+            description: ""
+            disabled: false
+          - name: fields[trackers]
+            value: id,name,description,current_balance,created_at,updated_at,deleted_at
+            description: ""
+            disabled: false
+          - name: fields[transactions]
+            value: id,amount,type
+            description: ""
+            disabled: false
+          - name: filter[name]
+            value: ""
+            description: ""
+            disabled: false
+          - name: filter[description]
+            value: ""
+            description: ""
+            disabled: false
+          - name: sort
+            value: name,created_at,updated_at,deleted_at,-name,-created_at,-updated_at,-deleted_at
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ base_url }}/deleted/trackers/{{ deleted_tracker_id }}"
+        name: Deleted Tracker
+        meta:
+          id: req_e75ac998cd3c447b83ad32e91860e49f
+          created: 1778054539520
+          modified: 1778318846113
+          isPrivate: false
+          description: ""
+          sortKey: -1775474097967.1875
+        method: GET
+        parameters:
+          - name: fields[trackers]
+            value: id,name,description,current_balance,created_at,updated_at,deleted_at
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: bearer
+      token: "{{ user_token }}"
+    environment:
+      tracker_id: "{% response 'body', 'req_8266c9eee1de4409bb9ab9c65d3d6f19',
+        'b64::JC5kYXRhLjAuaWQ=::46b', 'never', 60 %}"
+      name: "{% faker 'randomCompanyName' %}"
+      description: "{% faker 'randomLoremParagraph' %}"
+      deleted_tracker_id: "{% response 'body', 'req_a4128a6e3e404a439bc0c71081e5d062',
+        'b64::JC5kYXRhLjAuaWQ=::46b', 'never', 60 %}"
+  - name: Others
+    meta:
+      id: fld_eb5b2bf4f46142788f3dbc10d2cd1bac
+      created: 1775439596732
+      modified: 1776842156529
+      sortKey: -1775348048160
+      description: ""
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_ed636d4a21b94f21b52d253a5507b406
+    created: 1775312032828
+    modified: 1775312032828
+environments:
+  name: Base
+  meta:
+    id: env_01db8fe1ea6c4bdf9396aca2f58c6647
+    created: 1775312032769
+    modified: 1775629435509
+    isPrivate: false
+  data:
+    domain: localhost
+    port: :8080
+    base_url: "{{ domain }}{{ port }}/api/v{{ version }}"
+    version: "1"
+  subEnvironments:
+    - name: Development
+      meta:
+        id: env_a00377e360d04e2ea6e4800d4e8988d9
+        created: 1775456406243
+        modified: 1777816307950
+        isPrivate: false
+        sortKey: 1775456406243
+      data:
+        user_token: "{% response 'body', 'req_97f0e9bbae9d48539565140496bc32fd',
+          'b64::JC5kYXRhLm1ldGEudG9rZW4=::46b', 'never', 60 %}"

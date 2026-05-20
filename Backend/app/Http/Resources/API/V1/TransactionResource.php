@@ -14,7 +14,6 @@ class TransactionResource extends BaseResource
         'type',
         'amount',
         'description',
-        'files',
         'date',
         'created_at',
         'updated_at',
@@ -24,14 +23,25 @@ class TransactionResource extends BaseResource
     public $relationships = [
         'user' => UserResource::class,
         'tracker' => TrackerResource::class,
+        'attachments' => AttachmentResource::class,
     ];
 
     public function toLinks(Request $request)
     {
         $links = parent::toLinks($request);
 
-        $links['self'] = route('api.v1.transactions.show', $this->resource);
-        // $links['tracker'] = route('api.v1.trackers.show', $this->resource->tracker);
+        if ($this->resource->id) {
+            $links['self'] = $this->resource->trashed()
+                ? route('api.v1.deleted.transactions.show', $this->resource)
+                : route('api.v1.transactions.show', $this->resource);
+        }
+        
+        if ($this->relationLoaded('tracker')) {
+            $isTrackerTrashed = optional($this->resource->tracker)->trashed() ?? false;
+            $links['tracker'] = $isTrackerTrashed
+                ? route('api.v1.deleted.trackers.show', $this->resource->tracker_id)
+                : route('api.v1.trackers.show', $this->resource->tracker_id);
+        }
         
         return $links;
     }

@@ -47,7 +47,7 @@ class ApiResponseHelper
             if (is_array($normalized) && array_key_exists('data', $normalized)) {
                 $response['data'] = $normalized['data'];
 
-                foreach (['meta', 'links'] as $key) {
+                foreach (['meta', 'links', 'included'] as $key) {
                     if (array_key_exists($key, $normalized)) {
                         $response[$key] = $normalized[$key];
                     }

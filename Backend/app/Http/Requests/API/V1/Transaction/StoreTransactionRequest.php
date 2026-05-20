@@ -1,15 +1,8 @@
 <?php
 
-namespace App\Http\Requests\v1;
+namespace App\Http\Requests\API\V1\Transaction;
 
-use Illuminate\Http\Exceptions\HttpResponseException;
-use App\Helpers\ResponseHelper;
-use Carbon\Traits\Timestamp;
-use DateTime;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 
 class StoreTransactionRequest extends FormRequest
 {
@@ -18,10 +11,7 @@ class StoreTransactionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $tracker = $this->route('tracker');
-        $user = $this->user();
-
-        return $tracker && $user->id === $tracker->user_id;
+        return $this->user()->can('create', $this->route('tracker'));
     }
 
     /**
@@ -32,12 +22,13 @@ class StoreTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'user_id' => 'required|exists:users,id',
+            'tracker_id' => 'required|exists:trackers,id',
             'name' => 'required|string|max:50',
-            'type' => ['required', Rule::in(['income', 'expense'])],
+            'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'nullable|string|max:255',
-            'image' => 'nullable|image|max:10240', // max 10MB
-            'transaction_date' => 'required|date',
+            'date' => 'required|date',
         ];
     }
 
@@ -52,18 +43,9 @@ class StoreTransactionRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
+            'date' => $this->input('date', now()->toDateTimeString()),
             'user_id' => $this->user()->id,
             'tracker_id' => $this->route('tracker')->id,
         ]);
-    }
-
-    /**
-     * Handle a failed validation attempt.
-     */
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(
-            ResponseHelper::validationErrorResponse($validator)
-        );
     }
 }

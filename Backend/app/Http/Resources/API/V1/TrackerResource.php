@@ -33,8 +33,11 @@ class TrackerResource extends BaseResource
     {
         $links = parent::toLinks($request);
 
-        $links['self'] = route('api.v1.trackers.show', $this->resource);
-        // $links['transactions'] = route('api.v1.trackers.transactions.index', $this->resource);
+        if ($this->resource->id) {
+            $links['self'] = $this->resource->trashed()
+                ? route('api.v1.deleted.trackers.show', $this->resource)
+                : route('api.v1.trackers.show', $this->resource);
+        }
         
         return $links;
     }
@@ -43,8 +46,6 @@ class TrackerResource extends BaseResource
     {
         $meta = parent::toMeta($request);
 
-        $meta['transaction_count'] = $this->getTotalTransactionsAttribute();
-        
         return $meta;
     }
 }
