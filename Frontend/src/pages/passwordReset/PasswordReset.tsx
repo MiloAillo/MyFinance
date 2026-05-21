@@ -20,7 +20,7 @@ import useTransition from "@/hooks/useTransition";
 export function PasswordReset(): JSX.Element {
     const { token } = useParams<{ token: string }>();
     const { search } = useLocation()
-    const { render, transitionTo } = useTransition({initValue: false, transitionDelay: 600})
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const [status, setStatus] = useState<"none" | "checking" | "expired" | "ok">("none")
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
