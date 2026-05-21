@@ -13,11 +13,10 @@ import { ApiUrl } from "@/lib/variable";
 import { OrbitProgress } from "react-loading-indicators";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
+import useTransition from "@/hooks/useTransition";
 
 export function ForgotPassword(): JSX.Element {
-    const navigate = useNavigate()
-    const [isOut, setIsOut] = useState<boolean>(false)
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const [isError, setIsError] = useState<boolean>(false)
     const [isNotFound, setIsNotFound] = useState<boolean>(false)
     const [isInternalServerError, setIsInternalServerError] = useState<boolean>(false)
@@ -42,16 +41,13 @@ export function ForgotPassword(): JSX.Element {
         setIsLoading(true)
 
         try {
-            const res = await axios.post(`${ApiUrl}/auth/password-resets`, {
+            await axios.post(`${ApiUrl}/auth/password-resets`, {
                 email: values.email
             })
             setIsLoading(false)
             setIsSuccess(true)
 
-            setIsOut(true)
-            setTimeout(() => {
-                navigate(`/forgot-password/email-sent/${encodeURIComponent(values.email)}`)
-            }, 400)
+            transitionTo(`/forgot-password/email-sent/${encodeURIComponent(values.email)}`)
 
         } catch (err) {
             setIsLoading(false)
@@ -73,7 +69,7 @@ export function ForgotPassword(): JSX.Element {
     return (
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
-                {!isOut && <motion.div
+                {render && <motion.div
                     className="flex flex-col gap-8 sm:w-85 w-[75%]"
                     initial={{
                         x: 30,
@@ -227,7 +223,7 @@ export function ForgotPassword(): JSX.Element {
                                 </div>
                             </form>
                         </Form>
-                        <p className="w-full text-center font-medium text-sm">Remembered your password? <span onClick={() => { setIsOut(true); setTimeout(() => window.location.href = "/access", 700) }} className="text-blue-500 hover:text-blue-400 underline cursor-pointer">Sign in</span></p>
+                        <p className="w-full text-center font-medium text-sm">Remembered your password? <span onClick={() => transitionTo("/access")} className="text-blue-500 hover:text-blue-400 underline cursor-pointer">Sign in</span></p>
                     </div>
                 </motion.div>}
             </AnimatePresence>

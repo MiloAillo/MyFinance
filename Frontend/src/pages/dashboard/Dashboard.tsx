@@ -12,8 +12,11 @@ import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ModeToggle } from "@/components/mode-toggle";
 import toast from "@/components/CustomToast";
+import useTransition from "@/hooks/useTransition";
 
 export function Dashboard(): JSX.Element {
+
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const mainLoaderData = useRouteLoaderData("main")
     
     // const [ trackers, setTrackers ] = useState<{id: number, user_id: number, description: string, initial_balance: number, name: string, transactions: {amount: number, type: "income" | "expense"}[]}[] | []>([])
@@ -23,7 +26,6 @@ export function Dashboard(): JSX.Element {
     const [ _user, setUser ] = useState<any[]>([])
     const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ isCreateBoxOpen, setIsCreateBoxOpen ] = useState<boolean>(false)
-    const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
 
     const [ actualSearchValue, setActualSearchValue ] = useState<string>("")
@@ -199,28 +201,21 @@ export function Dashboard(): JSX.Element {
                 }
             })
             localStorage.removeItem("Authorization")
-            setIsOut(true)
-            setTimeout(() => {
-                window.location.href = "/access"
-            }, 500)
+
+            transitionTo("/access")
         } catch(err) {
             if(isAxiosError(err)) {
                 console.log(err)
             }
 
             localStorage.removeItem("Authorization")
-            setIsOut(true)
-            setTimeout(() => {
-                window.location.href = "/access"
-            }, 500)
+
+            transitionTo("/access")
         }
     }
 
     const signup = async () => {
-        setIsOut(true)
-        setTimeout(() => {
-            window.location.href = "/access/signup"
-        }, 500)
+        transitionTo("/access/signup")
     }
 
     const deleteTracker = async (id: number) => {
@@ -301,7 +296,7 @@ export function Dashboard(): JSX.Element {
             className="flex flex-col items-center gap-5 min-h-screen md:max-w-[650px]">
             <div className="flex justify-center max-w-[650px]">
                 <AnimatePresence>
-                    {!isOut && <motion.div
+                    { render && <motion.div
                         className="flex justify-center items-center gap-2 mt-5 w-[85%] fixed z-10 md:max-w-[650px]"
                         initial={{
                             x: 30,
@@ -373,7 +368,7 @@ export function Dashboard(): JSX.Element {
                     <AnimatePresence mode="popLayout">
                         <motion.div>
                             <AnimatePresence>
-                                {isAccountOpen && !isOut && <motion.div
+                                {isAccountOpen && render && <motion.div
                                     key="accountDetails"
                                     className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 dark:bg-neutral-800/60 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] dark:backdrop-blur-[6px] backdrop-grayscale-50 z-20 md:right-auto md:translate-x-17 md:min-w-60"
                                     initial = {{
@@ -432,7 +427,7 @@ export function Dashboard(): JSX.Element {
                                             </motion.div>
                                         }
                                         <motion.div 
-                                            onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/editProfile", 500)}} 
+                                            onClick={() => {transitionTo("/app/editProfile")}} 
                                             className="flex items-center gap-2.5 bg-green-500/20 dark:bg-violet-700/40 rounded-full py-2 px-4 w-full"
                                             whileTap={{
                                                 scale: 0.95
@@ -443,7 +438,7 @@ export function Dashboard(): JSX.Element {
                                         </motion.div>
                                         {session === "cloud" && 
                                             <motion.div 
-                                                onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/app/change-password", 500)}}
+                                                onClick={() => {transitionTo("/app/change-password")}}
                                                 className="flex items-center gap-2.5 bg-green-500/20 dark:bg-violet-700/40 rounded-full py-2 px-4 w-full"
                                                 whileTap={{
                                                     scale: 0.95
@@ -545,7 +540,7 @@ export function Dashboard(): JSX.Element {
                     </motion.div>
                     }
 
-                    {!isOut && trackers?.map((item: any, i: number) => (
+                    { render && trackers?.map((item: any, i: number) => (
                         <motion.div 
                             key={i}
                             className="bg-white w-[77vw] sm:w-[40vw] md:w-70 px-5 py-4 rounded-xl z-0 dark:bg-neutral-800/60"
@@ -581,7 +576,7 @@ export function Dashboard(): JSX.Element {
                                 }
                             }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={(e) => {!isCreateBoxOpen && e.stopPropagation(); {!isCreateBoxOpen && setIsOut(true) }; {!isCreateBoxOpen && setTimeout(() => window.location.href = `/app/tracker/${item.id}`, 500)}}}
+                            onClick={(e) => {!isCreateBoxOpen && e.stopPropagation(); {!isCreateBoxOpen && transitionTo(`/app/tracker/${item.id}`)}}}
                             layout='position'
                             layoutId={i.toString()}
                         >
@@ -645,7 +640,7 @@ export function Dashboard(): JSX.Element {
                             }
                         </motion.div>
                     ))}
-                    {!trackers?.length && !isCreateBoxOpen && !isOut &&
+                    {!trackers?.length && !isCreateBoxOpen && render &&
                         <motion.div 
                             className="absolute left-[50%] translate-x-[-50%] top-25 z-0 flex flex-col items-center gap-4 w-[60%]"
                             key={"intro"}
@@ -686,7 +681,7 @@ export function Dashboard(): JSX.Element {
             <AnimatePresence>
                 
                 {/* plus icon */}
-                {!isOut && <motion.div
+                { render && <motion.div
                     key="plusicon"
                     className="flex justify-center items-center w-12 h-12 fixed bottom-0 right-0 mr-6 mb-8 rounded-md bg-green-400/60 dark:bg-violet-700/60 backdrop-blur-[2px] backdrop-grayscale-50 sm:right-[4%] border-[0.5px] shadow md:bottom-0 md:right-auto md:translate-x-70"
                     initial={{
@@ -723,7 +718,7 @@ export function Dashboard(): JSX.Element {
                 {/* <Headless /> */}
 
                 {/* pagination open */}
-                {!isOut && !paginationOpen && needPagination && <motion.div
+                { render && !paginationOpen && needPagination && <motion.div
                     key="paginationicon"
                     className="flex justify-center items-center w-12 h-12 fixed bottom-0 right-0 mr-21 md:mr-35 mb-8 rounded-md bg-white dark:bg-violet-700/60 backdrop-blur-[2px] backdrop-grayscale-50 sm:right-[4%] border shadow md:bottom-0 md:right-auto md:translate-x-70"
                     layoutId="pagination"

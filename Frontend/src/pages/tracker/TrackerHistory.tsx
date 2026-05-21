@@ -12,11 +12,12 @@ import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
+import useTransition from "@/hooks/useTransition";
 
 export function TrackerHistory(): JSX.Element {
     const { id } = useParams()
 
-    const [ isOut, setIsOut ] = useState<boolean>(false)
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     // const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
     const [ showPlus, setShowPlus ] = useState(true)
     const [ showwMinus, setShowMinus ] = useState(true)
@@ -138,9 +139,9 @@ export function TrackerHistory(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center w-full md:max-w-[650px]">
-            <TrackerNavbar trackerName="My New Navbar" setIsOut={setIsOut} isOut={isOut} backLink={`/app/tracker/${id}`}  />
+            <TrackerNavbar trackerName="My New Navbar" render={render} backLink={`/app/tracker/${id}`} onBackClick={() => transitionTo(`/app/tracker/${id}`)}  />
             <AnimatePresence>
-                {!isOut && <motion.div
+                {render && <motion.div
                     key={"tracker-history"}
                     className="flex flex-col items-center mt-18 w-[87%] gap-3"
                     initial={{
@@ -283,7 +284,7 @@ export function TrackerHistory(): JSX.Element {
                         ))}
                     </div>
                 </motion.div>}
-                {!isOut && <motion.div
+                {render && <motion.div
                     className="w-full bg-background-primary flex justify-center items-center h-15 fixed bottom-0 dark:bg-background-primary-dark"
                     initial={{
                         x: 30,

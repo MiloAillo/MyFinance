@@ -15,11 +15,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import { ApiUrl } from "@/lib/variable";
 import axios from "axios";
+import useTransition from "@/hooks/useTransition";
 
 export function PasswordReset(): JSX.Element {
     const { token } = useParams<{ token: string }>();
     const { search } = useLocation()
-    const [isOut, setIsOut] = useState<boolean>(false);
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const [status, setStatus] = useState<"none" | "checking" | "expired" | "ok">("none")
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -68,10 +69,7 @@ export function PasswordReset(): JSX.Element {
                 password_confirmation: values.confirmPassword
             })
             
-            setIsOut(true);
-            setTimeout(() => {
-                window.location.href = "/access";
-            }, 500);
+            transitionTo("/access");
         } catch (err) {
             console.error(err);
             setIsError(true);
@@ -90,7 +88,7 @@ export function PasswordReset(): JSX.Element {
     return (
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence mode="popLayout">
-                {!isOut && status === "checking" && (
+                {render && status === "checking" && (
                     <motion.div
                         key="checkUI"
                         className="flex flex-row items-center gap-3"
@@ -126,7 +124,7 @@ export function PasswordReset(): JSX.Element {
                         <p className="text-xl font-semibold">Checking token validity...</p>
                     </motion.div>
                 )}
-                {!isOut && status === "expired" && (
+                {render && status === "expired" && (
                     <motion.div
                         key="expiredUI"
                         className="flex flex-col items-center gap-5"
@@ -160,10 +158,10 @@ export function PasswordReset(): JSX.Element {
                     >
                         <FontAwesomeIcon icon={faChainBroken} className="text-6xl"></FontAwesomeIcon>
                         <p className="text-stone-900 text-2xl font-semibold dark:text-background-primary text-center">Link Has Expired</p>
-                        <p onClick={() => {setIsOut(true); setTimeout(() => {window.location.href = "/access"}, 400)}} className="text-sm underline text-blue-500">Go back to login page</p>
+                        <p onClick={() => transitionTo("/access")} className="text-sm underline text-blue-500">Go back to login page</p>
                     </motion.div>
                 )}
-                {!isOut && status === "ok" && (
+                {render && status === "ok" && (
                     <motion.div
                         key="formUI"
                         className="flex flex-col gap-8 sm:w-85 w-[75%]"

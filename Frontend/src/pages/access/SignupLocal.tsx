@@ -11,9 +11,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { spring } from "motion-dom";
 import { DBcreate } from "@/lib/db";
+import useTransition from "@/hooks/useTransition";
 
 export function SignupLocal(): JSX.Element {
-    const [ isOut, setIsOut ] = useState<boolean>(false)
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
 
     const [ isConsentError, setIsConsentError ] = useState<boolean>(false)
     const [ consent, setConsent ] = useState<boolean>(false)
@@ -32,10 +33,14 @@ export function SignupLocal(): JSX.Element {
 
 
     const login = async (values: z.infer<typeof signupSchema>): Promise<void> => {
+
         setIsConsentError(false)
+
         if(!consent) {
+
             setIsConsentError(true)
             return
+
         }
 
         if(values.username === "") {
@@ -43,12 +48,12 @@ export function SignupLocal(): JSX.Element {
         }
 
         try {
+
             const res = await DBcreate(values.username)
-            if(res) {
-                setIsOut(true)
-                setTimeout(() => {window.location.href = "/app"}, 550)
-            }
+            if (res) transitionTo("/app")
+
         } catch(err) {
+            
             console.log(err)
         }
     }
@@ -56,7 +61,7 @@ export function SignupLocal(): JSX.Element {
     return (
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
-                {!isOut && <motion.h1
+                { render && <motion.h1
                     className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary"
                     initial={{
                         x: 30,
@@ -91,7 +96,7 @@ export function SignupLocal(): JSX.Element {
                 </motion.h1>}
             </AnimatePresence>
             <AnimatePresence>
-                {!isOut && <motion.div
+                { render && <motion.div
                     className="flex flex-col gap-8 sm:w-85 w-[75%]"
                     initial={{
                         x: 30,
@@ -158,12 +163,12 @@ export function SignupLocal(): JSX.Element {
                                     <div className="flex flex-col gap-3">
                                         <div className="flex items-center gap-2">
                                             <Checkbox id="tos" onCheckedChange={(e) => setConsent(e as any)} />
-                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/tos", 600)}}>Terms of Services</span></label>
+                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline" onClick={() => {transitionTo("/tos")}}>Terms of Services</span></label>
                                         </div>
                                     <motion.div className="w-full flex justify-center items-center self-center " whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}>
                                         <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Create local account</Button>
                                     </motion.div>
-                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access", 700) }} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
+                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {transitionTo("/access")}} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
                                     </div>
                                 </div>
                             </form>

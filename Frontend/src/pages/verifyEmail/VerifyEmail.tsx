@@ -8,12 +8,13 @@ import { AlertCircleIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState, type JSX } from "react";
 import { useLocation, useParams } from "react-router-dom";
+import useTransition from "@/hooks/useTransition";
 
 export function VerifyEmail(): JSX.Element {
     const { token } = useParams<{ token: string }>();
     const { search } = useLocation()
 
-    const [isOut, setIsOut] = useState<boolean>(false)
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const [status, setStatus] = useState<"none" | "loading" | "error" | "ok">("none")
     const [ errorMsg, setErrorMsg ] = useState<string>("")
     const [ redirectTime, setRedirectTime ] = useState<number>(5)
@@ -33,8 +34,7 @@ export function VerifyEmail(): JSX.Element {
 
     useEffect(() => {
         if (redirectTime <= 0) {
-            setIsOut(true)
-            setTimeout(() => window.location.href = "/app", 400)
+            transitionTo("/app")
         }
     }, [redirectTime])
 
@@ -62,7 +62,7 @@ export function VerifyEmail(): JSX.Element {
     return (
         <section>
             <AnimatePresence>
-                {!isOut && <motion.div
+                {render && <motion.div
                     key={"navbar"}
                     className="w-full h-screen flex justify-center items-center z-10 top-0 left-0"
                     initial={{

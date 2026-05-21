@@ -3,18 +3,18 @@ import { AlertCircleIcon, CheckCircleIcon } from "lucide-react";
 import { useState, type JSX } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AnimatePresence, motion, spring } from "motion/react";
-import axios, { isAxiosError } from "axios";
+import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
 import { OrbitProgress } from "react-loading-indicators";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import useTransition from "@/hooks/useTransition";
 
 export function ForgotPasswordEmailSent(): JSX.Element {
     const { email } = useParams<{ email: string }>();
-    const navigate = useNavigate();
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     
-    const [isOut, setIsOut] = useState<boolean>(false);
     const [isError, setIsError] = useState<boolean>(false);
     const [isResending, setIsResending] = useState<boolean>(false);
     const [isResendSuccess, setIsResendSuccess] = useState<boolean>(false);
@@ -44,16 +44,13 @@ export function ForgotPasswordEmailSent(): JSX.Element {
     };
 
     const handleBackToLogin = (): void => {
-        setIsOut(true);
-        setTimeout(() => {
-            navigate("/access");
-        }, 400);
+        transitionTo("/access");
     };
 
     return (
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
-                {!isOut && (
+                {render && (
                     <motion.div
                         className="flex flex-col gap-8 sm:w-85 w-[75%]"
                         initial={{

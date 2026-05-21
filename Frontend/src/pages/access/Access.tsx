@@ -13,10 +13,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { isAxiosError } from "axios";
 import { ApiUrl } from "@/lib/variable";
 import { DBSupportCheck } from "@/lib/db";
+import useTransition from "@/hooks/useTransition";
 
 export function Access(): JSX.Element {
+
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 700})
     const [show, setShow] = useState<boolean>(false)
-    const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ isInvalidCredentials, setIsInvalidCredentials ] = useState<boolean>(false)
     const [ isInternalServerError, setIsInternalServerError ] = useState<boolean>(false)
     const [ isNewDeviceDetected, setIsNewDeviceDetected ] = useState<boolean>(false)
@@ -43,7 +45,9 @@ export function Access(): JSX.Element {
         setIsInvalidCredentials(false)
         setIsNewDeviceDetected(false)
         setIsError(false)
+
         try {
+
             const res = await axios.post(`${ApiUrl}/auth/tokens`, {
                 email: values.email,
                 password: values.password
@@ -52,12 +56,13 @@ export function Access(): JSX.Element {
             const data = await res.data
             console.log("response :", data)
             localStorage.setItem("Authorization", data.data.meta.token)
-            setIsOut(true)
-            setTimeout(() => { 
-                window.location.href = "/app"
-            }, 500)
+
+            transitionTo("/app")
+
         } catch(err) {
+
             if(isAxiosError(err)) {
+
                 console.log("error", err)
                 if(err.response?.status === 422) {
                     setIsInvalidCredentials(true)
@@ -69,6 +74,7 @@ export function Access(): JSX.Element {
                     setIsError(true)
                     setIsInternalServerError(true)
                 }
+
             }
         }
     }
@@ -83,7 +89,7 @@ export function Access(): JSX.Element {
     return (
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
-                {!isOut && <motion.h1
+                { render && <motion.h1
                     className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary"
                     initial={{
                         x: 30,
@@ -118,7 +124,7 @@ export function Access(): JSX.Element {
                 </motion.h1>}
             </AnimatePresence>
             <AnimatePresence>
-                {!isOut && <motion.div 
+                { render && <motion.div 
                     className="flex flex-col gap-8 sm:w-85 w-[75%]"
                     initial={{
                         x: 30,
@@ -229,7 +235,7 @@ export function Access(): JSX.Element {
                                                 )}
                                             />
                                         </div>
-                                        <p onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/forgot-password", 700)}} className="font-medium text-sm text-blue-500 hover:text-blue-400">Forgot password?</p>
+                                        <p onClick={() => {transitionTo("/forgot-password")}} className="font-medium text-sm text-blue-500 hover:text-blue-400">Forgot password?</p>
                                     </div>
                                     <motion.div className="w-full flex justify-center items-center self-center " whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}>
                                         <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Sign in</Button>
@@ -242,12 +248,12 @@ export function Access(): JSX.Element {
                             <p className="absolute bg-background-primary w-fit h-fit px-2 font-medium text-sm text-neutral-600 dark:bg-background-primary-dark dark:text-neutral-400">or</p>
                         </div>
                         <div className="flex flex-col justify-center gap-5 w-full">
-                            <motion.div className="w-full self-center" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup", 700) }} whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}><Button className="bg-transparent border-3 border-neutral-800 text-neutral-800 font-semibold text-[14px] hover:text-neutral-100 tracking-normal py-4 w-full dark:border-neutral-400 dark:text-white/80">Create account</Button></motion.div>
-                            {isLocalSupported && <p onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/access/signup/local", 700)}} className="text-center font-medium text-sm text-blue-500 hover:text-blue-400 w-full">Sign in without an account</p>}
+                            <motion.div className="w-full self-center" onClick={() => {transitionTo("/access/signup")}} whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 }}} animate={{ transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}><Button className="bg-transparent border-3 border-neutral-800 text-neutral-800 font-semibold text-[14px] hover:text-neutral-100 tracking-normal py-4 w-full dark:border-neutral-400 dark:text-white/80">Create account</Button></motion.div>
+                            {isLocalSupported && <p onClick={() => {transitionTo("/access/signup/local")}} className="text-center font-medium text-sm text-blue-500 hover:text-blue-400 w-full">Sign in without an account</p>}
                             {!isLocalSupported && 
                                 <div>
                                     <p className="text-center font-medium text-sm text-red-500/60 line-through w-full">Sign in without an account</p>
-                                    <p className="font-medium text-sm text-black/50 text-center dark:text-white/50">Your browser doesnt support this feature, for more information please read our <span className="font-medium text-sm text-blue-500/60 hover:text-blue-400/60 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/faq", 600)}}>FAQ</span></p>
+                                    <p className="font-medium text-sm text-black/50 text-center dark:text-white/50">Your browser doesnt support this feature, for more information please read our <span className="font-medium text-sm text-blue-500/60 hover:text-blue-400/60 underline" onClick={() => {transitionTo("/faq")}}>FAQ</span></p>
                                 </div>
                             }
                         </div>

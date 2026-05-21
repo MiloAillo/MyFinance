@@ -9,14 +9,14 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { ModeToggle } from "./mode-toggle";
 
 interface trackerNavbarInterface {
-    isOut: boolean,
-    setIsOut: (value: boolean) => void,
+    render: boolean,
     backLink: string,
     trackerName: string,
-    getTheme?: () => void
+    getTheme?: () => void,
+    onBackClick?: () => void
 }
 
-export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName, getTheme }: trackerNavbarInterface): JSX.Element {
+export function TrackerNavbar({ render, backLink, trackerName, getTheme, onBackClick }: trackerNavbarInterface): JSX.Element {
     const [ session, setSession ] = useState<"local" | "cloud" | null>(null)
     const [ userData, setUserData ] = useState<any>()
     const user = useRouteLoaderData("main")
@@ -47,7 +47,7 @@ export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName, getTheme
     return (
             <div className="flex justify-center z-10 fixed md:max-w-[650px]">
                 <AnimatePresence>
-                    {!isOut && <motion.div
+                    {render && <motion.div
                     key={"navbar"}
                     className="w-screen"
                     initial={{
@@ -71,7 +71,7 @@ export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName, getTheme
                         <div className="fixed z-0 bg-background-primary w-full h-15 dark:bg-background-primary-dark" />
                         <div className="flex justify-center items-center fixed w-screen z-10 mt-5 px-5 md:max-w-[650px]">
                             <div className="flex justify-between items-center z-10 w-full">
-                                <FontAwesomeIcon icon={faArrowLeft} onClick={() => {setIsOut(true); setTimeout(() => window.location.href = backLink, 400)}} className="w-10 h-10 text-xl text-neutral-800 dark:text-neutral-400" />
+                                <FontAwesomeIcon icon={faArrowLeft} onClick={onBackClick} className="w-10 h-10 text-xl text-neutral-800 dark:text-neutral-400" />
                                 <h1 className="ml-[7px] font-medium text-base text-neutral-500">{trackerName}</h1>
                                 <motion.div>
                                     <AnimatePresence mode="popLayout">
@@ -113,7 +113,7 @@ export function TrackerNavbar({ isOut, setIsOut, backLink, trackerName, getTheme
                 <div>
                     <motion.div>
                         <AnimatePresence>
-                            {isAccountOpen && !isOut && <motion.div 
+                            {isAccountOpen && render && <motion.div 
                                 key="accountDetails"
                                 className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 dark:bg-neutral-800/60 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] dark:backdrop-blur-[6px] backdrop-grayscale-50 z-20 md:right-auto md:-translate-x-60 md:w-54"
                                 initial = {{
