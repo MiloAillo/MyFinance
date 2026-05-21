@@ -11,16 +11,18 @@ import { useParams } from "react-router-dom";
 import { DBaddincome, DBaddoutcome, DBgetalltransactions, DBgetonetracker } from "@/lib/db";
 import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
+import useTransition from "@/hooks/useTransition";
 
 
 export function Tracker(): JSX.Element {
     const { id } = useParams();
 
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
+    
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>()
     const [ chart, setChart ] = useState<any[]>([])
     const [ trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number, current_balance: number } | null>(null)
-    const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ pendapatanUrl, setPendapatanUrl ] = useState<string | null>(null)
     const [ pengeluaranUrl, setPengeluaranUrl ] = useState<string | null>(null)
     const [ today, setToday ] = useState<string | null>(null)
@@ -440,9 +442,9 @@ export function Tracker(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center md:max-w-[650px]">
-            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} backLink="/app" trackerName={trackerData?.name ?? ""} getTheme={getTheme} />
+            <TrackerNavbar render={render} backLink="/app" trackerName={trackerData?.name ?? ""} getTheme={getTheme} onBackClick={() => transitionTo("/app")}/>
             <AnimatePresence>
-                {!isOut && <motion.div
+                {render && <motion.div
                     key={"main"}
                     className="flex flex-col items-center mt-15 w-[87%] gap-8"
                     initial={{
@@ -598,7 +600,7 @@ export function Tracker(): JSX.Element {
                             <div className="flex flex-col w-full">
                                 <div className="flex justify-between items-center w-full">
                                     <p className="font-medium text-base">Transactions History</p>
-                                    <Button onClick={() => { setIsOut(true); setTimeout(() => { window.location.href = `/app/tracker/history/${trackerData?.id}`; }, 400); }} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primary dark:text-neutral-800 dark:border text-white/95">More</Button>
+                                    <Button onClick={() => transitionTo(`/app/tracker/history/${trackerData?.id}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primary dark:text-neutral-800 dark:border text-white/95">More</Button>
                                 </div>
                                 {historyBalance.length === 0 && <div className="flex flex-col justify-center items-center text-center h-35">
                                     <p className="text-center font-medium text-base text-black/50 dark:text-white/50">You have very few transactions <br /> <span className="font-normal">Try adding it and see your history here.</span></p>                                
@@ -618,7 +620,7 @@ export function Tracker(): JSX.Element {
                             <div className="flex flex-col w-full gap-4 h-full">
                                 <div className="flex justify-between items-center w-full">
                                     <p className="font-medium text-base">Report & Insight</p>
-                                    <Button onClick={() => {setIsOut(true); setTimeout(() => window.location.href = `/app/tracker/report/${trackerData?.id}`, 400)}} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">More</Button>
+                                    <Button onClick={() => transitionTo(`/app/tracker/report/${trackerData?.id}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">More</Button>
                                 </div>
                                 <div className="flex flex-row gap-2 h-full w-full">
                                     <div className="flex flex-row gap-2 overflow-hidden w-full">
@@ -639,7 +641,7 @@ export function Tracker(): JSX.Element {
                                 </div>
                             </div>
                             <div className="flex flex-row gap-2 justify-center items-center mb-5">
-                                <p className="font-medium text-sm text-black/50 -mt-2 text-center dark:text-white/50">This page only show the last 7 transactions, data may look innacurate. Please refer to our <span className="text-blue-500/50 hover:text-blue-400/50 underline" onClick={() => {setIsOut(true); setTimeout(() => window.location.href = "/faq", 600)}}>FAQ</span></p>
+                                <p className="font-medium text-sm text-black/50 -mt-2 text-center dark:text-white/50">This page only show the last 7 transactions, data may look innacurate. Please refer to our <span className="text-blue-500/50 hover:text-blue-400/50 underline" onClick={() => transitionTo("/faq")}>FAQ</span></p>
                             </div>
                         </div>
                     </div>

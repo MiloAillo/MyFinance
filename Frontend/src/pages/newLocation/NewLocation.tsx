@@ -8,11 +8,12 @@ import { AlertCircleIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState, type JSX } from "react";
 import { useLocation, useParams } from "react-router-dom";
+import useTransition from "@/hooks/useTransition";
 
 export function NewLocation(): JSX.Element {
     const { token } = useParams<{token: string }>();
     const { search } = useLocation()
-    const [isOut, setIsOut] = useState<boolean>(false)
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
     const [ isLoading, setIsLoading ] = useState<boolean>(false)
     const [ status, setStatus ] = useState<"none" | "error" | "ok">("none")
     const [ errorMsg, setErrorMsg ] = useState<string>("")
@@ -52,7 +53,7 @@ export function NewLocation(): JSX.Element {
     return (
         <section>
             <AnimatePresence>
-                {!isOut && <motion.div
+                {render && <motion.div
                     key={"navbar"}
                     className="w-full h-screen flex justify-center items-center z-10 top-0 left-0"
                     initial={{
@@ -131,9 +132,9 @@ export function NewLocation(): JSX.Element {
                                     }}
                                 >
                                     <p className="text-green-600 font-semibold text-center">Request allowed, you can now login with your new device. </p>
-                                    <p className="underline text-blue-500 text-center" onClick={() => {setIsOut(true); setTimeout(() => {window.location.href = "/access"}, 400)}}>Go back to login page</p>
+                                    <p className="underline text-blue-500 text-center" onClick={() => transitionTo("/access")}>Go back to login page</p>
                                 </motion.div>
-                            }               
+                            }
                             { !isLoading && status != "ok" &&
                                 <motion.button 
                                     onClick={allowLoginHandler}

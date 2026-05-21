@@ -11,10 +11,13 @@ import { useParams } from "react-router-dom";
 import { DBgetalltransactions, DBgetonetracker } from "@/lib/db";
 import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
+import useTransition from "@/hooks/useTransition";
 
 export function Report(): JSX.Element {
     const { id } = useParams()
 
+    const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
+    
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>()
     const [ displayData, setDisplayData ] = useState<{income: number, outcome: number, incomePercentage: number, outcomePercentage: number, chartData: any[], highestIncome: number | null, highestOutcome: number | null, transactionsHistory: any[]}>({income: 0, outcome: 0, incomePercentage: 0, outcomePercentage: 0, chartData: [], highestIncome: null, highestOutcome: null, transactionsHistory: []})
@@ -23,7 +26,6 @@ export function Report(): JSX.Element {
     const [ _trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number } | null>(null)
 
     const [ range, setRange ] = useState<number>(7)
-    const [ isOut, setIsOut ] = useState<boolean>(false)
     const [ page, setPage ] = useState<number>(1)
     const [ lastPage, setLastPage ] = useState<number>(1)
 
@@ -551,9 +553,9 @@ export function Report(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center">
-            <TrackerNavbar setIsOut={setIsOut} isOut={isOut} trackerName="My New Tracker" backLink={`/app/tracker/${id}`} getTheme={getTheme}/>
+            <TrackerNavbar render={render} trackerName="My New Tracker" backLink={`/app/tracker/${id}`} getTheme={getTheme} onBackClick={() => transitionTo(`/app/tracker/${id}`)}/>
             <AnimatePresence>
-                {!isOut && <motion.div
+                {render && <motion.div
                     className="w-full flex flex-col items-center"
                     initial={{
                         x: 30,
