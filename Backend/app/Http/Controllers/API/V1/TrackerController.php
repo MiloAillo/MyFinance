@@ -213,7 +213,7 @@ class TrackerController extends Controller
 
         return ApiResponseHelper::successResponse(
             message: 'Tracker created successfully.',
-            data: new TrackerResource($tracker),
+            data: new TrackerResource($tracker->refresh()),
         );
     }
 
