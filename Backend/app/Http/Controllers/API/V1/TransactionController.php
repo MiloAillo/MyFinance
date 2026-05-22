@@ -130,9 +130,8 @@ class TransactionController extends Controller
     public function store(StoreTransactionRequest $request, Tracker $tracker)
     {
         $validated = $request->validated();
-        $transaction = null;
 
-        DB::transaction(function () use ($validated, $tracker, &$transaction) {
+        $transaction = DB::transaction(function () use ($validated, $tracker) {
             $transaction = Transaction::create($validated);
             
             $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
@@ -142,11 +141,13 @@ class TransactionController extends Controller
             } else {
                 $tracker->decrement('current_balance', $transaction->amount);
             }
+            
+            return $transaction;
         });
 
         return ApiResponseHelper::successResponse(
             message: 'Transaction created successfully.',
-            data: new TransactionResource($transaction),
+            data: new TransactionResource($transaction->refresh()),
         );
     }
 
