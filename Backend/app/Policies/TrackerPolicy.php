@@ -26,7 +26,7 @@ class TrackerPolicy
      */
     public function view(User $user, Tracker $tracker): bool
     {
-        return $user->id === $tracker->user_id;
+        return $user->getKey() === $tracker->user_id;
     }
 
     public function viewDeleted(User $user, Tracker $tracker): bool|Response
@@ -35,7 +35,7 @@ class TrackerPolicy
             return Response::deny('Tracker must be deleted first.');
         }
         
-        return $user->id === $tracker->user_id;
+        return $user->getKey() === $tracker->user_id;
     }
 
     /**
@@ -55,7 +55,7 @@ class TrackerPolicy
             return Response::deny('Cannot update a deleted tracker.');
         }
 
-        return $user->id === $tracker->user_id;
+        return $user->getKey() === $tracker->user_id;
     }
 
     /**
@@ -67,7 +67,7 @@ class TrackerPolicy
             return Response::deny('Tracker is already deleted.');
         }
 
-        return $user->id === $tracker->user_id;
+        return $user->getKey() === $tracker->user_id;
     }
 
     /**
@@ -79,7 +79,7 @@ class TrackerPolicy
             return Response::deny('Tracker must be deleted first.');
         }
 
-        return $user->id === $tracker->user_id;
+        return $user->getKey() === $tracker->user_id;
     }
 
     /**
@@ -91,6 +91,6 @@ class TrackerPolicy
             return Response::deny('Tracker must be deleted first.');
         }
 
-        return $user->id === $tracker->user_id;
+        return $user->getKey() === $tracker->user_id;
     }
 }

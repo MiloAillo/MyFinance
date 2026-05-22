@@ -27,7 +27,7 @@ class TransactionPolicy
      */
     public function view(User $user, Transaction $transaction): bool
     {
-        return $user->id === $transaction->user_id;
+        return $user->getKey() === $transaction->user_id;
     }
 
     public function viewDeleted(User $user, Transaction $transaction): bool|Response
@@ -36,7 +36,7 @@ class TransactionPolicy
             return Response::deny('Transaction must be deleted first.');
         }
         
-        return $user->id === $transaction->user_id;
+        return $user->getKey() === $transaction->user_id;
     }
 
     /**
@@ -44,7 +44,7 @@ class TransactionPolicy
      */
     public function create(User $user, Tracker $tracker): bool
     {
-        return $user->id === $tracker->user_id;
+        return $user->getKey() === $tracker->user_id;
     }
 
     /**
@@ -56,7 +56,7 @@ class TransactionPolicy
             return Response::deny('Cannot update a deleted transaction.');
         }
 
-        return $user->id === $transaction->user_id;
+        return $user->getKey() === $transaction->user_id;
     }
 
     /**
@@ -68,7 +68,7 @@ class TransactionPolicy
             return Response::deny('Transaction is already deleted.');
         }
 
-        return $user->id === $transaction->user_id;
+        return $user->getKey() === $transaction->user_id;
     }
 
     /**
@@ -84,7 +84,7 @@ class TransactionPolicy
             return Response::deny('Transaction must be deleted first.');
         }
 
-        return $user->id === $transaction->user_id;
+        return $user->getKey() === $transaction->user_id;
     }
 
     /**
@@ -96,6 +96,6 @@ class TransactionPolicy
             return Response::deny('Transaction must be deleted first.');
         }
 
-        return $user->id === $transaction->user_id;
+        return $user->getKey() === $transaction->user_id;
     }
 }

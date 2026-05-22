@@ -264,6 +264,7 @@ class TransactionController extends Controller
 
     public function restore(Request $request, Transaction $transaction)
     {
+        $transaction = $transaction->load(['tracker' => fn($query) => $query->withTrashed()]);
         Gate::authorize('restore', $transaction);
 
         DB::transaction(function () use ($transaction) {

@@ -23,7 +23,6 @@ class TransactionResource extends BaseResource
     public $relationships = [
         'user' => UserResource::class,
         'tracker' => TrackerResource::class,
-        'attachments' => AttachmentResource::class,
     ];
 
     public function toLinks(Request $request)
