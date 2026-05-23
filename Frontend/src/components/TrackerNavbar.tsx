@@ -22,6 +22,8 @@ export function TrackerNavbar({ render, backLink, trackerName, getTheme, onBackC
     const user = useRouteLoaderData("main")
     const WindowSession = localStorage.getItem("session")
 
+    console.log("tracker navbar name received: ", trackerName)
+
     useEffect(() => {
 
         if(WindowSession === null) window.location.href = "/access"
@@ -35,7 +37,7 @@ export function TrackerNavbar({ render, backLink, trackerName, getTheme, onBackC
         //for cloud
         if(WindowSession === "cloud") {
             console.log("navbar", user)
-            setUserData(user)
+            setUserData(user.attributes)
             console.log(user)
         }
 
