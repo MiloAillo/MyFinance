@@ -7,18 +7,22 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { TrackerNavbar } from "@/components/TrackerNavbar";
 import { DBgetalltransactions } from "@/lib/db";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
 import useTransition from "@/hooks/useTransition";
+import { Input } from "@/components/ui/input";
 
 export function TrackerHistory(): JSX.Element {
     const { id } = useParams()
+    const [ searchParams ] = useSearchParams()
 
     const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
-    // const [ isAccountOpen, setIsAccountOpen ] = useState<boolean>(false)
+    
+    const [ trackerName, setTrackerName ] = useState<string>("")
+
     const [ showPlus, setShowPlus ] = useState(true)
     const [ showwMinus, setShowMinus ] = useState(true)
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
@@ -27,6 +31,11 @@ export function TrackerHistory(): JSX.Element {
     const [ page, setPage ] = useState<number>(1)
     const [ direction, setDirection ] = useState<string>("desc")
     const [lastPage, setLastPage] = useState(1)
+
+    // set the trackerName for first launch
+    useEffect(() => {
+        setTrackerName(searchParams.get("name") ?? "")
+    }, [])
 
     const WindowSession = localStorage.getItem("session")
 
@@ -80,20 +89,20 @@ export function TrackerHistory(): JSX.Element {
         const showBoth = showPlus && showwMinus
         const minusOnly = showwMinus && !showPlus
         const plusOnly = !showwMinus && showPlus
-        const type = showBoth ? "both" : minusOnly ? "expense" : plusOnly ? "income" : ""
+        const type = showBoth ? "" : minusOnly ? "income" : plusOnly ? "expense" : ""
 
         try {
             console.log(id, page, direction, type)
-            const res = await axios.get(`${ApiUrl}/api/trackers/${id}/paginate/transactions?page=${page}&per_page=10&order=${direction}&type=${type}`, {
+            const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions?page=${page}&size=10&filter[type]=${type}&sort=${direction == "desc" ? "-" : ""}date`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
             })
             const data = res.data
-            const transactions = data.data.transactions.data 
-            console.log(data.data.transactions.data)
+            const transactions = data.data 
+            console.log("data: ", transactions)
 
-            setLastPage(data.data.transactions.last_page)
+            setLastPage(data.meta.last_page)
             setData(transactions)
         } catch(err) {
             console.log(err)
@@ -139,7 +148,7 @@ export function TrackerHistory(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center w-full md:max-w-[650px]">
-            <TrackerNavbar trackerName="My New Navbar" render={render} backLink={`/app/tracker/${id}`} onBackClick={() => transitionTo(`/app/tracker/${id}`)}  />
+            <TrackerNavbar trackerName={trackerName} render={render} backLink={`/app/tracker/${id}`} onBackClick={() => transitionTo(`/app/tracker/${id}`)}  />
             <AnimatePresence>
                 {render && <motion.div
                     key={"tracker-history"}
@@ -240,11 +249,11 @@ export function TrackerHistory(): JSX.Element {
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
                                         <div className="flex flex-col w-full pb-5 gap-0.5">
                                             <div className="flex w-full flex-col flex-1">
-                                                <p className="text-sm font-normal">{item.name}</p>
-                                                <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
+                                                <p className="text-sm font-normal">{item.attributes.name}</p>
+                                                <p className="font-semibold text-base">{item.attributes.type === "income" ? "+ " : "- "} Rp.{parseInt(item.attributes.amount, 10).toLocaleString("ID")}</p>
                                             </div>
                                         </div>
-                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{new Date(item.transaction_date).toLocaleDateString("ID", {
+                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{new Date(item.attributes.date).toLocaleDateString("ID", {
                                             day: "numeric",
                                             month: "numeric",
                                             year: "numeric"
@@ -267,12 +276,12 @@ export function TrackerHistory(): JSX.Element {
                                 <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
                                     {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
                                     <div className="flex w-full flex-row justify-between items-end">
-                                        <h4 className="font-medium text-xl">{item.name}</h4>
-                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
+                                        <h4 className="font-medium text-xl">{item.attributes.name}</h4>
+                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.attributes.type === "income" ? "+ " : "- "} Rp.{parseInt(item.attributes.amount, 10).toLocaleString("ID")}</p>
                                     </div>
-                                    <p className="text-base font-normal self-start -mt-2">{item.description}</p>
+                                    <p className="text-base font-normal self-start -mt-2">{item.attributes.description}</p>
                                     <p className="text-sm font-normal text-neutral-400 self-end">
-                                        {(new Date(item.transaction_date)).toLocaleDateString("ID", {
+                                        {(new Date(item.attributes.date)).toLocaleDateString("EN", {
                                             weekday: "long",
                                             day: "numeric",
                                             month: "long",
