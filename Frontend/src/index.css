@@ -49,12 +49,14 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-button-primary: var(--button-primary);
+  --color-button-primary-dark: var(--button-primary-dark);
   --color-background-primary: var(--background-primary);
   --color-background-primary-dark: var(--background-primary-dark);
 }
 
 :root {
   --button-primary: linear-gradient(356deg, rgba(55, 255, 182, 1) 30%, rgba(255, 248, 55, 1) 100%);
+  --button-primary-dark: linear-gradient(356deg, rgb(218, 55, 255) 30%, rgb(255, 71, 188) 100%);
   --background-primary: #F7F7F7;
   --background-primary-dark: #211E1E;
   --radius: 0.625rem;
