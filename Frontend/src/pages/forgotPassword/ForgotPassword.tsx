@@ -10,7 +10,6 @@ import { AnimatePresence, motion, spring } from "motion/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { isAxiosError } from "axios";
 import { ApiUrl } from "@/lib/variable";
-import { OrbitProgress } from "react-loading-indicators";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import useTransition from "@/hooks/useTransition";
@@ -70,6 +69,7 @@ export function ForgotPassword(): JSX.Element {
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
                 {render && <motion.div
+                    layout
                     className="flex flex-col gap-8 sm:w-85 w-[75%]"
                     initial={{
                         x: 30,
@@ -109,6 +109,7 @@ export function ForgotPassword(): JSX.Element {
                     <AnimatePresence>
                         {isError &&
                             <motion.div
+                                layout
                                 initial={{
                                     x: 30,
                                     opacity: 0
@@ -147,6 +148,7 @@ export function ForgotPassword(): JSX.Element {
                         {isSuccess &&
                             <motion.div
                                 key="success"
+                                layout
                                 initial={{
                                     x: 30,
                                     opacity: 0
@@ -176,10 +178,10 @@ export function ForgotPassword(): JSX.Element {
                             </motion.div>
                         }
                     </AnimatePresence>
-                    <div className="w-full flex flex-col gap-4">
+                    <motion.div layout className="w-full flex flex-col gap-4">
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(submit)} className="w-full">
-                                <div className="flex flex-col gap-5 w-full justify-center">
+                                <motion.div layout className="flex flex-col gap-5 w-full justify-center">
                                     <FormField
                                         control={form.control}
                                         name="email"
@@ -199,6 +201,7 @@ export function ForgotPassword(): JSX.Element {
                                         {!isLoading &&
                                             <motion.div
                                                 key={"submit"}
+                                                layout
                                                 className="w-full flex justify-center items-center self-center"
                                                 whileTap={{ scale: 0.95, width: "95%", y: 2, transition: { type: spring, stiffness: 120, damping: 2, mass: 0.5 } }}
                                                 initial={{ x: 30, opacity: 0 }}
@@ -211,6 +214,7 @@ export function ForgotPassword(): JSX.Element {
                                         {isLoading &&
                                             <motion.div
                                                 key={"loading"}
+                                                layout
                                                 className="w-full flex justify-center items-center self-center"
                                                 initial={{ x: 30, opacity: 0 }}
                                                 animate={{ x: 0, opacity: 100 }}
@@ -220,11 +224,11 @@ export function ForgotPassword(): JSX.Element {
                                             </motion.div>
                                         }
                                     </AnimatePresence>
-                                </div>
+                                </motion.div>
                             </form>
                         </Form>
                         <p className="w-full text-center font-medium text-sm">Remembered your password? <span onClick={() => transitionTo("/access")} className="text-blue-500 hover:text-blue-400 underline cursor-pointer dark:text-blue-400 dark:hover:text-blue-500">Sign in</span></p>
-                    </div>
+                    </motion.div>
                 </motion.div>}
             </AnimatePresence>
         </section>
