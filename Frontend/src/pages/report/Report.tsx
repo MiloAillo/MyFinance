@@ -7,7 +7,7 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { TrackerNavbar } from "@/components/TrackerNavbar";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { DBgetalltransactions, DBgetonetracker } from "@/lib/db";
 import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
@@ -15,8 +15,11 @@ import useTransition from "@/hooks/useTransition";
 
 export function Report(): JSX.Element {
     const { id } = useParams()
+    const [ searchParams ] = useSearchParams()
 
     const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
+
+    const [ trackerName, setTrackerName ] = useState<string>("")
     
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any[]>()
@@ -28,6 +31,10 @@ export function Report(): JSX.Element {
     const [ range, setRange ] = useState<number>(7)
     const [ page, setPage ] = useState<number>(1)
     const [ lastPage, setLastPage ] = useState<number>(1)
+
+    useEffect(() => {
+        setTrackerName(searchParams.get("name") ?? "")
+    }, []) 
 
     // to get all transactions and set it inside useState
     const localInitialize = async () => {
@@ -44,11 +51,11 @@ export function Report(): JSX.Element {
     const cloudInitialize = async () => {
         console.log("cloud initialize triggered!")
         try {
-            const res = await axios.get(`${ApiUrl}/api/trackers/${id}/all/transactions`, {
+            const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
-            })
+            })  
             const data = await res.data
             const transactions = data.data.tracker.transactions
 
@@ -553,7 +560,7 @@ export function Report(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center">
-            <TrackerNavbar render={render} trackerName="My New Tracker" backLink={`/app/tracker/${id}`} getTheme={getTheme} onBackClick={() => transitionTo(`/app/tracker/${id}`)}/>
+            <TrackerNavbar render={render} trackerName={trackerName} backLink={`/app/tracker/${id}`} getTheme={getTheme} onBackClick={() => transitionTo(`/app/tracker/${id}`)}/>
             <AnimatePresence>
                 {render && <motion.div
                     className="w-full flex flex-col items-center"
