@@ -100,10 +100,10 @@ export function ForgotPassword(): JSX.Element {
                     }}
                 >
                     <div className="flex flex-col items-center gap-5">
-                        <FontAwesomeIcon icon={faLock} className="text-6xl! text-stone-900"></FontAwesomeIcon>
+                        <FontAwesomeIcon icon={faLock} className="text-6xl! text-stone-900 dark:text-background-primary/75"></FontAwesomeIcon>
                         <div className="flex flex-col gap-1.5">
                             <p className="text-stone-900 text-2xl font-semibold tracking-wide dark:text-background-primary text-center">Trouble Logging In?</p>
-                            <p className="text-base  text-center text-stone-900">Enter your email, and we'll send you a link to reset your account password.</p>
+                            <p className="text-base  text-center text-stone-900 dark:text-background-primary/90">Enter your email, and we'll send you a link to reset your account password.</p>
                         </div>
                     </div>
                     <AnimatePresence>
@@ -205,7 +205,7 @@ export function ForgotPassword(): JSX.Element {
                                                 animate={{ x: 0, opacity: 100 }}
                                                 exit={{ x: -30, opacity: 0 }}
                                             >
-                                                <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Send reset link</Button>
+                                                <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] dark:[background-image:var(--color-button-primary-dark)] w-full cursor-pointer">Send reset link</Button>
                                             </motion.div>
                                         }
                                         {isLoading &&
@@ -216,14 +216,14 @@ export function ForgotPassword(): JSX.Element {
                                                 animate={{ x: 0, opacity: 100 }}
                                                 exit={{ x: -30, opacity: 0 }}
                                             >
-                                                <OrbitProgress variant="track-disc" speedPlus={2} easing="ease-in-out" style={{ fontSize: 5 }} />
+                                                <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Requesting a link...</p>
                                             </motion.div>
                                         }
                                     </AnimatePresence>
                                 </div>
                             </form>
                         </Form>
-                        <p className="w-full text-center font-medium text-sm">Remembered your password? <span onClick={() => transitionTo("/access")} className="text-blue-500 hover:text-blue-400 underline cursor-pointer">Sign in</span></p>
+                        <p className="w-full text-center font-medium text-sm">Remembered your password? <span onClick={() => transitionTo("/access")} className="text-blue-500 hover:text-blue-400 underline cursor-pointer dark:text-blue-400 dark:hover:text-blue-500">Sign in</span></p>
                     </div>
                 </motion.div>}
             </AnimatePresence>
