@@ -13,6 +13,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, Dr
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import useTransition from "@/hooks/useTransition";
+import { Loader2Icon } from "lucide-react";
 
 export function EditProfile(): JSX.Element {
 
@@ -34,6 +35,9 @@ export function EditProfile(): JSX.Element {
     const [ deleteConfirmation, setDeleteConfirmation ] = useState<boolean>(false)
     const [ verificationCooldown, setVerificationCooldown ] = useState<number>(0)
     const [ verificationLoading, setVerificationLoading ] = useState<boolean>(false)
+
+    // for loading purposes 
+    const [ sendingRequest, setSendingRequest ] = useState<boolean>(false)
 
     const username = useRef<HTMLInputElement | null>(null)
     const email = useRef<HTMLInputElement | null>(null)
@@ -93,6 +97,8 @@ export function EditProfile(): JSX.Element {
     };
 
     const edit = async () => {
+        setSendingRequest(true)
+
         if(session === "local" && username.current?.value) {
             try {
                 await DBchangename(username.current.value)
@@ -121,6 +127,8 @@ export function EditProfile(): JSX.Element {
                 setFailed(true)
             }
         }
+
+        setSendingRequest(true)
     }
 
     const handleConfirm = async () => {
@@ -152,33 +160,33 @@ export function EditProfile(): JSX.Element {
         }
     }
 
-    // const handleDeleteConfirm = async () => {
-    //     if (loadingChangeImage) return
+    const handleDeleteConfirm = async () => {
+        if (loadingChangeImage) return
 
-    //     const formData = new FormData()
-    //     formData.append("_method", "PATCH")
-    //     formData.append("avatar", "")
+        const formData = new FormData()
+        formData.append("_method", "PATCH")
+        formData.append("avatar", "null")
 
-    //     try {
-    //         setChangeImageStatus("null")
-    //         setLoadingChangeImage(true)
+        try {
+            setChangeImageStatus("null")
+            setLoadingChangeImage(true)
 
-    //         await axios.post(`${ApiUrl}/users/profile`, formData, {
-    //             headers: {
-    //                 Authorization: `Bearer ${localStorage.getItem("Authorization")}`
-    //             }
-    //         })
+            await axios.post(`${ApiUrl}/users/profile`, formData, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+                }
+            })
 
-    //         setLoadingChangeImage(false)
-    //         setChangeImageStatus("success")
+            setLoadingChangeImage(false)
+            setChangeImageStatus("success")
 
-    //         handleDelete()
-    //     } catch (err) {
-    //         console.log(err)
-    //         setLoadingChangeImage(false)
-    //         setChangeImageStatus("reject")
-    //     }
-    // }
+            handleDelete()
+        } catch (err) {
+            console.log(err)
+            setLoadingChangeImage(false)
+            setChangeImageStatus("reject")
+        }
+    }
 
     const handleSendVerification = async () => {
         if (verificationLoading || verificationCooldown > 0) return
@@ -246,7 +254,7 @@ export function EditProfile(): JSX.Element {
         <DrawerFooter className="flex flex-col gap-8 w-full">
             <div className="flex flex-col justify-center items-center gap-3 h-20">
                 <p className="font-semibold text-base">Are you sure want to delete your photo profile?</p>
-                <Button className="flex-1 h-12 w-full bg-red-700">
+                <Button onClick={() => handleDeleteConfirm()} className="flex-1 h-12 w-full bg-red-700">
                     <FontAwesomeIcon icon={faTrash} ></FontAwesomeIcon>
                     <p>Delete</p>
                 </Button>
@@ -297,8 +305,9 @@ export function EditProfile(): JSX.Element {
                     <div className="flex justify-between items-center gap-2 mt-5 w-[85%] z-10 fixed">
                         <FontAwesomeIcon onClick={() => {transitionTo("/app")}} icon={faArrowLeft} className="w-10 h-10 text-xl text-neutral-800 dark:text-neutral-400" />
                         <h1 className={`font-medium text-base text-neutral-500 ${!isCredentialDifferent && "mr-5"} ${isCredentialDifferent && "mr-[-5px]"}`}>Edit Profile</h1>
-                        {isCredentialDifferent && <FontAwesomeIcon onClick={() => edit()} icon={faCheck} className="text-xl dark:text-neutral-400" />}
-                        {!isCredentialDifferent && <div/>}
+                        {isCredentialDifferent && !sendingRequest && <FontAwesomeIcon onClick={() => edit()} icon={faCheck} className="text-xl dark:text-neutral-400" />}
+                        {sendingRequest && <Loader2Icon className="animate-spin" />}
+                        {!isCredentialDifferent && !sendingRequest && <div/>}
                     </div>
                 </motion.div>}
                 { render && <motion.div
