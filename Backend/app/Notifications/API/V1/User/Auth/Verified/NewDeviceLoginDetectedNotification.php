@@ -46,12 +46,11 @@ class NewDeviceLoginDetectedNotification extends Notification implements ShouldQ
         
         return (new MailMessage)
             ->subject('Verify Your New Device - ' . config('app.name'))
-            ->greeting('Hello!')
-            ->line('You are receiving this email because we received a new device login request for your account.')
-            ->action('Verify Device', $frontendUrl)
-            ->line('This verification link will expire in ' . $this->expiresInMinutes . ' minutes.')
-            ->line('If you did not request a new device login, no further action is required.')
-            ->salutation('Regards, ' . config('app.name'));
+            ->view('emails.auth.new-device-verification', [
+                'name' => $notifiable->name,
+                'actionUrl' => $frontendUrl,
+                'expiration' => $this->expiresInMinutes,
+            ]);
     }
 
     /**
