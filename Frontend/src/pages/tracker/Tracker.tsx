@@ -12,7 +12,7 @@ import { DBaddincome, DBaddoutcome, DBgetalltransactions, DBgetonetracker } from
 import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
 import useTransition from "@/hooks/useTransition";
-
+import { Loader2Icon } from "lucide-react";
 
 export function Tracker(): JSX.Element {
     const { id } = useParams();
@@ -30,6 +30,13 @@ export function Tracker(): JSX.Element {
     const [ historyBalance, setHistoryBalance ] = useState<any[]>([])
     const [ report, setReport ] = useState<{income: number, outcome: number, balance: number}>({income: 0, outcome: 0, balance: 0})
     
+    // loading bar purposes
+    const [ initialLoad, setInitialLoad ] = useState<boolean>(true)
+    const [ sendingRequest, setSendingRequest ] = useState<boolean>(false)
+    const [ dataLoad, setDataLoad ] = useState<boolean>(false)
+    const [ graphLoad, setGraphLoad ] = useState<boolean>(false)
+
+    const [ trackerName, setTrackerName ] = useState<string>("")
 
     const pendapatanJudul = useRef<HTMLInputElement | null>(null)
     const pendapatanDesc = useRef<HTMLInputElement | null>(null)
@@ -58,8 +65,10 @@ export function Tracker(): JSX.Element {
     }
     
     const cloudInitialize = async () => {
+        setDataLoad(true)
+
         try {
-            const res = await axios.get(`${ApiUrl}/api/trackers/${id}`, {
+            const res = await axios.get(`${ApiUrl}/trackers/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
@@ -67,14 +76,49 @@ export function Tracker(): JSX.Element {
 
             const data = await res.data
 
-            console.log("cloud initialize data fetch", data.data.tracker)
-            setData(data.data.tracker.transactions as any[])
-            setTrackerData(data.data.tracker)
+            setTrackerData(data.data.attributes)
+            setBalance(Math.round(data.data.attributes.current_balance))
+            setTrackerName(data.data.attributes.name)
+
+            getCloudTransactions()
         } catch(err) {
             console.log(err)
             // add error catcher
+        } finally {
+            setDataLoad(false)
         }
     }
+
+    // separate function for fetching transactions manually after recent backend changes
+    const getCloudTransactions = async () => {
+        setGraphLoad(true)
+
+        try {
+            const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions?size=7`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+                }
+            })
+            const data = await res.data
+
+            console.log("cloud fetched transactions :", data.data)
+            setData(data.data)
+        } catch (err) {
+            console.log(err)
+        } finally {
+            setGraphLoad(false)
+            setInitialLoad(false)
+        }
+    }
+
+    // DEBUG: delete when needed
+    useEffect(() => {
+        console.log("updated trackerData: ", trackerData)
+    }, [trackerData])
+
+    useEffect(() => {
+        console.log("updated data: ", data)
+    }, [data])
 
     //get the tracker data for local
     const getLocalTrackerData = async () => {
@@ -100,6 +144,8 @@ export function Tracker(): JSX.Element {
 
     // adding income function (NEED IF ELE FUNCTION FOR CLOUD)
     const addIncome = async () => {
+        setSendingRequest(true)
+
         const judul = pendapatanJudul.current?.value
         const desc = pendapatanDesc.current?.value
         const image = pendapatanImage.current?.files?.[0]
@@ -125,9 +171,9 @@ export function Tracker(): JSX.Element {
                     formData.append('amount', cleanedBalance.toString())
                     formData.append('description', desc)
                     if(image) formData.append('image', image)
-                    formData.append('transaction_date', date.toISOString().slice(0, 19).replace('T', ' '))
+                    formData.append('date', date.toISOString().slice(0, 19).replace('T', ' '))
 
-                    const res = await axios.post(`${ApiUrl}/api/trackers/${id}/transactions`, formData, {
+                    const res = await axios.post(`${ApiUrl}/trackers/${id}/transactions`, formData, {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                         }
@@ -140,10 +186,14 @@ export function Tracker(): JSX.Element {
                 }
             }
         }
+
+        setSendingRequest(false)
     }
 
     // adding outcome function (NEED IF ELE FUNCTION FOR CLOUD)
     const addOutcome = async () => {
+        setSendingRequest(true)
+
         const judul = pengeluaranJudul.current?.value
         const desc = pengeluaranDesc.current?.value
         const image = pengeluaranImage.current?.files?.[0]
@@ -171,7 +221,7 @@ export function Tracker(): JSX.Element {
                     if(image) formData.append('image', image)
                     formData.append('transaction_date', date.toISOString().slice(0, 19).replace('T', ' '))
 
-                    const res = await axios.post(`${ApiUrl}/api/trackers/${id}/transactions`, formData, {
+                    const res = await axios.post(`${ApiUrl}/trackers/${id}/transactions`, formData, {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                         }
@@ -184,6 +234,8 @@ export function Tracker(): JSX.Element {
                 }
             }
         }
+
+        setSendingRequest(false)
     }
 
     // parse data for transactions history (NEED IF ELSE FOR CLOUD TO WORK!) 
@@ -210,28 +262,32 @@ export function Tracker(): JSX.Element {
         }
 
         if(data && session === "cloud") {
-            const formattedData = data
+            const formattedData = data            
             
-            const slicedData = (formattedData.sort((a, b) => b.transaction_date - a.transaction_date)).slice(0, 3)
+            const slicedData = (formattedData.sort((a, b) => b.attributes.date - a.attributes.date)).slice(0, 3)
+            
+            
             const clearedData: {name: string, date: string, amount: string}[] = []
+
             slicedData.forEach((item) => {
+                const dateObject = new Date(item.attributes.date)
+                
                 // solve the date object to string
-                const year = item.transaction_date.getFullYear()
-                const month = item.transaction_date.toLocaleString("ID", {
+                const year = dateObject.getFullYear()
+                const month = dateObject.toLocaleString("ID", {
                     month: "numeric",
                 })
-                const day = item.transaction_date.getDate()
+                const day = dateObject.getDate()
                 const formattedDate = `${day}-${month}-${year}`
-                console.log(`${day}-${month}-${year}`, item.transaction_date)
                 
                 // solve the outcome income format
-                const type = item.type
-                const amount = parseInt(item.amount, 10)
+                const type = item.attributes.type
+                const amount = parseInt(item.attributes.amount, 10)
                 const formattedAmount = type === "income" ? `+ Rp.${amount.toLocaleString("ID")}` : `- Rp.${amount.toLocaleString("ID")}`
-
-                clearedData.push({name: item.name, date: formattedDate, amount: formattedAmount})
+                
+                clearedData.push({name: item.attributes.name, date: formattedDate, amount: formattedAmount})
             })
-
+            
             setHistoryBalance(clearedData)
         }
     }
@@ -264,15 +320,16 @@ export function Tracker(): JSX.Element {
 
         if(data && session === "cloud") {
             const formattedData: any[] = [];
+
             data.forEach((item) => {
-                const realDate = new Date(item.transaction_date)
-                item.transaction_date = realDate
+                const dateObject = new Date(item.attributes.date)
+                item.attributes.date = dateObject
 
                 return formattedData.push(item)
             })
             
-            formattedData.sort((a, b) => a.transaction_date - b.transaction_date)
-
+            formattedData.sort((a, b) => a.attributes.date - b.attributes.date)
+            
             // variable for final income and outcome
             let income = 0
             let outcome = 0
@@ -280,8 +337,8 @@ export function Tracker(): JSX.Element {
             
             formattedData.forEach((item) => {
                 // solve the outcome income format
-                const type = item.type
-                const amount = parseInt(item.amount, 10)
+                const type = item.attributes.type
+                const amount = parseInt(item.attributes.amount, 10)
                 
                 if(type === "income") {
                     income += amount
@@ -390,37 +447,71 @@ export function Tracker(): JSX.Element {
         }
         if(session === "cloud") {
             if(data) {
-                setBalance(trackerData ? trackerData.current_balance : 0)
+                const now = new Date()
 
-                // set the transaction date to real date
+                // set transaction dates to real date obj
                 const formattedData: any[] = []
                 data.forEach((item) => {
-                    const realDate = new Date(item.transaction_date)
-                    item.transaction_date = realDate
-
-                    return formattedData.push(item)
+                    const realDate = new Date(item.attributes.date)
+                    item.attributes.date = realDate
+                    formattedData.push(item)
                 })
-                console.log("real date data", formattedData)
 
-                // sort data from the oldest
-                formattedData.sort((a, b) => a.transaction_date - b.transaction_date)
-                console.log("oldest to newest data", formattedData)
+                // sort oldest to newest for chronological progression
+                formattedData.sort((a, b) => a.attributes.date - b.attributes.date)
 
-                // build the chart
-                let balance = 0
-                const arrayBalance: {date: number, balance: number}[] = []
-    
-                formattedData.forEach(item => {
-                    if (item.type === "income") balance += parseInt(item.amount, 10) ?? 0
-                    if (item.type === "expense") balance -= parseInt(item.amount, 10) ?? 0
-    
+                // calculate starting balance by working backwards from current balance
+                let startingBalance = balance
+                for (const item of formattedData) {
+                    if (item.attributes.type === "income") {
+                        startingBalance -= parseInt(item.attributes.amount, 10) ?? 0
+                    }
+                    if (item.attributes.type === "expense") {
+                        startingBalance += parseInt(item.attributes.amount, 10) ?? 0
+                    }
+                }
+
+                // Build chart from oldest to newest transaction
+                const arrayBalance: {date: number | string, balance: number}[] = []
+                let currentBalance = startingBalance
+                let hasReachedNow = false
+
+                for (const item of formattedData) {
+                    const itemDate = item.attributes.date
+
+                    // Insert "Now" when we pass the current time
+                    if (!hasReachedNow && itemDate > now) {
+                        arrayBalance.push({
+                            date: "Now",
+                            balance: currentBalance
+                        })
+                        hasReachedNow = true
+                    }
+
+                    // Apply transaction to balance
+                    if (item.attributes.type === "income") {
+                        currentBalance += parseInt(item.attributes.amount, 10) ?? 0
+                    }
+                    if (item.attributes.type === "expense") {
+                        currentBalance -= parseInt(item.attributes.amount, 10) ?? 0
+                    }
+
                     arrayBalance.push({
-                        date: item.transaction_date.getTime(),
-                        balance: balance
+                        date: itemDate.getTime(),
+                        balance: currentBalance
                     })
-                })
+                }
+
+                // // If all transactions are in the past, add "Now" at the end
+                // if (!hasReachedNow) {
+                //     arrayBalance.push({
+                //         date: "Now",
+                //         balance: balance
+                //     })
+                // }
+                // TOO REDUNDANT
+
                 console.log("array balance look up", arrayBalance)
-    
                 setChart(arrayBalance)
             }
         }
@@ -442,11 +533,140 @@ export function Tracker(): JSX.Element {
 
     return (
         <section className="flex flex-col items-center md:max-w-[650px]">
-            <TrackerNavbar render={render} backLink="/app" trackerName={trackerData?.name ?? ""} getTheme={getTheme} onBackClick={() => transitionTo("/app")}/>
+            <TrackerNavbar render={render} backLink="/app" trackerName={trackerName ?? ""} getTheme={getTheme} onBackClick={() => transitionTo("/app")}/>
             <AnimatePresence>
+                { (dataLoad || graphLoad || sendingRequest) && 
+                    <motion.div
+                        key={"initial-loading"}
+                        layout
+                        className="fixed mt-18 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden"
+                        initial={{
+                            y: -30,
+                            opacity: 0,
+                            filter: "blur(5px)"
+                        }}
+                        animate={{
+                            y: 0,
+                            opacity: 100,
+                            filter: "blur(0px)"
+                        }}
+                        transition={{
+                            delay: 0.4,
+                            layout: {
+                                type: 'spring',
+                                mass: 1,
+                                stiffness: 160,
+                                damping: 19
+                            }
+                        }}
+                        exit={{
+                            y: -30,
+                            opacity: 0,
+                            filter: "blur(5px)"
+                        }}
+                    >
+                        <AnimatePresence mode="popLayout">
+                            { dataLoad && !graphLoad &&
+                                <motion.div
+                                    layout
+                                    key={"loading-spin"}
+                                    initial={{
+                                        filter: "blur(5px)",
+                                        opacity: 0,
+                                        x: 100
+                                    }}
+                                    animate={{
+                                        filter: "blur(0px)",
+                                        opacity: 1,
+                                        x: 0
+                                    }}
+                                    exit={{
+                                        filter: "blur(5px)",
+                                        opacity: 0,
+                                        x: -100
+                                    }}
+                                    transition={{
+                                        layout: {
+                                            type: 'spring',
+                                            mass: 1,
+                                            stiffness: 160,
+                                            damping: 19
+                                        }
+                                    }}
+                                >
+                                    <Loader2Icon className="size-6 animate-spin" />
+                                </motion.div>
+                            }
+                            { graphLoad && !sendingRequest &&
+                                <motion.p
+                                    key={"graph-setup"}
+                                    className="px-2 whitespace-nowrap"
+                                    layout
+                                    initial={{
+                                        filter: "blur(5px)",
+                                        opacity: 0,
+                                        x: 100
+                                    }}
+                                    animate={{
+                                        filter: "blur(0px)",
+                                        opacity: 1,
+                                        x: 0
+                                    }}
+                                    exit={{
+                                        filter: "blur(5px)",
+                                        opacity: 0,
+                                        x: -100
+                                    }}
+                                    transition={{
+                                        layout: {
+                                            type: 'spring',
+                                            mass: 1,
+                                            stiffness: 160,
+                                            damping: 19
+                                        }
+                                    }}
+                                >
+                                    Setting the graph...
+                                </motion.p>
+                            }
+                            { sendingRequest &&
+                                <motion.p
+                                    key={"sending-request"}
+                                    className="px-2 whitespace-nowrap"
+                                    layout
+                                    initial={{
+                                        filter: "blur(5px)",
+                                        opacity: 0,
+                                        x: 100
+                                    }}
+                                    animate={{
+                                        filter: "blur(0px)",
+                                        opacity: 1,
+                                        x: 0
+                                    }}
+                                    exit={{
+                                        filter: "blur(5px)",
+                                        opacity: 0,
+                                        x: -100
+                                    }}
+                                    transition={{
+                                        layout: {
+                                            type: 'spring',
+                                            mass: 1,
+                                            stiffness: 160,
+                                            damping: 19
+                                        }
+                                    }}
+                                >
+                                    Sending your request...
+                                </motion.p>
+                            }
+                        </AnimatePresence>
+                    </motion.div>  
+                }
                 {render && <motion.div
                     key={"main"}
-                    className="flex flex-col items-center mt-15 w-[87%] gap-8"
+                    className="flex flex-col items-center mt-15 w-screen px-10 sm:px-20 gap-8 md:max-w-[650px]"
                     initial={{
                         x: 30,
                         opacity: 0,
@@ -492,8 +712,9 @@ export function Tracker(): JSX.Element {
                                         axisLine={false}
                                         tickMargin={6}
                                         tickFormatter={value => {
-                                        const d = new Date(value)
-                                        return d.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit" })
+                                            const d = new Date(value)
+                                            if (isNaN(d.getTime())) return value
+                                            return d.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit" })
                                         }}
                                     />
                                     <YAxis
@@ -600,7 +821,7 @@ export function Tracker(): JSX.Element {
                             <div className="flex flex-col w-full">
                                 <div className="flex justify-between items-center w-full">
                                     <p className="font-medium text-base">Transactions History</p>
-                                    <Button onClick={() => transitionTo(`/app/tracker/history/${trackerData?.id}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primary dark:text-neutral-800 dark:border text-white/95">More</Button>
+                                    <Button disabled={initialLoad} onClick={() => transitionTo(`/app/tracker/history/${id}?name=${trackerName}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primary dark:text-neutral-800 dark:border text-white/95">More</Button>
                                 </div>
                                 {historyBalance.length === 0 && <div className="flex flex-col justify-center items-center text-center h-35">
                                     <p className="text-center font-medium text-base text-black/50 dark:text-white/50">You have very few transactions <br /> <span className="font-normal">Try adding it and see your history here.</span></p>                                
@@ -620,7 +841,7 @@ export function Tracker(): JSX.Element {
                             <div className="flex flex-col w-full gap-4 h-full">
                                 <div className="flex justify-between items-center w-full">
                                     <p className="font-medium text-base">Report & Insight</p>
-                                    <Button onClick={() => transitionTo(`/app/tracker/report/${trackerData?.id}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">More</Button>
+                                    <Button disabled={initialLoad} onClick={() => transitionTo(`/app/tracker/report/${id}?name=${trackerName}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">More</Button>
                                 </div>
                                 <div className="flex flex-row gap-2 h-full w-full">
                                     <div className="flex flex-row gap-2 overflow-hidden w-full">
@@ -636,12 +857,12 @@ export function Tracker(): JSX.Element {
                                             <p className="font-normal text-sm text-nowrap">Last Balance</p>
                                             <p className="font-medium text-lg text-nowrap">Rp.{report.balance.toLocaleString("ID")}</p>
                                         </div>
-                                        <div className="absolute w-20 h-25 left-[calc(100vw-100px)] bg-linear-to-l from-background-primary dark:from-background-primary-dark to-transparent" />
+                                        <div className="absolute w-35 h-20 right-[3%] bg-linear-to-l from-background-primary dark:from-background-primary-dark to-transparent" />
                                     </div>
                                 </div>
                             </div>
                             <div className="flex flex-row gap-2 justify-center items-center mb-5">
-                                <p className="font-medium text-sm text-black/50 -mt-2 text-center dark:text-white/50">This page only show the last 7 transactions, data may look innacurate. Please refer to our <span className="text-blue-500/50 hover:text-blue-400/50 underline" onClick={() => transitionTo("/faq")}>FAQ</span></p>
+                                <p className="font-medium text-sm text-black/50 -mt-2 text-center dark:text-white/50">Report & Insight overview only count the last 7 transactions.</p>
                             </div>
                         </div>
                     </div>
