@@ -11,7 +11,6 @@ import axios, { isAxiosError } from "axios";
 import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ModeToggle } from "@/components/mode-toggle";
-import toast from "@/components/CustomToast";
 import useTransition from "@/hooks/useTransition";
 
 export function Dashboard(): JSX.Element {
@@ -35,7 +34,12 @@ export function Dashboard(): JSX.Element {
     const [ paginationAnimation, setPaginationAnimation ] = useState<boolean>(false)
     const [ searchValue, setSearchValue ] = useState<string>("")
     const [ page, setPage ] = useState<number>(1)
+
+    // loading purposes
     const [ gettingTracker, setGettingTracker ] = useState<boolean>(false)
+    const [ deletingTracker, setDeletingTracker ] = useState<boolean>(false)
+    const [ addingTracker, setAddingTracker ] = useState<boolean>(false)
+    const [ signingOut, setSigningOut ] = useState<boolean>(false)
 
     const createBoxTitle = useRef<HTMLInputElement | null>(null)
     const createBoxDescription = useRef<HTMLInputElement | null>(null)
@@ -87,12 +91,16 @@ export function Dashboard(): JSX.Element {
     }
 
     const localGetTrackers = async () => {
+        setGettingTracker(true)
+
         try {
             const res = await DBgetalltrackers()
             console.log(res)
             setTrackers(res as [any])
         } catch(err) {
             console.log(err)
+        } finally {
+            setGettingTracker(false)
         }
     }
     
@@ -144,6 +152,8 @@ export function Dashboard(): JSX.Element {
         }
 
         if(createBoxTitle.current && createBoxDescription.current) {
+            setAddingTracker(true)
+
             const name = createBoxTitle.current.value
             const desc = createBoxDescription.current.value
 
@@ -190,10 +200,14 @@ export function Dashboard(): JSX.Element {
                     }
                 }
             }
+
+            setAddingTracker(false)
         }
     }
 
     const signout = async () => {
+        setSigningOut(true)
+
         try {
             await axios.delete(`${ApiUrl}/auth/tokens/current`, {
                 headers: {
@@ -212,6 +226,8 @@ export function Dashboard(): JSX.Element {
 
             transitionTo("/access")
         }
+
+        setSigningOut(false)
     }
 
     const signup = async () => {
@@ -219,10 +235,7 @@ export function Dashboard(): JSX.Element {
     }
 
     const deleteTracker = async (id: number) => {
-        toast({
-            "title": "Deleting tracker",
-            "type": "loading"
-        })
+        setDeletingTracker(true)
 
         if(session === "cloud") {
             try {
@@ -232,11 +245,6 @@ export function Dashboard(): JSX.Element {
                     }
                 })
                 reloadTracker()
-
-                toast({
-                    "title": "Tracker deleted",
-                    "type": "success"
-                })
             } catch(err) {
                 // reloadTracker()
             }
@@ -245,14 +253,12 @@ export function Dashboard(): JSX.Element {
             try {
                 // await DBdeletetransaction(id)
                     
-                toast({
-                    "title": "Tracker deleted",
-                    "type": "success"
-                })
             } catch(err) {
                 console.log(err)
             }
         }
+
+        setDeletingTracker(false)
     }
 
     const changePage = (command: "first"|"prev"|"next"|"last") => {
@@ -296,6 +302,167 @@ export function Dashboard(): JSX.Element {
             className="flex flex-col items-center gap-5 min-h-screen md:max-w-[650px]">
             <div className="flex justify-center max-w-[650px]">
                 <AnimatePresence>
+                    { (gettingTracker || deletingTracker || addingTracker) && 
+                        <motion.div
+                            key={"loading-div"}
+                            layout
+                            className="fixed mt-20 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden"
+                            initial={{
+                                y: -30,
+                                opacity: 0,
+                                filter: "blur(5px)"
+                            }}
+                            animate={{
+                                y: 0,
+                                opacity: 100,
+                                filter: "blur(0px)"
+                            }}
+                            transition={{
+                                delay: 0.4,
+                                layout: {
+                                    type: 'spring',
+                                    mass: 1,
+                                    stiffness: 160,
+                                    damping: 19
+                                }
+                            }}
+                            exit={{
+                                y: -30,
+                                opacity: 0,
+                                filter: "blur(5px)"
+                            }}
+                        >
+                            <AnimatePresence mode="popLayout">
+                                { gettingTracker && !deletingTracker && !addingTracker && !signingOut &&
+                                    <motion.div
+                                        layout
+                                        key={"loading-spin"}
+                                        initial={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: 100
+                                        }}
+                                        animate={{
+                                            filter: "blur(0px)",
+                                            opacity: 1,
+                                            x: 0
+                                        }}
+                                        exit={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: -100
+                                        }}
+                                        transition={{
+                                            layout: {
+                                                type: 'spring',
+                                                mass: 1,
+                                                stiffness: 160,
+                                                damping: 19
+                                            }
+                                        }}
+                                    >
+                                        <Loader2Icon className="size-6 animate-spin" />
+                                    </motion.div>
+                                }
+                                { deletingTracker && !addingTracker && !signingOut &&
+                                    <motion.p
+                                        key={"deleting-tracker"}
+                                        className="px-2 whitespace-nowrap"
+                                        layout
+                                        initial={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: 100
+                                        }}
+                                        animate={{
+                                            filter: "blur(0px)",
+                                            opacity: 1,
+                                            x: 0
+                                        }}
+                                        exit={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: -100
+                                        }}
+                                        transition={{
+                                            layout: {
+                                                type: 'spring',
+                                                mass: 1,
+                                                stiffness: 160,
+                                                damping: 19
+                                            }
+                                        }}
+                                    >
+                                        Deleting tracker...
+                                    </motion.p>
+                                }
+                                { addingTracker && !signingOut &&
+                                    <motion.p
+                                        key={"adding-tracker"}
+                                        className="px-2 whitespace-nowrap"
+                                        layout
+                                        initial={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: 100
+                                        }}
+                                        animate={{
+                                            filter: "blur(0px)",
+                                            opacity: 1,
+                                            x: 0
+                                        }}
+                                        exit={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: -100
+                                        }}
+                                        transition={{
+                                            layout: {
+                                                type: 'spring',
+                                                mass: 1,
+                                                stiffness: 160,
+                                                damping: 19
+                                            }
+                                        }}
+                                    >
+                                        Adding tracker...
+                                    </motion.p>
+                                }
+                                { signingOut &&
+                                    <motion.p
+                                        key={"adding-tracker"}
+                                        className="px-2 whitespace-nowrap"
+                                        layout
+                                        initial={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: 100
+                                        }}
+                                        animate={{
+                                            filter: "blur(0px)",
+                                            opacity: 1,
+                                            x: 0
+                                        }}
+                                        exit={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: -100
+                                        }}
+                                        transition={{
+                                            layout: {
+                                                type: 'spring',
+                                                mass: 1,
+                                                stiffness: 160,
+                                                damping: 19
+                                            }
+                                        }}
+                                    >
+                                        Signing you out...
+                                    </motion.p>
+                                }
+                            </AnimatePresence>
+                        </motion.div>  
+                    }
                     { render && <motion.div
                         className="flex justify-center items-center gap-2 mt-5 w-[85%] fixed z-10 md:max-w-[650px]"
                         initial={{
@@ -498,7 +665,7 @@ export function Dashboard(): JSX.Element {
                             <div className="flex flex-col gap-3.5">
                                 <div className="flex flex-col gap-2">
                                     <div className="flex flex-col gap-0.5">
-                                        <Input ref={createBoxTitle}  className="border-0 shadow-none font-semibold dark:text-base p-0 m-0 focus-visible:ring-0 dark:bg-transparent" placeholder="Put your tittle here..." />
+                                        <Input ref={createBoxTitle}  className="text-base border-0 shadow-none font-semibold dark:text-base p-0 m-0 focus-visible:ring-0 dark:bg-transparent" placeholder="Put your tittle here..." />
                                         <Input ref={createBoxDescription}  className="text-base font-normal p-0 m-0 border-0 shadow-none focus-visible:ring-0 dark:bg-transparent dark:text-white/75 dark:text-base" placeholder="Put your description here..." />
                                     </div>
                                 </div>
@@ -508,38 +675,6 @@ export function Dashboard(): JSX.Element {
 
                 {/* trackers */}
                 <AnimatePresence>
-                    { session === "cloud" && gettingTracker &&
-                    <motion.div
-                        className="relative shadow my-2 bg-white p-1.5 rounded-full z-999"
-                        key="cloud-loading"
-                        initial={{
-                            y: -30,
-                            opacity: 0,
-                            filter: "blur(5px)"
-                        }}
-                        animate={{
-                            y: 0,
-                            opacity: 100,
-                            filter: "blur(0px)"
-                        }}
-                        transition={{
-                            layout: {
-                                type: 'spring',
-                                mass: 1,
-                                stiffness: 160,
-                                damping: 19
-                            }
-                        }}
-                        exit={{
-                            y: -30,
-                            opacity: 0,
-                            filter: "blur(5px)"
-                        }}
-                    >
-                        <Loader2Icon className="size-6 animate-spin" />
-                    </motion.div>
-                    }
-
                     { render && trackers?.map((item: any, i: number) => (
                         <motion.div 
                             key={i}
