@@ -132,9 +132,8 @@ class TransactionController extends Controller
         $validated = $request->validated();
 
         $transaction = DB::transaction(function () use ($validated, $tracker) {
-            $transaction = Transaction::create($validated);
-            
             $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
+            $transaction = Transaction::create($validated);
 
             if ($transaction->type === 'income') {
                 $tracker->increment('current_balance', $transaction->amount);
@@ -205,10 +204,9 @@ class TransactionController extends Controller
         $validated = $request->validated();
 
         DB::transaction(function () use ($transaction, $validated) {
-            $transaction->newQuery()->lockForUpdate()->whereKey($transaction->getKey())->exists();
-
             $tracker = $transaction->tracker;
             $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
+            $transaction->newQuery()->lockForUpdate()->whereKey($transaction->getKey())->first(['id']);
 
             // Neutralize tracker's current_balance impact if type or amount is changing
             $oldMultiplier = $transaction->type === 'income' ? 1 : -1;
@@ -244,10 +242,9 @@ class TransactionController extends Controller
         Gate::authorize('delete', $transaction);
 
         DB::transaction(function () use ($transaction) {
-            $transaction->newQuery()->lockForUpdate()->whereKey($transaction->getKey())->exists();
-
             $tracker = $transaction->tracker;
             $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
+            $transaction->newQuery()->lockForUpdate()->whereKey($transaction->getKey())->first(['id']);
 
             $transaction->delete();
 
@@ -269,10 +266,9 @@ class TransactionController extends Controller
         Gate::authorize('restore', $transaction);
 
         DB::transaction(function () use ($transaction) {
-            $transaction->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($transaction->getKey())->exists();
-
             $tracker = $transaction->tracker;
             $tracker = $tracker->newQuery()->lockForUpdate()->findOrFail($tracker->getKey());
+            $transaction->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($transaction->getKey())->first(['id']);
 
             $transaction->restore();
 

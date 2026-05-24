@@ -244,9 +244,9 @@ class TrackerController extends Controller
         $report = DB::transaction(function () use ($tracker, $transactions, $rangeDataPresent, $rangeDataOld, $days) {
             $tracker->sharedLock()->first(['id']);
 
-            $transactions = $transactions->whereIn('type', ['income', 'expense'])
+            $transactions = $transactions->sharedLock()
+                ->whereIn('type', ['income', 'expense'])
                 ->whereDate('date', '>=', $rangeDataOld)
-                ->sharedLock()
                 ->get(['id', 'amount', 'date', 'type']);
 
             $incomeFilter  = $transactions->where('type', 'income');
@@ -352,8 +352,8 @@ class TrackerController extends Controller
         Gate::authorize('delete', $tracker);
 
         DB::transaction(function () use ($tracker) {
-            $tracker->transactions()->lockForUpdate()->exists();
-            $tracker->newQuery()->lockForUpdate()->whereKey($tracker->getKey())->exists();
+            $tracker->newQuery()->lockForUpdate()->whereKey($tracker->getKey())->first(['id']);
+            $tracker->transactions()->lockForUpdate()->get(['id']);
 
             $tracker->transactions()->delete();
             $tracker->update(['current_balance' => 0]);
@@ -371,8 +371,8 @@ class TrackerController extends Controller
         Gate::authorize('restore', $tracker);
  
         DB::transaction(function () use ($tracker) {
-            $tracker->transactions()->lockForUpdate()->onlyTrashed()->exists();
             $tracker = $tracker->newQuery()->lockForUpdate()->onlyTrashed()->findOrFail($tracker->getKey());
+            $tracker->transactions()->lockForUpdate()->onlyTrashed()->get(['id']);
 
             $tracker->restore();
 
@@ -413,8 +413,8 @@ class TrackerController extends Controller
         Gate::authorize('forceDelete', $tracker);
 
         DB::transaction(function () use ($tracker) {
-            $tracker->transactions()->lockForUpdate()->onlyTrashed()->exists();
-            $tracker->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($tracker->getKey())->exists();
+            $tracker->newQuery()->lockForUpdate()->onlyTrashed()->whereKey($tracker->getKey())->first(['id']);
+            $tracker->transactions()->lockForUpdate()->onlyTrashed()->get(['id']);
 
             $tracker->transactions()->onlyTrashed()->forceDelete();
             $tracker->forceDelete();
