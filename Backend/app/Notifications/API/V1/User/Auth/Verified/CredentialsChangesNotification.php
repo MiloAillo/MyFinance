@@ -37,7 +37,6 @@ class CredentialsChangesNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Credentials Changed - ' . config('app.name'))
             ->view('emails.auth.credentials-changed', [
-                'name' => $notifiable->name,
                 'field' => $this->field,
             ]);
     }
