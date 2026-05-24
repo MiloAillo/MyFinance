@@ -244,75 +244,60 @@ class TrackerController extends Controller
         $report = DB::transaction(function () use ($tracker, $transactions, $rangeDataPresent, $rangeDataOld, $days) {
             $tracker->sharedLock()->first(['id']);
 
-            $transactions = $transactions->sharedLock()
+            $allTransactions = $transactions->sharedLock()
                 ->whereIn('type', ['income', 'expense'])
                 ->whereDate('date', '>=', $rangeDataOld)
                 ->get(['id', 'amount', 'date', 'type']);
 
-            $incomeFilter  = $transactions->where('type', 'income');
-            $expenseFilter = $transactions->where('type', 'expense');
+            // true = go to $presentTxs, false = go to $oldTxs
+            $presentStart = Carbon::parse($rangeDataPresent)->startOfDay();
+            
+            [$presentTxs, $oldTxs] = $allTransactions->partition(function ($tx) use ($presentStart) {
+                return Carbon::parse($tx->date)->startOfDay() >= $presentStart;
+            });
 
-            $presentIncomes  = $incomeFilter->where('date', '>=', $rangeDataPresent)->values();
-            $presentExpenses = $expenseFilter->where('date', '>=', $rangeDataPresent)->values();
+            $presentIncomes  = $presentTxs->where('type', 'income');
+            $presentExpenses = $presentTxs->where('type', 'expense');
+            $oldIncomes      = $oldTxs->where('type', 'income');
+            $oldExpenses     = $oldTxs->where('type', 'expense');
 
-            $totalPresentIncome   = $presentIncomes->sum('amount');
-            $totalPresentExpenses = $presentExpenses->sum('amount');
-            $maxPresentIncome     = $presentIncomes->max('amount');
-            $maxPresentExpense    = $presentExpenses->max('amount');
+            $mapTx = fn($tx) => [
+                'id'     => (string) $tx->id,
+                'amount' => $tx->amount,
+                'date'   => Carbon::parse($tx->date)->toDateString(),
+            ];
 
-            $oldIncomes  = $incomeFilter->where('date', '>=', $rangeDataOld)->where('date', '<', $rangeDataPresent)->values();
-            $oldExpenses = $expenseFilter->where('date', '>=', $rangeDataOld)->where('date', '<', $rangeDataPresent)->values();
-
-            $totalOldIncome   = $oldIncomes->sum('amount');
-            $totalOldExpenses = $oldExpenses->sum('amount');
-            $maxOldIncome     = $oldIncomes->max('amount');
-            $maxOldExpense    = $oldExpenses->max('amount');
+            $formatAgg = fn($val) => number_format((float) ($val ?? 0), 2, '.', '');
 
             return [
                 'data' => [
                     'time_range' => [
-                        'in_days' => (string) $days,
+                        'in_days'             => (string) $days,
                         'present_range_start' => $rangeDataPresent,
-                        'old_range_start' => $rangeDataOld,
+                        'old_range_start'     => $rangeDataOld,
                     ],
                     'present' => [
                         'income' => [
-                            'total' => !empty($totalPresentIncome) ? (string) $totalPresentIncome : '0.00',
-                            'max' => !empty($maxPresentIncome) ? (string) $maxPresentIncome : '0.00',
-                            'transactions' => $presentIncomes->map(fn($income) => [
-                                'id' => (string) $income->id,
-                                'amount' => (string) $income->amount,
-                                'date' => $income->date->toDateString(),
-                            ])->values()->all(),
+                            'total'        => $formatAgg($presentIncomes->sum('amount')),
+                            'max'          => $formatAgg($presentIncomes->max('amount')),
+                            'transactions' => $presentIncomes->map($mapTx)->values()->all(),
                         ],
                         'expenses' => [
-                            'total' => !empty($totalPresentExpenses) ? (string) $totalPresentExpenses : '0.00',
-                            'max' => !empty($maxPresentExpense) ? (string) $maxPresentExpense : '0.00',
-                            'transactions' => $presentExpenses->map(fn($expense) => [
-                                'id' => (string) $expense->id,
-                                'amount' => (string) $expense->amount,
-                                'date' => $expense->date->toDateString(),
-                            ])->values()->all(),
+                            'total'        => $formatAgg($presentExpenses->sum('amount')),
+                            'max'          => $formatAgg($presentExpenses->max('amount')),
+                            'transactions' => $presentExpenses->map($mapTx)->values()->all(),
                         ],
                     ],
                     'old' => [
                         'income' => [
-                            'total' => !empty($totalOldIncome) ? (string) $totalOldIncome : '0.00',
-                            'max' => !empty($maxOldIncome) ? (string) $maxOldIncome : '0.00',
-                            'transactions' => $oldIncomes->map(fn($income) => [
-                                'id' => (string) $income->id,
-                                'amount' => (string) $income->amount,
-                                'date' => $income->date->toDateString(),
-                            ])->values()->all(),
+                            'total'        => $formatAgg($oldIncomes->sum('amount')),
+                            'max'          => $formatAgg($oldIncomes->max('amount')),
+                            'transactions' => $oldIncomes->map($mapTx)->values()->all(),
                         ],
                         'expenses' => [
-                            'total' => !empty($totalOldExpenses) ? (string) $totalOldExpenses : '0.00',
-                            'max' => !empty($maxOldExpense) ? (string) $maxOldExpense : '0.00',
-                            'transactions' => $oldExpenses->map(fn($expense) => [
-                                'id' => (string) $expense->id,
-                                'amount' => (string) $expense->amount,
-                                'date' => $expense->date->toDateString(),
-                            ])->values()->all(),
+                            'total'        => $formatAgg($oldExpenses->sum('amount')),
+                            'max'          => $formatAgg($oldExpenses->max('amount')),
+                            'transactions' => $oldExpenses->map($mapTx)->values()->all(),
                         ],
                     ]
                 ]

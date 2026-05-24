@@ -24,7 +24,7 @@ class ShowTrackerReportRequest extends FormRequest
     {
         return [
             'range' => 'required|array',
-            'range.days' => 'required|integer|min:1|max:730',
+            'range.days' => 'required|integer|min:1|max:365',
         ];
     }
 
