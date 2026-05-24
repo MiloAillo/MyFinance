@@ -380,7 +380,7 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: "{{ base_url }}/trackers/{{ tracker_id }}"
+      - url: "{{ base_url }}/trackers/{{ tracker_id }}/reports"
         name: Tracker's Report
         meta:
           id: req_f56ba2e4e003453881b7c7ed159874cb
