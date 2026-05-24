@@ -264,7 +264,7 @@ class TrackerController extends Controller
             $mapTx = fn($tx) => [
                 'id'     => (string) $tx->id,
                 'amount' => $tx->amount,
-                'date'   => Carbon::parse($tx->date)->toDateString(),
+                'date'   => $tx->date,
             ];
 
             $formatAgg = fn($val) => number_format((float) ($val ?? 0), 2, '.', '');
