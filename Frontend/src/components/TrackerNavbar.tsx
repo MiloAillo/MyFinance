@@ -81,7 +81,7 @@ export function TrackerNavbar({ render, backLink, trackerName, getTheme, onBackC
                                             <motion.div
                                                 key="accountDetailsClosed"
                                                 onClick={() => setIsAccountOpen(true)}
-                                                style={{backgroundImage: `url(${session === "local" ? "" : ""})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}}
+                                                style={{backgroundImage: `url(${session === "local" ? "" : `${userData?.avatar}`})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}}
                                                 className={`w-8 h-8 rounded-full ${session === "local" ? "flex justify-center items-center border" : "flex justify-center items-center border"}`}
                                                 initial={{
                                                     opacity: 0
@@ -145,7 +145,7 @@ export function TrackerNavbar({ render, backLink, trackerName, getTheme, onBackC
                             >
                                 <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-2.5">
-                                        <div style={{backgroundImage: `url(${session === "local" ? "" : ""})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}} className={`w-10 h-10 rounded-full ${session === "local" ? "flex justify-center items-center border" : "flex justify-center items-center border"}`}>
+                                        <div style={{backgroundImage: `url(${session === "local" ? "" : `${userData?.avatar}`})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}} className={`w-10 h-10 rounded-full ${session === "local" ? "flex justify-center items-center border" : "flex justify-center items-center border"}`}>
                                              {!userData?.avatar && <FontAwesomeIcon icon={faUser} className="text-base text-neutral-700 dark:text-neutral-400" />}
                                         </div>
                                         <div>

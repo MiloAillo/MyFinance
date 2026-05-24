@@ -22,8 +22,8 @@ export function EditProfile(): JSX.Element {
     
     const userData = useRouteLoaderData("main")
 
-    const [ usernameUsestate, setUsernameUsestate ] = useState<string>(userData.attributes.name)
-    const [ emailUsestate, setEmailUsestate ] = useState<string>(userData.attributes.email)
+    const [ usernameUsestate, setUsernameUsestate ] = useState<string>("")
+    const [ emailUsestate, setEmailUsestate ] = useState<string>("")
     const [ isCredentialDifferent, setIsCredentialDifferent ] = useState<boolean>(false)
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ failed, setFailed ] = useState<boolean>(false)
@@ -51,6 +51,15 @@ export function EditProfile(): JSX.Element {
         const session = localStorage.getItem("session")
         if(session === null) window.location.href = "/access"
         setSession(session as "cloud" | "local")
+        
+        // Initialize username and email based on session type
+        if(session === "cloud") {
+            setUsernameUsestate(userData.attributes.name)
+            setEmailUsestate(userData.attributes.email)
+        } else if(session === "local") {
+            setUsernameUsestate(userData.name)
+            setEmailUsestate(userData.email)
+        }
     }, [])
 
     // verification cooldown timer
@@ -65,8 +74,11 @@ export function EditProfile(): JSX.Element {
     }, [verificationCooldown > 0])
 
     useEffect(() => {
-        const sameUsername = usernameUsestate === userData.attributes.name
-        const sameEmail = emailUsestate === userData.attributes.email
+        const originalName = session === "cloud" ? userData.attributes.name : userData.name
+        const originalEmail = session === "cloud" ? userData.attributes.email : userData.email
+        
+        const sameUsername = usernameUsestate === originalName
+        const sameEmail = emailUsestate === originalEmail
 
         if (sameUsername && sameEmail) {
             setIsCredentialDifferent(false)
@@ -74,7 +86,7 @@ export function EditProfile(): JSX.Element {
         }
 
         setIsCredentialDifferent(true)
-    }, [usernameUsestate, emailUsestate])
+    }, [usernameUsestate, emailUsestate, session])
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -358,7 +370,7 @@ export function EditProfile(): JSX.Element {
                     {session === "cloud" &&
                             <Drawer>
                                 <DrawerTrigger className="h-30 w-30 cursor-pointer">
-                                    <img src={userData.attributes.avatar} className="w-full h-full rounded-full object-cover" />
+                                    <img src={session === "cloud" ? userData.attributes.avatar : userData.avatar || ""} className="w-full h-full rounded-full object-cover" />
                                     <div className="flex justify-center items-center -translate-y-30 w-full h-full rounded-full bg-neutral-950 opacity-45">
                                         <FontAwesomeIcon icon={faCamera} className="text-5xl text-white" />
                                     </div>
@@ -378,7 +390,7 @@ export function EditProfile(): JSX.Element {
                         {session === "cloud" &&
                             <div className="border px-4 py-3 rounded-2xl">
                                 <p className="text-base font-normal text-neutral-500">Email</p>
-                                <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0 dark:bg-transparent" ref={email} onChange={(e) => {setEmailUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your email..." defaultValue={userData.attributes.email}></Input>
+                                <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0 dark:bg-transparent" ref={email} onChange={(e) => {setEmailUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your email..." defaultValue={session === "cloud" ? userData.attributes.email : userData.email}></Input>
                                 { session === "cloud" && !userData.attributes.email_verified_at &&
                                     <div className="flex justify-center w-full "> 
                                         <div className="absolute flex gap-3 sm:gap-20 translate-y-5">
@@ -403,7 +415,7 @@ export function EditProfile(): JSX.Element {
                                 }
                             </div>
                         }
-                        { emailUsestate !== userData.attributes.email && userData.attributes.email_verified_at &&
+                        { emailUsestate !== (session === "cloud" ? userData.attributes.email : userData.email) && (session === "cloud" ? userData.attributes.email_verified_at : true) &&
                             <div className="relative w-full border-yellow-500/50 border px-3 py-2 rounded-xl">
                                 <p className="font-semibold text-sm  w-full text-yellow-500">To complete email update, we'll send confirmation link to your verified email address.</p>
                             </div>

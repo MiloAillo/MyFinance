@@ -8,7 +8,7 @@ import { useRouteLoaderData } from "react-router-dom";
 import { faTrashAlt, faUser } from "@fortawesome/free-regular-svg-icons";
 import { ApiUrl } from "@/lib/variable";
 import axios, { isAxiosError } from "axios";
-import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
+import { DBcreatetracker, DBgetalltrackers, DBdeletetransaction } from "@/lib/db";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ModeToggle } from "@/components/mode-toggle";
 import useTransition from "@/hooks/useTransition";
@@ -253,8 +253,8 @@ export function Dashboard(): JSX.Element {
         }
         if(session === "local") {
             try {
-                // await DBdeletetransaction(id)
-                    
+                await DBdeletetransaction(id)
+                reloadTracker()
             } catch(err) {
                 console.log(err)
             }

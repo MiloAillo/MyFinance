@@ -12,6 +12,7 @@ import { DBgetalltransactions, DBgetonetracker } from "@/lib/db";
 import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
 import useTransition from "@/hooks/useTransition";
+import { Loader2Icon } from "lucide-react";
 
 export function Report(): JSX.Element {
     const { id } = useParams()
@@ -22,16 +23,20 @@ export function Report(): JSX.Element {
     const [ trackerName, setTrackerName ] = useState<string>("")
     
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
-    const [ data, setData ] = useState<any[]>()
+    const [ data, setData ] = useState<any>()
     const [ displayData, setDisplayData ] = useState<{income: number, outcome: number, incomePercentage: number, outcomePercentage: number, chartData: any[], highestIncome: number | null, highestOutcome: number | null, transactionsHistory: any[]}>({income: 0, outcome: 0, incomePercentage: 0, outcomePercentage: 0, chartData: [], highestIncome: null, highestOutcome: null, transactionsHistory: []})
     const [ historyData, setHistoryData ] = useState<any[]>([])
     const [ _theme, setTheme ] = useState<"light" | "dark" | "system">("system")
     const [ _trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number } | null>(null)
 
+    const [ loading, setLoading ] = useState<boolean>(false)
+    const [ historyLoading, setHistoryLoading ] = useState<boolean>(false)
+
     const [ range, setRange ] = useState<number>(7)
     const [ page, setPage ] = useState<number>(1)
     const [ lastPage, setLastPage ] = useState<number>(1)
 
+    // fetch name so it doesnt wait for backend response
     useEffect(() => {
         setTrackerName(searchParams.get("name") ?? "")
     }, []) 
@@ -50,27 +55,152 @@ export function Report(): JSX.Element {
     
     const cloudInitialize = async () => {
         console.log("cloud initialize triggered!")
+
+        setLoading(true)
+
         try {
-            const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions`, {
+
+            const res = await axios.get(`${ApiUrl}/trackers/${id}/reports?range[days]=${range}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
             })  
-            const data = await res.data
-            const transactions = data.data.tracker.transactions
 
-            // change everything to real date
-            transactions.map((item: {amount: any, description: null | string, image: null | string, name: string, type: "income" | "expense", transaction_date: string | Date}) => {
-                const realDate = new Date(item.transaction_date)
-                const realAmount = parseInt(item.amount, 10)
-                item.transaction_date = realDate
-                item.amount = realAmount
-                return item
-            })
-            console.log("cloud initialize data", transactions)
-            setData(transactions)
+            const fetchedData = await res.data.data
+
+            setData(fetchedData)
+
+            parseCloudRequest(fetchedData)
         } catch(err) {
             console.log(err)
+        }
+    }
+
+    const parseCloudRequest = (fetchedData: any) => {
+        console.log("cloud initialize data", fetchedData)
+
+        // Step 1. buat array isinya chart compatible -> ex: {date, type, amounts}
+        let chartArray = []
+        const displayData: any = {}
+
+        // Step 2. mapping semua variable dari response
+        const present_expenses = fetchedData?.present?.expenses.transactions
+        const present_incomes = fetchedData?.present?.income.transactions
+        const old_expenses = fetchedData?.old?.expenses.transactions
+        const old_incomes = fetchedData?.old?.income.transactions
+
+        const present_expenses_max = fetchedData?.present?.expenses.max
+        const present_incomes_max = fetchedData?.present?.income.max
+
+        const present_expenses_total = fetchedData?.present?.expenses.total
+        const present_incomes_total = fetchedData?.present?.income.total
+        const old_expenses_total = fetchedData?.old?.expenses.total
+        const old_incomes_total = fetchedData?.old?.income.total
+
+        // step 2.5: Hitung Percentage Change buat income sama expense
+        // income
+        let income_percentage_change = ((present_incomes_total - old_incomes_total) / old_incomes_total) * 100
+        let expense_percentage_change = ((present_expenses_total - old_expenses_total) / old_expenses_total) * 100
+
+        if(income_percentage_change === Infinity || Number.isNaN(income_percentage_change)) income_percentage_change = NaN
+        if(expense_percentage_change === Infinity || Number.isNaN(expense_percentage_change)) expense_percentage_change = NaN
+
+        console.log("income_percentage_change :", income_percentage_change)
+        console.log("expense_percentage_change :", expense_percentage_change)
+
+        // step 2.6: Merge semua transaction jadi satu dan sorting ke paling old dan fix tanggal nya
+        chartArray = [
+            ...present_incomes.map((t: any) => ({...t, type: "income"})),
+            ...present_expenses.map((t: any) => ({...t, type: "expense"})),
+            ...old_incomes.map((t: any) => ({...t, type: "income"})),
+            ...old_expenses.map((t: any) => ({...t, type: "expense"}))
+        ]
+
+        chartArray.forEach(transactions => {
+            const realDate = new Date(transactions.date)
+            transactions.date = realDate
+
+            const realAmount = parseInt(transactions.amount, 10)
+            transactions.amount = realAmount
+        })
+
+        chartArray.sort((a, b) => a.date - b.date)
+
+        // step 3: Calculate cumulative balance for chart data
+        let chartNowBalance = 0
+        let chartReadyData: {date: Date, balance: number}[] = []
+        chartArray.forEach((transaction: any) => {
+            if(transaction.type === "income") chartNowBalance += transaction.amount
+            if(transaction.type === "expense") chartNowBalance -= transaction.amount
+
+            chartReadyData.push({date: transaction.date, balance: chartNowBalance})
+        })
+
+        // step 4. Append append ke variable buat useState
+        displayData.income = parseInt(present_incomes_total, 10)
+        displayData.outcome = parseInt(present_expenses_total, 10)
+        displayData.incomePercentage = income_percentage_change
+        displayData.outcomePercentage = expense_percentage_change
+        displayData.highestIncome = parseInt(present_incomes_max, 10)
+        displayData.highestOutcome = parseInt(present_expenses_max, 10)
+        displayData.chartData = chartReadyData
+        displayData.transactionsHistory = chartArray
+
+        setDisplayData(displayData)
+        setLoading(false)
+        
+        // Fetch transaction history after parsing chart data
+        cloudGetTransactionHistory()
+    }
+
+    const cloudGetTransactionHistory = async () => {
+        setHistoryLoading(true)
+
+        try {
+            const now = new Date()
+            const startDate = new Date(now.getTime() - range * 24 * 60 * 60 * 1000)
+
+            console.log("Fetching transaction history from", startDate, "to", now)
+
+            const year = startDate.getFullYear()
+            const month = String(startDate.getMonth() + 1).padStart(2, '0')
+            const day = String(startDate.getDate()).padStart(2, '0')
+            const hours = String(startDate.getHours()).padStart(2, '0')
+            const minutes = String(startDate.getMinutes()).padStart(2, '0')
+            const seconds = String(startDate.getSeconds()).padStart(2, '0')
+            const formattedDate = `date,${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+
+            const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions?page=${page}&size=10&filter[ends_after]=${formattedDate}&sort=-date`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("Authorization")}`
+                }
+            })
+
+            const rawTransactions = res.data.data
+            console.log("Transaction history data:", rawTransactions)
+
+            // Transform JSON API format to flat structure
+            const formattedTransactions = rawTransactions.map((t: any) => ({
+                id: t.id,
+                tracker_id: t.attributes.tracker_id,
+                name: t.attributes.name,
+                type: t.attributes.type,
+                amount: parseInt(t.attributes.amount, 10),
+                description: t.attributes.description,
+                date: new Date(t.attributes.date),
+                created_at: t.attributes.created_at,
+                updated_at: t.attributes.updated_at,
+                deleted_at: t.attributes.deleted_at
+            }))
+
+            setDisplayData(prev => ({
+                ...prev,
+                transactionsHistory: formattedTransactions
+            }))
+        } catch(err) {
+            console.log("Error fetching transaction history:", err)
+        } finally {
+            setHistoryLoading(false)
         }
     }
 
@@ -94,21 +224,21 @@ export function Report(): JSX.Element {
             const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
     
             // count the 7 days 
-            const last7Days = (data.filter(item => item.date >= sevenDaysAgo)).sort((a, b) => a.date - b.date)
+            const last7Days = (data.filter((item: any) => item.date >= sevenDaysAgo)).sort((a: any, b: any) => a.date - b.date)
             
             let sevenDaysIncome = 0
             let SevenDaysOutcome = 0
-            last7Days.forEach((item) => {
+            last7Days.forEach((item: any) => {
                 if(item.type === "income") sevenDaysIncome += item.income
                 if(item.type === "outcome") SevenDaysOutcome += item.income
             });
             
             // count the 7 days before
-            const last7DaysBefore = (data.filter(item => item.date >= fourteenDaysAgo && item.date < sevenDaysAgo)).sort((a, b) => a.date - b.date)
+            const last7DaysBefore = (data.filter((item: any) => item.date >= fourteenDaysAgo && item.date < sevenDaysAgo)).sort((a: any, b: any) => a.date - b.date)
 
             let sevenDaysBeforeIncome = 0
             let sevenDaysBeforeOutcome = 0
-            last7DaysBefore.forEach((item) => {
+            last7DaysBefore.forEach((item: any) => {
                 if(item.type === "income") sevenDaysBeforeIncome += item.income
                 if(item.type === "outcome") sevenDaysBeforeOutcome += item.income            
             })
@@ -124,7 +254,7 @@ export function Report(): JSX.Element {
             // making chart data
             let chartNowBalance = 0
             let chartReadyData: {date: number, balance: number}[] = []
-            last7Days.forEach((item) => {
+            last7Days.forEach((item: any) => {
                 if(item.type === "income") chartNowBalance += item.income
                 if(item.type === "outcome") chartNowBalance -= item.income
 
@@ -133,73 +263,9 @@ export function Report(): JSX.Element {
             // making first and second message
             const arraySevenDaysIncome: number[] = []
             const arraySevenDaysOutcome: number[] = []
-            last7Days.forEach((item) => {
+            last7Days.forEach((item: any) => {
                 if(item.type === "income") arraySevenDaysIncome.push(item.income)
                 if(item.type === "outcome") arraySevenDaysOutcome.push(item.income) 
-            })
-
-            let highestSevenDaysIncome: number | null = Math.max(...arraySevenDaysIncome)
-            if(highestSevenDaysIncome === -Infinity) highestSevenDaysIncome = null 
-
-            let highestSevenDaysOutcome: number | null = Math.max(...arraySevenDaysOutcome)
-            if(highestSevenDaysOutcome === -Infinity) highestSevenDaysOutcome = null 
-
-            // set data
-            setDisplayData({income: sevenDaysIncome, outcome: SevenDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestSevenDaysIncome, highestOutcome: highestSevenDaysOutcome, transactionsHistory: last7Days})
-        }
-
-        if(data && session === "cloud") {
-            const now = new Date()
-            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-            const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
-    
-            // count the 7 days 
-            const last7Days = (data.filter(item => item.transaction_date >= sevenDaysAgo)).sort((a, b) => a.transaction_date - b.transaction_date)
-            console.log("last 7 days data", last7Days)
-            
-            let sevenDaysIncome = 0
-            let SevenDaysOutcome = 0
-            last7Days.forEach((item) => {
-                if(item.type === "income") sevenDaysIncome += item.amount
-                if(item.type === "expense") SevenDaysOutcome += item.amount
-            });
-            console.log("seven days income outcome", sevenDaysIncome, SevenDaysOutcome)
-            
-            // // count the 7 days before
-            const last7DaysBefore = (data.filter(item => item.transaction_date >= fourteenDaysAgo && item.transaction_date < sevenDaysAgo)).sort((a, b) => a.date - b.date)
-            console.log("last 7 days before data", last7DaysBefore)
-
-            let sevenDaysBeforeIncome = 0
-            let sevenDaysBeforeOutcome = 0
-            last7DaysBefore.forEach((item) => {
-                if(item.type === "income") sevenDaysBeforeIncome += item.amount
-                if(item.type === "expense") sevenDaysBeforeOutcome += item.amount            
-            })
-            console.log("seven days before income outcome", sevenDaysBeforeIncome, sevenDaysBeforeOutcome)
-
-            // calcute income message
-            let incomeComparationPercentage = Math.round((sevenDaysIncome - sevenDaysBeforeIncome) / sevenDaysBeforeIncome * 100)
-            if(incomeComparationPercentage === Infinity || Number.isNaN(incomeComparationPercentage)) incomeComparationPercentage = NaN
-
-            // calcute income message
-            let outcomeComparationPercentage = Math.round((SevenDaysOutcome - sevenDaysBeforeOutcome) / sevenDaysBeforeOutcome * 100)
-            if(outcomeComparationPercentage === Infinity || Number.isNaN(outcomeComparationPercentage)) outcomeComparationPercentage = NaN
-
-            // making chart data
-            let chartNowBalance = 0
-            let chartReadyData: {date: number, balance: number}[] = []
-            last7Days.forEach((item) => {
-                if(item.type === "income") chartNowBalance += item.amount
-                if(item.type === "expense") chartNowBalance -= item.amount
-
-                chartReadyData.push({date: item.transaction_date.getTime(), balance: chartNowBalance})
-            })
-            // making first and second message
-            const arraySevenDaysIncome: number[] = []
-            const arraySevenDaysOutcome: number[] = []
-            last7Days.forEach((item) => {
-                if(item.type === "income") arraySevenDaysIncome.push(item.amount)
-                if(item.type === "expense") arraySevenDaysOutcome.push(item.amount) 
             })
 
             let highestSevenDaysIncome: number | null = Math.max(...arraySevenDaysIncome)
@@ -220,21 +286,21 @@ export function Report(): JSX.Element {
             const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
     
             // count the 30 days 
-            const last30Days = (data.filter(item => item.date >= thirtyDaysAgo)).sort((a, b) => a.date - b.date)
+            const last30Days = (data.filter((item: any) => item.date >= thirtyDaysAgo)).sort((a: any, b: any) => a.date - b.date)
             
             let thirtyDaysIncome = 0
             let thirtyDaysOutcome = 0
-            last30Days.forEach((item) => {
+            last30Days.forEach((item: any) => {
                 if(item.type === "income") thirtyDaysIncome += item.income
                 if(item.type === "outcome") thirtyDaysOutcome += item.income
             });
             
             // count the 30 days before
-            const last30DaysBefore = (data.filter(item => item.date >= sixtyDaysAgo && item.date < thirtyDaysAgo)).sort((a, b) => a.date - b.date)
+            const last30DaysBefore = (data.filter((item: any) => item.date >= sixtyDaysAgo && item.date < thirtyDaysAgo)).sort((a: any, b: any) => a.date - b.date)
 
             let thirtyDaysBeforeIncome = 0
             let thirtyDaysBeforeOutcome = 0
-            last30DaysBefore.forEach((item) => {
+            last30DaysBefore.forEach((item: any) => {
                 if(item.type === "income") thirtyDaysBeforeIncome += item.income
                 if(item.type === "outcome") thirtyDaysBeforeOutcome += item.income            
             })
@@ -250,7 +316,7 @@ export function Report(): JSX.Element {
             // making chart data
             let chartNowBalance = 0
             let chartReadyData: {date: number, balance: number}[] = []
-            last30Days.forEach((item) => {
+            last30Days.forEach((item: any) => {
                 if(item.type === "income") chartNowBalance += item.income
                 if(item.type === "outcome") chartNowBalance -= item.income
 
@@ -260,7 +326,7 @@ export function Report(): JSX.Element {
             // making first and second message
             const arrayThirtyDaysIncome: number[] = []
             const arrayThirtyDaysOutcome: number[] = []
-            last30Days.forEach((item) => {
+            last30Days.forEach((item: any) => {
                 if(item.type === "income") arrayThirtyDaysIncome.push(item.income)
                 if(item.type === "outcome") arrayThirtyDaysOutcome.push(item.income) 
             })
@@ -273,70 +339,6 @@ export function Report(): JSX.Element {
 
             setDisplayData({income: thirtyDaysIncome, outcome: thirtyDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestThirtyDaysIncome, highestOutcome: highestThirtyDaysOutcome, transactionsHistory: last30Days})
         }
-
-        if(data && session === "cloud") {
-            const now = new Date()
-            const sevenDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-            const fourteenDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
-    
-            // count the 7 days 
-            const last7Days = (data.filter(item => item.transaction_date >= sevenDaysAgo)).sort((a, b) => a.transaction_date - b.transaction_date)
-            console.log("last 7 days data", last7Days)
-            
-            let sevenDaysIncome = 0
-            let SevenDaysOutcome = 0
-            last7Days.forEach((item) => {
-                if(item.type === "income") sevenDaysIncome += item.amount
-                if(item.type === "expense") SevenDaysOutcome += item.amount
-            });
-            console.log("seven days income outcome", sevenDaysIncome, SevenDaysOutcome)
-            
-            // // count the 7 days before
-            const last7DaysBefore = (data.filter(item => item.transaction_date >= fourteenDaysAgo && item.transaction_date < sevenDaysAgo)).sort((a, b) => a.date - b.date)
-            console.log("last 7 days before data", last7DaysBefore)
-
-            let sevenDaysBeforeIncome = 0
-            let sevenDaysBeforeOutcome = 0
-            last7DaysBefore.forEach((item) => {
-                if(item.type === "income") sevenDaysBeforeIncome += item.amount
-                if(item.type === "expense") sevenDaysBeforeOutcome += item.amount            
-            })
-            console.log("seven days before income outcome", sevenDaysBeforeIncome, sevenDaysBeforeOutcome)
-
-            // calcute income message
-            let incomeComparationPercentage = Math.round((sevenDaysIncome - sevenDaysBeforeIncome) / sevenDaysBeforeIncome * 100)
-            if(incomeComparationPercentage === Infinity || Number.isNaN(incomeComparationPercentage)) incomeComparationPercentage = NaN
-
-            // calcute income message
-            let outcomeComparationPercentage = Math.round((SevenDaysOutcome - sevenDaysBeforeOutcome) / sevenDaysBeforeOutcome * 100)
-            if(outcomeComparationPercentage === Infinity || Number.isNaN(outcomeComparationPercentage)) outcomeComparationPercentage = NaN
-
-            // making chart data
-            let chartNowBalance = 0
-            let chartReadyData: {date: number, balance: number}[] = []
-            last7Days.forEach((item) => {
-                if(item.type === "income") chartNowBalance += item.amount
-                if(item.type === "expense") chartNowBalance -= item.amount
-
-                chartReadyData.push({date: item.transaction_date.getTime(), balance: chartNowBalance})
-            })
-            // making first and second message
-            const arraySevenDaysIncome: number[] = []
-            const arraySevenDaysOutcome: number[] = []
-            last7Days.forEach((item) => {
-                if(item.type === "income") arraySevenDaysIncome.push(item.amount)
-                if(item.type === "expense") arraySevenDaysOutcome.push(item.amount) 
-            })
-
-            let highestSevenDaysIncome: number | null = Math.max(...arraySevenDaysIncome)
-            if(highestSevenDaysIncome === -Infinity) highestSevenDaysIncome = null 
-
-            let highestSevenDaysOutcome: number | null = Math.max(...arraySevenDaysOutcome)
-            if(highestSevenDaysOutcome === -Infinity) highestSevenDaysOutcome = null 
-
-            // set data
-            setDisplayData({income: sevenDaysIncome, outcome: SevenDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestSevenDaysIncome, highestOutcome: highestSevenDaysOutcome, transactionsHistory: last7Days})
-        }
     }
 
     const parse1Year = () => {
@@ -346,21 +348,21 @@ export function Report(): JSX.Element {
             const twoYearsAgo = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000)
     
             // count the 1 year 
-            const last1Year = (data.filter(item => item.date >= oneYearAgo)).sort((a, b) => a.date - b.date)
+            const last1Year = (data.filter((item: any) => item.date >= oneYearAgo)).sort((a: any, b: any) => a.date - b.date)
             
             let oneYearIncome = 0
             let oneYearOutcome = 0
-            last1Year.forEach((item) => {
+            last1Year.forEach((item: any) => {
                 if(item.type === "income") oneYearIncome += item.income
                 if(item.type === "outcome") oneYearOutcome += item.income
             });
             
             // count the 1 year before
-            const last1YearBefore = (data.filter(item => item.date >= twoYearsAgo && item.date < oneYearAgo)).sort((a, b) => a.date - b.date)
+            const last1YearBefore = (data.filter((item: any) => item.date >= twoYearsAgo && item.date < oneYearAgo)).sort((a: any, b: any) => a.date - b.date)
 
             let oneYearBeforeIncome = 0
             let oneYearBeforeOutcome = 0
-            last1YearBefore.forEach((item) => {
+            last1YearBefore.forEach((item: any) => {
                 if(item.type === "income") oneYearBeforeIncome += item.income
                 if(item.type === "outcome") oneYearBeforeOutcome += item.income            
             })
@@ -376,7 +378,7 @@ export function Report(): JSX.Element {
             // making chart data
             let chartNowBalance = 0
             let chartReadyData: {date: number, balance: number}[] = []
-            last1Year.forEach((item) => {
+            last1Year.forEach((item: any) => {
                 if(item.type === "income") chartNowBalance += item.income
                 if(item.type === "outcome") chartNowBalance -= item.income
 
@@ -386,7 +388,7 @@ export function Report(): JSX.Element {
             // making first and second message
             const arrayOneYearIncome: number[] = []
             const arrayOneYearOutcome: number[] = []
-            last1Year.forEach((item) => {
+            last1Year.forEach((item: any) => {
                 if(item.type === "income") arrayOneYearIncome.push(item.income)
                 if(item.type === "outcome") arrayOneYearOutcome.push(item.income) 
             })
@@ -398,70 +400,6 @@ export function Report(): JSX.Element {
             if(highestOneYearOutcome === -Infinity) highestOneYearOutcome = null 
 
             setDisplayData({income: oneYearIncome, outcome: oneYearOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestOneYearIncome, highestOutcome: highestOneYearOutcome, transactionsHistory: last1Year})
-        }
-
-        if(data && session === "cloud") {
-            const now = new Date()
-            const sevenDaysAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
-            const fourteenDaysAgo = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000)
-    
-            // count the 7 days 
-            const last7Days = (data.filter(item => item.transaction_date >= sevenDaysAgo)).sort((a, b) => a.transaction_date - b.transaction_date)
-            console.log("last 7 days data", last7Days)
-            
-            let sevenDaysIncome = 0
-            let SevenDaysOutcome = 0
-            last7Days.forEach((item) => {
-                if(item.type === "income") sevenDaysIncome += item.amount
-                if(item.type === "expense") SevenDaysOutcome += item.amount
-            });
-            console.log("seven days income outcome", sevenDaysIncome, SevenDaysOutcome)
-            
-            // // count the 7 days before
-            const last7DaysBefore = (data.filter(item => item.transaction_date >= fourteenDaysAgo && item.transaction_date < sevenDaysAgo)).sort((a, b) => a.date - b.date)
-            console.log("last 7 days before data", last7DaysBefore)
-
-            let sevenDaysBeforeIncome = 0
-            let sevenDaysBeforeOutcome = 0
-            last7DaysBefore.forEach((item) => {
-                if(item.type === "income") sevenDaysBeforeIncome += item.amount
-                if(item.type === "expense") sevenDaysBeforeOutcome += item.amount            
-            })
-            console.log("seven days before income outcome", sevenDaysBeforeIncome, sevenDaysBeforeOutcome)
-
-            // calcute income message
-            let incomeComparationPercentage = Math.round((sevenDaysIncome - sevenDaysBeforeIncome) / sevenDaysBeforeIncome * 100)
-            if(incomeComparationPercentage === Infinity || Number.isNaN(incomeComparationPercentage)) incomeComparationPercentage = NaN
-
-            // calcute income message
-            let outcomeComparationPercentage = Math.round((SevenDaysOutcome - sevenDaysBeforeOutcome) / sevenDaysBeforeOutcome * 100)
-            if(outcomeComparationPercentage === Infinity || Number.isNaN(outcomeComparationPercentage)) outcomeComparationPercentage = NaN
-
-            // making chart data
-            let chartNowBalance = 0
-            let chartReadyData: {date: number, balance: number}[] = []
-            last7Days.forEach((item) => {
-                if(item.type === "income") chartNowBalance += item.amount
-                if(item.type === "expense") chartNowBalance -= item.amount
-
-                chartReadyData.push({date: item.transaction_date.getTime(), balance: chartNowBalance})
-            })
-            // making first and second message
-            const arraySevenDaysIncome: number[] = []
-            const arraySevenDaysOutcome: number[] = []
-            last7Days.forEach((item) => {
-                if(item.type === "income") arraySevenDaysIncome.push(item.amount)
-                if(item.type === "expense") arraySevenDaysOutcome.push(item.amount) 
-            })
-
-            let highestSevenDaysIncome: number | null = Math.max(...arraySevenDaysIncome)
-            if(highestSevenDaysIncome === -Infinity) highestSevenDaysIncome = null 
-
-            let highestSevenDaysOutcome: number | null = Math.max(...arraySevenDaysOutcome)
-            if(highestSevenDaysOutcome === -Infinity) highestSevenDaysOutcome = null 
-
-            // set data
-            setDisplayData({income: sevenDaysIncome, outcome: SevenDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestSevenDaysIncome, highestOutcome: highestSevenDaysOutcome, transactionsHistory: last7Days})
         }
     }
 
@@ -492,23 +430,6 @@ export function Report(): JSX.Element {
             console.log("history Data", paginatedData)
             setHistoryData(paginatedData)
         }
-
-        if(session === "cloud") {
-            const size = 5
-            const offset = (page - 1) * size
-    
-            const cleanedData: any[] = (displayData.transactionsHistory).sort((a, b) => b.transaction_date - a.transaction_date)
-    
-            // calculate last page
-            const total = cleanedData.length
-            const pages = Math.ceil(total / size)
-            setLastPage(pages)
-    
-            // paginate
-            const paginatedData = cleanedData.slice((offset), size * page)
-            console.log("history Data", paginatedData)
-            setHistoryData(paginatedData)
-        }
     }
 
 
@@ -528,15 +449,20 @@ export function Report(): JSX.Element {
     }, [])
 
     useEffect(() => {
-        if(range === 7) parse7Days()
-        if(range === 30) parse30Days()
-        if(range === 365) parse1Year()
+        if (session === "local") {
+            localInitialize()
+            if(range === 7) parse7Days()
+            if(range === 30) parse30Days()
+            if(range === 365) parse1Year()
+        } else {
+            cloudInitialize()
+        }
 
         setPage(1)
-    }, [range, data])
+    }, [range])
 
     useEffect(() => {
-        setHistory()
+        {session === "local" && setHistory()}
         console.log(displayData)
     }, [displayData, page])
 
@@ -559,8 +485,105 @@ export function Report(): JSX.Element {
     } satisfies ChartConfig
 
     return (
-        <section className="flex flex-col items-center">
+        <section className="flex flex-col items-center w-full md:max-w-[650px] sm:px-15 px-10">
             <TrackerNavbar render={render} trackerName={trackerName} backLink={`/app/tracker/${id}`} getTheme={getTheme} onBackClick={() => transitionTo(`/app/tracker/${id}`)}/>
+                    { (loading || historyLoading) &&
+                        <motion.div
+                            key={"loading-div"}
+                            layout
+                            className="fixed mt-29 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden dark:bg-stone-700"
+                            initial={{
+                                y: -30,
+                                opacity: 0,
+                                filter: "blur(5px)"
+                            }}
+                            animate={{
+                                y: 0,
+                                opacity: 100,
+                                filter: "blur(0px)"
+                            }}
+                            transition={{
+                                delay: 0.4,
+                                layout: {
+                                    type: 'spring',
+                                    mass: 1,
+                                    stiffness: 160,
+                                    damping: 19
+                                }
+                            }}
+                            exit={{
+                                y: -30,
+                                opacity: 0,
+                                filter: "blur(5px)"
+                            }}
+                        >
+                            <AnimatePresence mode="popLayout">
+                                { loading && !historyLoading &&
+                                    <motion.div
+                                        layout
+                                        key={"loading-spin"}
+                                        initial={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: 100
+                                        }}
+                                        animate={{
+                                            filter: "blur(0px)",
+                                            opacity: 1,
+                                            x: 0
+                                        }}
+                                        exit={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: -100
+                                        }}
+                                        transition={{
+                                            layout: {
+                                                type: 'spring',
+                                                mass: 1,
+                                                stiffness: 160,
+                                                damping: 19
+                                            }
+                                        }}
+                                    >
+                                        <Loader2Icon className="size-6 animate-spin" />
+                                    </motion.div>
+                                }
+                                { historyLoading &&
+                                    <motion.p
+                                        key={"history-loading"}
+                                        className="px-2 whitespace-nowrap"
+                                        layout
+                                        initial={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: 100
+                                        }}
+                                        animate={{
+                                            filter: "blur(0px)",
+                                            opacity: 1,
+                                            x: 0
+                                        }}
+                                        exit={{
+                                            filter: "blur(5px)",
+                                            opacity: 0,
+                                            x: -100
+                                        }}
+                                        transition={{
+                                            layout: {
+                                                type: 'spring',
+                                                mass: 1,
+                                                stiffness: 160,
+                                                damping: 19
+                                            }
+                                        }}
+                                    >
+                                        getting transactions...
+                                    </motion.p>
+                                }
+                            </AnimatePresence>
+                        </motion.div>  
+                    }            
             <AnimatePresence>
                 {render && <motion.div
                     className="w-full flex flex-col items-center"
@@ -707,15 +730,14 @@ export function Report(): JSX.Element {
                         </div>
                         <div className="w-full flex flex-col gap-2 mt-2">
                             <h3 className="text-sm font-regular">Transaction History Within {range === 7 ? "7 Days" : range === 30 ? "1 Month" : "1 Year"}</h3>
-                            {historyData.map(item => (
-                            <Dialog>
+                            {displayData.transactionsHistory.map((item: any) => (
+                            <Dialog key={item.id}>
                                 <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-black/5 dark:border">
-                                    {item.image && <div style={{backgroundImage: `url(${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
                                         <div className="flex flex-col w-full pb-5 gap-0.5">
                                             <div className="flex w-full flex-col flex-1">
                                                 <p className="text-sm font-normal">{item.name}</p>
-                                                <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
+                                                <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{item.amount.toLocaleString("ID")}</p>
                                             </div>
                                         </div>
                                         <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.toLocaleDateString("ID", {
@@ -726,14 +748,13 @@ export function Report(): JSX.Element {
                                     </div>
                                 </DialogTrigger>
                                 <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
-                                    {item.image && <div style={{backgroundImage: `url(${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
                                     <div className="flex w-full flex-row justify-between items-end">
                                         <h4 className="font-medium text-xl">{item.name}</h4>
-                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{item.income.toLocaleString("iD")}</p>
+                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{item.amount.toLocaleString("ID")}</p>
                                     </div>
-                                    <p className="text-base font-normal self-start -mt-2">{item.desc}</p>
+                                    <p className="text-base font-normal self-start -mt-2">{item.description}</p>
                                     <p className="text-sm font-normal text-neutral-400 self-end">
-                                        {item.date.toLocaleDateString("ENG", {
+                                        {item.date.toLocaleDateString("en-US", {
                                             weekday: "long",
                                             day: "numeric",
                                             month: "long",
@@ -871,18 +892,17 @@ export function Report(): JSX.Element {
                         </div>
                         <div className="w-full flex flex-col gap-2 mt-2">
                             <h3 className="text-sm font-regular">Transactions History Within {range === 7 ? "7 Days" : range  === 30 ? "1 Month" : "1 Year"}</h3>
-                            {historyData?.map(item => (
-                            <Dialog>
+                            {displayData.transactionsHistory?.map((item: any) => (
+                            <Dialog key={item.id}>
                                 <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-black/5 dark:border">
-                                    {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-20 bg-neutral-400 rounded-l-md" />}
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
                                         <div className="flex flex-col w-full pb-5 gap-0.5">
                                             <div className="flex w-full flex-col flex-1">
                                                 <p className="text-sm font-normal">{item.name}</p>
-                                                <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
+                                                <p className="font-semibold text-base">{item.type === "income" ? "+ " : "- "} Rp.{item.amount.toLocaleString("ID")}</p>
                                             </div>
                                         </div>
-                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.transaction_date.toLocaleDateString("ID", {
+                                        <div className="self-end flex-1 font-normal text-xs text-neutral-500">{item.date.toLocaleDateString("ID", {
                                             day: "numeric",
                                             month: "numeric",
                                             year: "numeric"
@@ -890,14 +910,13 @@ export function Report(): JSX.Element {
                                     </div>
                                 </DialogTrigger>
                                 <DialogContent className="w-full flex flex-col items-center bg-background-primary/90 dark:bg-background-primary-dark/50 backdrop-blur-xl">
-                                    {item.image && <div style={{backgroundImage: `url(${ApiUrl}/storage/${item.image})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}} className="w-[calc(100vw-70px)] h-70 sm:w-full bg-neutral-300" />}
                                     <div className="flex w-full flex-row justify-between items-end">
                                         <h4 className="font-medium text-xl">{item.name}</h4>
-                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{parseInt(item.amount, 10).toLocaleString("ID")}</p>
+                                        <p className="font-semibold text-2xl text-neutral-600 dark:text-neutral-400">{item.type === "income" ? "+ " : "- "} Rp.{item.amount.toLocaleString("ID")}</p>
                                     </div>
                                     <p className="text-base font-normal self-start -mt-2">{item.description}</p>
                                     <p className="text-sm font-normal text-neutral-400 self-end">
-                                        {(new Date(item.transaction_date)).toLocaleDateString("ENG", {
+                                        {item.date.toLocaleDateString("en-US", {
                                             weekday: "long",
                                             day: "numeric",
                                             month: "long",
@@ -935,8 +954,8 @@ export function Report(): JSX.Element {
                         </div>
                     </div>}
                     {displayData.transactionsHistory.length < 3 && <div className="flex flex-col items-center gap-5 justify-center h-50 px-5">
-                        <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40" />
-                        <p className="text-center font-medium text-base text-black/50">You have very few transactions <br /> <span className="font-normal">Unfortunately, we cannot generate your report.</span></p>
+                        <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40 dark:text-stone-300/65" />
+                        <p className="text-center font-medium text-base text-black/50 dark:text-stone-200/75">You have very few transactions <br /> <span className="font-normal">Unfortunately, we cannot generate your report.</span></p>
                     </div>}
                 </motion.div>}
             </AnimatePresence>
