@@ -25,7 +25,6 @@ export function Report(): JSX.Element {
     const [ session, setSession ] = useState<"cloud" | "local" | null>(null)
     const [ data, setData ] = useState<any>()
     const [ displayData, setDisplayData ] = useState<{income: number, outcome: number, incomePercentage: number, outcomePercentage: number, chartData: any[], highestIncome: number | null, highestOutcome: number | null, transactionsHistory: any[]}>({income: 0, outcome: 0, incomePercentage: 0, outcomePercentage: 0, chartData: [], highestIncome: null, highestOutcome: null, transactionsHistory: []})
-    const [ historyData, setHistoryData ] = useState<any[]>([])
     const [ _theme, setTheme ] = useState<"light" | "dark" | "system">("system")
     const [ _trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number } | null>(null)
 
@@ -35,11 +34,18 @@ export function Report(): JSX.Element {
     const [ range, setRange ] = useState<number>(7)
     const [ page, setPage ] = useState<number>(1)
     const [ lastPage, setLastPage ] = useState<number>(1)
+    const [ paginatedHistory, setPaginatedHistory ] = useState<any[]>([])
 
     // fetch name so it doesnt wait for backend response
     useEffect(() => {
         setTrackerName(searchParams.get("name") ?? "")
-    }, []) 
+        
+        const session = localStorage.getItem("session")
+        if(session === null) window.location.href = "/access"
+        setSession(session as "cloud" | "local")
+        
+        getTheme()
+    }, [])
 
     // to get all transactions and set it inside useState
     const localInitialize = async () => {
@@ -170,7 +176,7 @@ export function Report(): JSX.Element {
             const seconds = String(startDate.getSeconds()).padStart(2, '0')
             const formattedDate = `date,${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 
-            const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions?page=${page}&size=10&filter[ends_after]=${formattedDate}&sort=-date`, {
+            const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions?page=${page}&size=5&filter[ends_after]=${formattedDate}&sort=-date`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
@@ -275,7 +281,7 @@ export function Report(): JSX.Element {
             if(highestSevenDaysOutcome === -Infinity) highestSevenDaysOutcome = null 
 
             // set data
-            setDisplayData({income: sevenDaysIncome, outcome: SevenDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestSevenDaysIncome, highestOutcome: highestSevenDaysOutcome, transactionsHistory: last7Days})
+            setDisplayData({income: sevenDaysIncome, outcome: SevenDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestSevenDaysIncome, highestOutcome: highestSevenDaysOutcome, transactionsHistory: last7Days.map((t: any) => ({...t, amount: t.income, description: t.desc || t.description}))})
         }
     }
 
@@ -337,7 +343,7 @@ export function Report(): JSX.Element {
             let highestThirtyDaysOutcome: number | null = Math.max(...arrayThirtyDaysOutcome)
             if(highestThirtyDaysOutcome === -Infinity) highestThirtyDaysOutcome = null 
 
-            setDisplayData({income: thirtyDaysIncome, outcome: thirtyDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestThirtyDaysIncome, highestOutcome: highestThirtyDaysOutcome, transactionsHistory: last30Days})
+            setDisplayData({income: thirtyDaysIncome, outcome: thirtyDaysOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestThirtyDaysIncome, highestOutcome: highestThirtyDaysOutcome, transactionsHistory: last30Days.map((t: any) => ({...t, amount: t.income, description: t.desc || t.description}))})
         }
     }
 
@@ -399,16 +405,46 @@ export function Report(): JSX.Element {
             let highestOneYearOutcome: number | null = Math.max(...arrayOneYearOutcome)
             if(highestOneYearOutcome === -Infinity) highestOneYearOutcome = null 
 
-            setDisplayData({income: oneYearIncome, outcome: oneYearOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestOneYearIncome, highestOutcome: highestOneYearOutcome, transactionsHistory: last1Year})
+            setDisplayData({income: oneYearIncome, outcome: oneYearOutcome, incomePercentage: incomeComparationPercentage, outcomePercentage: outcomeComparationPercentage, chartData: chartReadyData, highestIncome: highestOneYearIncome, highestOutcome: highestOneYearOutcome, transactionsHistory: last1Year.map((t: any) => ({...t, amount: t.income, description: t.desc || t.description}))})
         }
     }
 
-    const setHistory = () => {
+    // Load tracker metadata when session is set
+    useEffect(() => {
+        if(session === "local") {
+            getLocalTrackerData()
+        }
+    }, [session])
+
+    useEffect(() => {
+        if (session === "local") {
+            localInitialize()
+        } else if (session === "cloud") {
+            cloudInitialize()
+        }
+
+        setPage(1)
+    }, [range, session])
+
+    // Parse data after it's fetched for local sessions
+    useEffect(() => {
+        if (session === "local" && data && data.length > 0) {
+            if(range === 7) parse7Days()
+            if(range === 30) parse30Days()
+            if(range === 365) parse1Year()
+        }
+    }, [data, range, session])
+
+    useEffect(() => {
         if(session === "local") {
             const size = 5
             const offset = (page - 1) * size
     
-            const uncleanedData: any[] = (displayData.transactionsHistory).sort((a, b) => b.date - a.date)
+            const uncleanedData: any[] = (displayData.transactionsHistory).sort((a, b) => {
+                const dateA = new Date(a.date).getTime()
+                const dateB = new Date(b.date).getTime()
+                return dateB - dateA
+            })
             const cleanedData: any[] = []
     
             uncleanedData.forEach(item => {
@@ -426,45 +462,14 @@ export function Report(): JSX.Element {
             setLastPage(pages)
     
             // paginate
-            const paginatedData = cleanedData.slice((offset), size * page)
-            console.log("history Data", paginatedData)
-            setHistoryData(paginatedData)
-        }
-    }
-
-
-    useEffect(() => {
-        
-        const session = localStorage.getItem("session")
-        if(session === null) window.location.href = "/access"
-        
-        setSession(session as "cloud" | "local")
-        if(session === "cloud") cloudInitialize()
-        if(session === "local") {
-            localInitialize()
-            getLocalTrackerData()
-        }
-
-        getTheme()
-    }, [])
-
-    useEffect(() => {
-        if (session === "local") {
-            localInitialize()
-            if(range === 7) parse7Days()
-            if(range === 30) parse30Days()
-            if(range === 365) parse1Year()
+            const paginatedData = cleanedData.slice((offset), offset + size)
+            setPaginatedHistory(paginatedData)
         } else {
-            cloudInitialize()
+            // For cloud, just use all history (cloud handles pagination via API)
+            setPaginatedHistory(displayData.transactionsHistory)
         }
-
-        setPage(1)
-    }, [range])
-
-    useEffect(() => {
-        {session === "local" && setHistory()}
         console.log(displayData)
-    }, [displayData, page])
+    }, [displayData, page, session])
 
     const changePage = (direction: "up" | "down" | "first" | "last") => {
         if(direction === "first") setPage(1)
@@ -730,7 +735,7 @@ export function Report(): JSX.Element {
                         </div>
                         <div className="w-full flex flex-col gap-2 mt-2">
                             <h3 className="text-sm font-regular">Transaction History Within {range === 7 ? "7 Days" : range === 30 ? "1 Month" : "1 Year"}</h3>
-                            {displayData.transactionsHistory.map((item: any) => (
+                            {paginatedHistory.map((item: any) => (
                             <Dialog key={item.id}>
                                 <DialogTrigger className="flex w-full bg-white rounded-md dark:bg-black/5 dark:border">
                                     <div className="flex w-full text-start justify-between flex-1 p-3">
