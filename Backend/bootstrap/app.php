@@ -30,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->api(append: [
-            'throttle:api',
+            'throttle:api_standard',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
     })

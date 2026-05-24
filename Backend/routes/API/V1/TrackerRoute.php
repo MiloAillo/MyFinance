@@ -8,10 +8,10 @@ Route::controller(TrackerController::class)->middleware('auth:sanctum')->group(f
     Route::apiResource('trackers', TrackerController::class)->except(['destroy']);
     Route::prefix('trackers/{tracker}')->name('trackers.')->group(function () {
         Route::delete('/', 'delete')->name('delete');
-        Route::get('/reports', 'reports')->name('reports');
+        Route::get('/reports', 'reports')->middleware('throttle:api_heavy')->name('reports');
     });
     
-    Route::prefix('deleted/trackers')->name('deleted.trackers')->group(function () {
+    Route::prefix('deleted/trackers')->middleware('throttle:api_heavy')->name('deleted.trackers')->group(function () {
         Route::get('/', 'indexDeleted')->withTrashed()->name('.index');
         Route::prefix('/{tracker}')->group(function () {
             Route::get('/', 'showDeleted')->withTrashed()->name('.show');

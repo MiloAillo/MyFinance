@@ -6,18 +6,18 @@ use Illuminate\Support\Facades\Route;
 Route::controller(UserController::class)->group(function () {
 
     // Authentication Routes
-    Route::post('users', 'store')->name('auth.register');
+    Route::post('users', 'store')->middleware('throttle:auth_strict')->name('auth.register');
 
     Route::prefix('auth')->name('auth.')->group(function () {
         Route::prefix('tokens')->group(function () {
-            Route::post('/', 'login')->name('login');
+            Route::post('/', 'login')->middleware('throttle:auth_strict')->name('login');
             Route::get('new-device/{key}', 'login')->middleware('signed')->name('login.new-device');
         });
         
         Route::prefix('password-resets')->middleware('signed')->name('password-resets.')->group(function () {
-            Route::post('/', 'forgotPassword')->withoutMiddleware('signed')->name('email');
+            Route::post('/', 'forgotPassword')->middleware('throttle:notification_spam')->withoutMiddleware('signed')->name('email');
             Route::get('/{credentials}', 'validateResetToken')->name('validate');
-            Route::put('/{credentials}', 'resetPassword')->name('update');
+            Route::put('/{credentials}', 'resetPassword')->middleware('throttle:auth_strict')->name('update');
         });
 
         Route::delete('tokens/current', 'logout')->name('logout')->middleware('auth:sanctum');
@@ -25,7 +25,7 @@ Route::controller(UserController::class)->group(function () {
         // Email Verification Routes
         Route::prefix('email')->name('email.')->group(function () {
             Route::middleware('auth:sanctum')->group(function () {
-                Route::post('send', 'sendVerificationEmail')->name('send');
+                Route::post('send', 'sendVerificationEmail')->middleware('throttle:notification_spam')->name('send');
             });
             Route::get('verify/{key}', 'verifyEmail')->middleware('signed')->name('verify');
         });
