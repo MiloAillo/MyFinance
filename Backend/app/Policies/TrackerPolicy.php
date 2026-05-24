@@ -29,6 +29,11 @@ class TrackerPolicy
         return $user->getKey() === $tracker->user_id;
     }
 
+    public function viewReports(User $user, Tracker $tracker): bool
+    {
+        return $user->getKey() === $tracker->user_id;
+    }
+
     public function viewDeleted(User $user, Tracker $tracker): bool|Response
     {
         if (!$tracker->trashed()) {

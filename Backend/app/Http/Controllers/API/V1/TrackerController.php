@@ -6,12 +6,14 @@ use App\Http\Helpers\ApiResponseHelper;
 use App\Http\Requests\API\V1\Tracker\IndexDeletedTrackerRequest;
 use App\Http\Requests\API\V1\Tracker\IndexTrackersRequest;
 use App\Http\Requests\API\V1\Tracker\ShowDeletedTrackerRequest;
+use App\Http\Requests\API\V1\Tracker\ShowTrackerReportRequest;
 use App\Http\Requests\API\V1\Tracker\ShowTrackerRequest;
 use App\Http\Requests\API\V1\Tracker\StoreTrackerRequest;
 use App\Http\Requests\API\V1\Tracker\UpdateTrackerRequest;
 use App\Http\Resources\API\V1\TrackerResource;
 use App\Models\Tracker;
 use App\Services\API\V1\TrackerService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -226,6 +228,100 @@ class TrackerController extends Controller
         return ApiResponseHelper::successResponse(
             message: 'Tracker retrieved successfully.',
             data: new TrackerResource($tracker),
+        );
+    }
+
+    public function reports(ShowTrackerReportRequest $request, Tracker $tracker)
+    {
+        $days = $request->safe()->only('range.days')['range']['days'];
+        $now = Carbon::now();
+        $rangeDataPresent = $now->copy()->subDays($days)->startOfDay()->toDateString();
+        $rangeDataOld = $now->copy()->subDays(2 * $days)->startOfDay()->toDateString();
+
+        $transactions = $tracker->transactions();
+        $tracker = $tracker->newQuery()->whereKey($tracker->getKey());
+
+        $report = DB::transaction(function () use ($tracker, $transactions, $rangeDataPresent, $rangeDataOld, $days) {
+            $tracker->sharedLock()->first(['id']);
+
+            $transactions = $transactions->whereIn('type', ['income', 'expense'])
+                ->whereDate('date', '>=', $rangeDataOld)
+                ->sharedLock()
+                ->get(['id', 'amount', 'date', 'type']);
+
+            $incomeFilter  = $transactions->where('type', 'income');
+            $expenseFilter = $transactions->where('type', 'expense');
+
+            $presentIncomes  = $incomeFilter->where('date', '>=', $rangeDataPresent)->values();
+            $presentExpenses = $expenseFilter->where('date', '>=', $rangeDataPresent)->values();
+
+            $totalPresentIncome   = $presentIncomes->sum('amount');
+            $totalPresentExpenses = $presentExpenses->sum('amount');
+            $maxPresentIncome     = $presentIncomes->max('amount');
+            $maxPresentExpense    = $presentExpenses->max('amount');
+
+            $oldIncomes  = $incomeFilter->where('date', '>=', $rangeDataOld)->where('date', '<', $rangeDataPresent)->values();
+            $oldExpenses = $expenseFilter->where('date', '>=', $rangeDataOld)->where('date', '<', $rangeDataPresent)->values();
+
+            $totalOldIncome   = $oldIncomes->sum('amount');
+            $totalOldExpenses = $oldExpenses->sum('amount');
+            $maxOldIncome     = $oldIncomes->max('amount');
+            $maxOldExpense    = $oldExpenses->max('amount');
+
+            return [
+                'data' => [
+                    'time_range' => [
+                        'in_days' => (string) $days,
+                        'present_range_start' => $rangeDataPresent,
+                        'old_range_start' => $rangeDataOld,
+                    ],
+                    'present' => [
+                        'income' => [
+                            'total' => !empty($totalPresentIncome) ? (string) $totalPresentIncome : '0.00',
+                            'max' => !empty($maxPresentIncome) ? (string) $maxPresentIncome : '0.00',
+                            'transactions' => $presentIncomes->map(fn($income) => [
+                                'id' => (string) $income->id,
+                                'amount' => (string) $income->amount,
+                                'date' => $income->date->toDateString(),
+                            ])->values()->all(),
+                        ],
+                        'expenses' => [
+                            'total' => !empty($totalPresentExpenses) ? (string) $totalPresentExpenses : '0.00',
+                            'max' => !empty($maxPresentExpense) ? (string) $maxPresentExpense : '0.00',
+                            'transactions' => $presentExpenses->map(fn($expense) => [
+                                'id' => (string) $expense->id,
+                                'amount' => (string) $expense->amount,
+                                'date' => $expense->date->toDateString(),
+                            ])->values()->all(),
+                        ],
+                    ],
+                    'old' => [
+                        'income' => [
+                            'total' => !empty($totalOldIncome) ? (string) $totalOldIncome : '0.00',
+                            'max' => !empty($maxOldIncome) ? (string) $maxOldIncome : '0.00',
+                            'transactions' => $oldIncomes->map(fn($income) => [
+                                'id' => (string) $income->id,
+                                'amount' => (string) $income->amount,
+                                'date' => $income->date->toDateString(),
+                            ])->values()->all(),
+                        ],
+                        'expenses' => [
+                            'total' => !empty($totalOldExpenses) ? (string) $totalOldExpenses : '0.00',
+                            'max' => !empty($maxOldExpense) ? (string) $maxOldExpense : '0.00',
+                            'transactions' => $oldExpenses->map(fn($expense) => [
+                                'id' => (string) $expense->id,
+                                'amount' => (string) $expense->amount,
+                                'date' => $expense->date->toDateString(),
+                            ])->values()->all(),
+                        ],
+                    ]
+                ]
+            ];
+        });
+
+        return ApiResponseHelper::successResponse(
+            message: 'Tracker reports generated successfully.',
+            data: $report
         );
     }
 
