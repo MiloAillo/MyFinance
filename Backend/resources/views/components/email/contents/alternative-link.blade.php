@@ -3,7 +3,7 @@
   <table border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
       <td style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; color: #9A9EA3; padding-bottom: 5px;">
-        If that doesn't work, copy and paste the following link in your browser:
+        If that doesn't work, copy and paste the following link into your browser:
       </td>
     </tr>
     <tr>
