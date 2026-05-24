@@ -61,6 +61,8 @@ export function Tracker(): JSX.Element {
             }
         } catch(err) {
             console.log(err)
+        } finally {
+            setInitialLoad(false)
         }
     }
     
@@ -532,7 +534,7 @@ export function Tracker(): JSX.Element {
     } satisfies ChartConfig
 
     return (
-        <section className="flex flex-col items-center md:max-w-[650px]">
+        <section className="flex flex-col items-center md:max-w-[650px] ">
             <TrackerNavbar render={render} backLink="/app" trackerName={trackerName ?? ""} getTheme={getTheme} onBackClick={() => transitionTo("/app")}/>
             <AnimatePresence>
                 { (dataLoad || graphLoad || sendingRequest) && 
