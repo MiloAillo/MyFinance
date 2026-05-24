@@ -1,7 +1,8 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useState, useRef, type JSX } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisV, faFilter, faQuestion } from "@fortawesome/free-solid-svg-icons";
+import { Loader2Icon } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -31,6 +32,8 @@ export function TrackerHistory(): JSX.Element {
     const [ page, setPage ] = useState<number>(1)
     const [ direction, setDirection ] = useState<string>("desc")
     const [lastPage, setLastPage] = useState(1)
+    const [ loadingTransactions, setLoadingTransactions ] = useState<boolean>(false)
+    const abortControllerRef = useRef<AbortController | null>(null)
 
     // set the trackerName for first launch
     useEffect(() => {
@@ -41,6 +44,7 @@ export function TrackerHistory(): JSX.Element {
 
     const localGetTransactions = async () => {
         if(id) {
+            setLoadingTransactions(true)
             try {
                 const res = await DBgetalltransactions(parseInt(id, 10)) as any[]
                 
@@ -79,33 +83,58 @@ export function TrackerHistory(): JSX.Element {
                 setData(paginatedData)             
             } catch(err) {
                 console.log(err)
+            } finally {
+                setLoadingTransactions(false)
             }
         }
     }
 
     const cloudGetTransactions = async () => {
+        // Abort previous request if it exists
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+        }
+
+        // Create new abort controller for this request
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
+
         console.log("get transactions triggered!")
 
         const showBoth = showPlus && showwMinus
         const minusOnly = showwMinus && !showPlus
         const plusOnly = !showwMinus && showPlus
-        const type = showBoth ? "" : minusOnly ? "income" : plusOnly ? "expense" : ""
+        const type = showBoth ? "" : minusOnly ? "income" : plusOnly ? "expense" : "nothing"
 
+        setLoadingTransactions(true)
         try {
             console.log(id, page, direction, type)
             const res = await axios.get(`${ApiUrl}/trackers/${id}/transactions?page=${page}&size=10&filter[type]=${type}&sort=${direction == "desc" ? "-" : ""}date`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
-                }
+                },
+                signal: abortController.signal
             })
-            const data = res.data
-            const transactions = data.data 
-            console.log("data: ", transactions)
+            
+            // Only update state if this request wasn't aborted
+            if (!abortController.signal.aborted) {
+                const data = res.data
+                const transactions = data.data 
+                console.log("data: ", transactions)
 
-            setLastPage(data.meta.last_page)
-            setData(transactions)
+                setLastPage(data.meta.last_page)
+                setData(transactions)
+            }
         } catch(err) {
-            console.log(err)
+            // Don't log abort errors, they're expected when a new request is made
+            if (axios.isAxiosError(err) && err.code !== 'ERR_CANCELED') {
+                console.log(err)
+            }
+        } finally {
+            // Only clear loading if this is still the current request
+            if (abortControllerRef.current === abortController) {
+                setLoadingTransactions(false)
+            }
         }
     }
 
@@ -149,6 +178,77 @@ export function TrackerHistory(): JSX.Element {
     return (
         <section className="flex flex-col items-center w-full md:max-w-[650px]">
             <TrackerNavbar trackerName={trackerName} render={render} backLink={`/app/tracker/${id}`} onBackClick={() => transitionTo(`/app/tracker/${id}`)}  />
+            <AnimatePresence>
+                {loadingTransactions && 
+                    <motion.div
+                        key={"loading-div"}
+                        layout
+                        className="fixed mt-20 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden dark:bg-stone-700"
+                        initial={{
+                            y: -30,
+                            opacity: 0,
+                            filter: "blur(5px)"
+                        }}
+                        animate={{
+                            y: 0,
+                            opacity: 100,
+                            filter: "blur(0px)"
+                        }}
+                        transition={{
+                            delay: 0.4,
+                            layout: {
+                                type: 'spring',
+                                mass: 1,
+                                stiffness: 160,
+                                damping: 19
+                            }
+                        }}
+                        exit={{
+                            y: -30,
+                            opacity: 0,
+                            filter: "blur(5px)"
+                        }}
+                    >
+                        <AnimatePresence mode="popLayout">
+                            <motion.div
+                                layout
+                                key={"loading-spin"}
+                                initial={{
+                                    filter: "blur(5px)",
+                                    opacity: 0,
+                                    x: 100
+                                }}
+                                animate={{
+                                    filter: "blur(0px)",
+                                    opacity: 1,
+                                    x: 0
+                                }}
+                                exit={{
+                                    filter: "blur(5px)",
+                                    opacity: 0,
+                                    x: -100
+                                }}
+                                transition={{
+                                    layout: {
+                                        type: 'spring',
+                                        mass: 1,
+                                        stiffness: 160,
+                                        damping: 19
+                                    }
+                                }}
+                                className="flex items-center gap-2"
+                            >
+                                <motion.p
+                                    className="px-2 whitespace-nowrap"
+                                    layout
+                                >
+                                    Fetching transactions...
+                                </motion.p>
+                            </motion.div>
+                        </AnimatePresence>
+                    </motion.div>  
+                }
+            </AnimatePresence>
             <AnimatePresence>
                 {render && <motion.div
                     key={"tracker-history"}
