@@ -12,6 +12,8 @@ import { DBcreatetracker, DBgetalltrackers } from "@/lib/db";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ModeToggle } from "@/components/mode-toggle";
 import useTransition from "@/hooks/useTransition";
+import removeUserCache from "@/functions/remove-user-cache";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 export function Dashboard(): JSX.Element {
 
@@ -625,6 +627,29 @@ export function Dashboard(): JSX.Element {
                                             >
                                                 <FontAwesomeIcon icon={faArrowRightFromBracket} />
                                                 <p className="font-medium text-[15px]">Signout</p>
+                                            </motion.div>
+                                        }
+                                        {session === "cloud" &&
+                                            <motion.div 
+                                                className="flex items-center gap-1.5 justify-center mt-2"
+                                                onClick={() => {}}
+                                                whileTap={{
+                                                    scale: 0.95
+                                                }}
+                                            >
+                                                <div className="underline text-sm text-stone-800 dark:text-stone-200 dark:border-stone-700 border-stone-800/20 dark:hover:border-stone-200 rounded-md w-fit cursor-pointer" onClick={() => {removeUserCache(); window.location.href = "/app"}}>
+                                                    Clear Cache
+                                                </div>
+                                                <div className="flex items-center justify-center self-start">
+                                                    <HoverCard>
+                                                        <HoverCardTrigger>
+                                                            <p className="font-light text-sm cursor-help">?</p>
+                                                        </HoverCardTrigger>
+                                                        <HoverCardContent className="w-fit h-fit px-2 py-1 text-sm max-w-40 md:max-w-none dark:bg-stone-600/5 bg-white/10 backdrop-blur-[1.5px]">
+                                                            helpful to fix stale user data and broken app 
+                                                        </HoverCardContent>
+                                                    </HoverCard>
+                                                </div>
                                             </motion.div>
                                         }
                                     </div>

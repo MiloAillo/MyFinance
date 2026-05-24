@@ -5,6 +5,8 @@ import axios, { isAxiosError } from "axios"
 const appLoader = async () => {
     // get Auth token (MyCloud)
     const authToken = localStorage.getItem("Authorization")
+    const user_cache = localStorage.getItem("user-cache")
+
     console.log("auth token:", authToken)
 
     // get existing local db
@@ -47,6 +49,18 @@ const appLoader = async () => {
     }
 
     if(authToken) {
+        if (user_cache) {
+            const data = JSON.parse(user_cache)
+            const TTL = 3600000
+
+
+            // =[OUTPUT 6: allowed from user cache]=
+            if (data?.authorization === authToken && (Date.now() - data.timestamp) < TTL) return data
+
+            // if doesnt match then remove the cache and fetch a new one
+            else localStorage.removeItem("user-cache")
+        }
+
         try {
             const res = await axios.get(`${ApiUrl}/users/profile`, {
                 headers: {
@@ -54,11 +68,18 @@ const appLoader = async () => {
                 }
             })
     
-            const data = await res.data
+            const data = await res.data.data
+
+            // prep for user cache
+            data.authorization = authToken
+            data.timestamp = Date.now()
+
+            const stringified_data = JSON.stringify(data)
+            localStorage.setItem("user-cache", stringified_data)
 
             // =[Output 2: entering as cloud account]=
             localStorage.setItem("session", "cloud")
-            return data.data
+            return data
         } catch(err) {
             if(isAxiosError(err)) {
                 console.log(err)

@@ -14,6 +14,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import useTransition from "@/hooks/useTransition";
 import { Loader2Icon } from "lucide-react";
+import removeUserCache from "@/functions/remove-user-cache";
 
 export function EditProfile(): JSX.Element {
 
@@ -123,6 +124,8 @@ export function EditProfile(): JSX.Element {
                     }
                 })
 
+                removeUserCache()
+
                 setRender(false)
                 setTimeout(() => window.location.href = "/app/editProfile", 500)
             } catch (err) {
@@ -151,6 +154,8 @@ export function EditProfile(): JSX.Element {
                 }
             })
 
+            removeUserCache()
+
             setLoadingChangeImage(false)
             setChangeImageStatus("success")
         } catch (err) {
@@ -178,6 +183,8 @@ export function EditProfile(): JSX.Element {
                     Authorization: `Bearer ${localStorage.getItem("Authorization")}`
                 }
             })
+
+            removeUserCache()
 
             setLoadingDeleteImage(false)
             setDeleteImageStatus("success")
