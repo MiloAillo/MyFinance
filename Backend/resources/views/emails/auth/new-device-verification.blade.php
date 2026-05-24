@@ -10,7 +10,7 @@
       Hello!
     @endif</x-email.contents.greeting>
     <x-email.contents.description>
-      Tap the button below to verify your new device, this verification link will expire in {{ $expiration }} minutes.<br>
+      Tap the button below to verify your new device. This verification link will expire in {{ $expiration }} minutes.<br>
       If you did not log in from another device, no further action is required or you can safely delete this email.
     </x-email.contents.description>
   </x-email.contents.header>

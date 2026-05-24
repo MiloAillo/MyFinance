@@ -5,7 +5,7 @@
     <x-email.contents.subject>Verify Your New Email Address</x-email.contents.subject>
     <x-email.contents.greeting />
     <x-email.contents.description>
-      Tap the button below to verify your new email address, this verification link will expire in {{ $expiration }} minutes.<br>
+      Tap the button below to verify your new email address. This verification link will expire in {{ $expiration }} minutes.<br>
       If you did not request a new email verification, no further action is required or you can safely delete this email.
     </x-email.contents.description>
   </x-email.contents.header>

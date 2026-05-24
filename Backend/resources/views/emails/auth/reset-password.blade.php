@@ -5,7 +5,7 @@
     <x-email.contents.subject>Reset Your Password</x-email.contents.subject>
     <x-email.contents.greeting />
     <x-email.contents.description>
-      Tap the button below to reset your customer account password, this password reset link will expire in {{ $expiration }} minutes.<br>
+      Tap the button below to reset your account password. This password reset link will expire in {{ $expiration }} minutes.<br>
       If you did not request a password reset, no further action is required or you can safely delete this email.
     </x-email.contents.description>
   </x-email.contents.header>
