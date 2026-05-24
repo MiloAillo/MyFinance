@@ -32,7 +32,9 @@ class ShowTrackerReportRequest extends FormRequest
     public function prepareForValidation()
     {
         return $this->merge([
-            'range.days' => $this->query('range.days', 7),
+            'range' => [
+                'days' => $this->query('range.days', 7),
+            ],
         ]);
     }
 }

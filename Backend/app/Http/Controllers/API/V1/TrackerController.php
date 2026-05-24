@@ -233,7 +233,7 @@ class TrackerController extends Controller
 
     public function reports(ShowTrackerReportRequest $request, Tracker $tracker)
     {
-        $days = $request->safe()->only('range.days')['range']['days'];
+        $days = $request->validated()['range']['days'];
         $now = Carbon::now();
         $rangeDataPresent = $now->copy()->subDays($days)->startOfDay()->toDateString();
         $rangeDataOld = $now->copy()->subDays(2 * $days)->startOfDay()->toDateString();
