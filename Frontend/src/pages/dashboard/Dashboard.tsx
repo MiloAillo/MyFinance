@@ -306,7 +306,7 @@ export function Dashboard(): JSX.Element {
                         <motion.div
                             key={"loading-div"}
                             layout
-                            className="fixed mt-20 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden"
+                            className="fixed mt-20 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden dark:bg-stone-700"
                             initial={{
                                 y: -30,
                                 opacity: 0,
@@ -775,7 +775,7 @@ export function Dashboard(): JSX.Element {
                             }
                         </motion.div>
                     ))}
-                    {!trackers?.length && !isCreateBoxOpen && render &&
+                    {!trackers?.length && !isCreateBoxOpen && render && !gettingTracker && !deletingTracker && !addingTracker &&
                         <motion.div 
                             className="absolute left-[50%] translate-x-[-50%] top-25 z-0 flex flex-col items-center gap-4 w-[60%]"
                             key={"intro"}
