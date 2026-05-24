@@ -1,0 +1,25 @@
+<x-email.layout title="New Device Login Verification" footer-action-text="a new device login verification">
+  
+  <!-- Heading -->
+  <x-email.contents.header>
+    <x-email.contents.subject>New Device Login Detected</x-email.contents.subject>
+    <x-email.contents.greeting>
+    @if (!empty($name))
+      Hello, {{ $name }}!
+    @else
+      Hello!
+    @endif</x-email.contents.greeting>
+    <x-email.contents.description>
+      Tap the button below to verify your new device. This verification link will expire in {{ $expiration }} minutes.<br>
+    </x-email.contents.description>
+  </x-email.contents.header>
+
+  <!-- Bulletproof & Rounded Button (Pure Hybrid Approach) -->
+  <x-email.contents.url-button :action-url="$actionUrl">Verify New Device Login</x-email.contents.url-button>
+
+  <!-- Alternative Link -->
+  <x-email.contents.alternative-link :action-url="$actionUrl">
+    <x-email.contents.salutation />
+  </x-email.contents.alternative-link>
+
+</x-email.layout>

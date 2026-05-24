@@ -46,12 +46,10 @@ class VerifiedEmailChangedNotification extends Notification implements ShouldQue
         
         return (new MailMessage)
             ->subject('Verify Your New Email Address - ' . config('app.name'))
-            ->greeting('Hello!')
-            ->line('You are receiving this email because we received an email update request for your account.')
-            ->action('Verify New Email', $frontendUrl)
-            ->line('This verification link will expire in ' . $this->expiresInMinutes . ' minutes.')
-            ->line('If you did not request an email update, no further action is required.')
-            ->salutation('Regards, ' . config('app.name'));
+            ->view('emails.auth.new-email-verification', [
+                'actionUrl' => $frontendUrl,
+                'expiration' => $this->expiresInMinutes,
+            ]);
     }
 
     /**
