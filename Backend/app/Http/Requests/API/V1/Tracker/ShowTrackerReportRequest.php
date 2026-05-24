@@ -4,7 +4,6 @@ namespace App\Http\Requests\API\V1\Tracker;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Override;
 
 class ShowTrackerReportRequest extends FormRequest
 {
@@ -33,7 +32,7 @@ class ShowTrackerReportRequest extends FormRequest
     {
         return $this->merge([
             'range' => [
-                'days' => $this->query('range.days', 7),
+                'days' => $this->query('range')['days'] ?? 7,
             ],
         ]);
     }
