@@ -33,6 +33,8 @@ export function EditProfile(): JSX.Element {
     const [ loadingChangeImage, setLoadingChangeImage ] = useState<boolean>(false)
     const [ changeImageStatus, setChangeImageStatus ] = useState<"success" | "reject" | "null">("null")
     const [ deleteConfirmation, setDeleteConfirmation ] = useState<boolean>(false)
+    const [ loadingDeleteImage, setLoadingDeleteImage ] = useState<boolean>(false)
+    const [ deleteImageStatus, setDeleteImageStatus ] = useState<"success" | "reject" | "null">("null")
     const [ verificationCooldown, setVerificationCooldown ] = useState<number>(0)
     const [ verificationLoading, setVerificationLoading ] = useState<boolean>(false)
 
@@ -151,25 +153,25 @@ export function EditProfile(): JSX.Element {
 
             setLoadingChangeImage(false)
             setChangeImageStatus("success")
-
-            handleDelete()
         } catch (err) {
             console.log(err)
             setLoadingChangeImage(false)
             setChangeImageStatus("reject")
+        } finally {
+            handleDelete()
         }
     }
 
     const handleDeleteConfirm = async () => {
-        if (loadingChangeImage) return
+        if (loadingDeleteImage) return
 
         const formData = new FormData()
         formData.append("_method", "PATCH")
         formData.append("avatar", "null")
 
         try {
-            setChangeImageStatus("null")
-            setLoadingChangeImage(true)
+            setDeleteImageStatus("null")
+            setLoadingDeleteImage(true)
 
             await axios.post(`${ApiUrl}/users/profile`, formData, {
                 headers: {
@@ -177,14 +179,14 @@ export function EditProfile(): JSX.Element {
                 }
             })
 
-            setLoadingChangeImage(false)
-            setChangeImageStatus("success")
+            setLoadingDeleteImage(false)
+            setDeleteImageStatus("success")
 
             handleDelete()
         } catch (err) {
             console.log(err)
-            setLoadingChangeImage(false)
-            setChangeImageStatus("reject")
+            setLoadingDeleteImage(false)
+            setDeleteImageStatus("reject")
         }
     }
 
@@ -211,14 +213,25 @@ export function EditProfile(): JSX.Element {
     const isConfirmReject = !imageExist && changeImageStatus === "reject"
     const isConfirmEnabled = imageExist
     const confirmButtonClassName = cn(
-        "w-10",
+        "w-10 cursor-pointer",
         isConfirmSuccess
             ? "bg-green-600 text-white hover:bg-green-700"
             : isConfirmReject
                 ? "bg-red-600 text-white hover:bg-red-700"
                 : isConfirmEnabled
-                    ? "bg-neutral-800 text-white"
-                    : "border-3 border-neutral-400 bg-transparent text-neutral-400 hover:bg-neutral-100"
+                    ? "bg-neutral-800 text-white dark:bg-stone-200 dark:text-stone-800 dark:hover:bg-stone-400 dark:hover:text-stone-800"
+                    : "border-3 border-neutral-400 bg-transparent text-neutral-400 hover:bg-neutral-100 bg-transparent border-3 border-stone-800 text-stone-800 hover:bg-stone-800 hover:text-stone-200"
+    )
+
+    const isDeleteSuccess = deleteImageStatus === "success"
+    const isDeleteReject = deleteImageStatus === "reject"
+    const deleteButtonClassName = cn(
+        "flex-1 h-12 w-full",
+        isDeleteSuccess
+            ? "bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 cursor-pointer"
+            : isDeleteReject
+                ? "bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 cursor-pointer"
+                : "bg-red-600 hover:bg-red-500 dark:bg-red-500 dark:text-stone-200 dark:hover:bg-red-600 cursor-pointer"
     )
 
     const changeProfileUI = (
@@ -231,13 +244,13 @@ export function EditProfile(): JSX.Element {
                 accept="image/*"
             />
             <div className="flex gap-3 w-full">
-                <div className="border-2 border-neutral-400 flex-3 rounded-md flex justify-center items-center text-neutral-800 truncate">{imageName}</div>
+                <div className="border-2 flex-3 rounded-md flex justify-center items-center truncate dark:bg-transparent dark:border-2 dark:text-stone-200 dark:border-stone-300/75 border-stone-800/75 text-stone-800 font-semibold">{imageName}</div>
                 { imageExist &&
-                    <Button className="border-3 border-red-500 bg-transparent text-red-500 hover:bg-neutral-100 w-10" onClick={handleDelete}>
-                        <FontAwesomeIcon icon={faTrash} className="text-[18px] text-red-500"></FontAwesomeIcon>
+                    <Button className="border-3 border-red-500 bg-transparent text-red-500 w-10 dark:bg-transparent dark:border-3 dark:text-red-500 dark:border-red-500/75 dark:hover:bg-red-500/20 dark:hover:text-stone-200 cursor-pointer hover:bg-red-200" onClick={handleDelete}>
+                        <FontAwesomeIcon icon={faTrash} className="text-[18px]"></FontAwesomeIcon>
                     </Button>
                 }
-                <Button className={`${!imageExist ? "flex-1 bg-neutral-800" : "w-10 border-3 bg-transparent text-neutral-800 border-neutral-800"}`} onClick={triggerPicker}>
+                <Button className={`${!imageExist ? "flex-1 bg-neutral-800 dark:bg-stone-200 dark:text-stone-800 dark:hover:bg-stone-50 dark:hover:text-stone-800 cursor-pointer" : "w-10 border-3 bg-transparent text-neutral-800 border-neutral-800 dark:bg-transparent dark:border-3 dark:text-stone-200 dark:border-stone-300/75 dark:hover:bg-stone-200 dark:hover:text-stone-800 hover:bg-stone-200 cursor-pointer"}`} onClick={triggerPicker}>
                     <FontAwesomeIcon icon={faUpload} className={`text-[19px]`}></FontAwesomeIcon>
                     { !imageExist && <p>Upload</p> }
                 </Button>
@@ -246,7 +259,7 @@ export function EditProfile(): JSX.Element {
                     {loadingChangeImage && <Spinner className="text-[20px]" />}
                 </Button>
             </div>
-            <Button className="bg-neutral-800" onClick={() => setProfileState(false)}>Back</Button>
+            <Button className="dark:bg-transparent dark:border-3 dark:text-stone-200 dark:border-stone-300/75 dark:hover:bg-stone-200 dark:hover:text-stone-800 bg-transparent border-3 border-stone-800 text-stone-800 hover:bg-stone-800 hover:text-stone-200 cursor-pointer" onClick={() => {setProfileState(false); setDeleteImageStatus("null")}}>Back</Button>
         </DrawerFooter>
     )
 
@@ -254,23 +267,24 @@ export function EditProfile(): JSX.Element {
         <DrawerFooter className="flex flex-col gap-8 w-full">
             <div className="flex flex-col justify-center items-center gap-3 h-20">
                 <p className="font-semibold text-base">Are you sure want to delete your photo profile?</p>
-                <Button onClick={() => handleDeleteConfirm()} className="flex-1 h-12 w-full bg-red-700">
-                    <FontAwesomeIcon icon={faTrash} ></FontAwesomeIcon>
-                    <p>Delete</p>
+                <Button onClick={() => handleDeleteConfirm()} className={deleteButtonClassName}>
+                    {!loadingDeleteImage && <FontAwesomeIcon icon={faTrash} ></FontAwesomeIcon>}
+                    {loadingDeleteImage && <Spinner className="text-[20px]" />}
+                    <p>{isDeleteSuccess ? "Deleted" : isDeleteReject ? "Failed" : "Delete"}</p>
                 </Button>
             </div>
-            <Button className="w-full" onClick={() => setDeleteConfirmation(false)}>Back</Button>
+            <Button className="w-full dark:bg-transparent dark:border-3 dark:text-stone-200 dark:border-stone-300/75 dark:hover:bg-stone-200 dark:hover:text-stone-800 bg-transparent border-3 border-stone-800 text-stone-800 hover:bg-stone-800 hover:text-stone-200 cursor-pointer" onClick={() => {setDeleteConfirmation(false); setDeleteImageStatus("null")}}>Back</Button>
         </DrawerFooter>
     )
 
     const menuProfileUI = (
         <DrawerFooter className="flex flex-col gap-8 w-full">
             <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={() => setProfileState(true)} className="flex-1 bg-neutral-800 h-12">Change Photo Profile</Button>
-                <Button onClick={() => setDeleteConfirmation(true)} className="flex-1 bg-neutral-800 h-12">Delete Photo Profile</Button>
+                <Button onClick={() => setProfileState(true)} className="flex-1 bg-neutral-800 h-12 dark:bg-stone-200 dark:hover:bg-stone-400 cursor-pointer">Change Photo Profile</Button>
+                <Button onClick={() => setDeleteConfirmation(true)} className="flex-1 bg-neutral-800 h-12 dark:bg-stone-200 dark:hover:bg-stone-400 cursor-pointer">Delete Photo Profile</Button>
             </div>
             <DrawerClose className="w-full">
-                <Button className="w-full">Close</Button>
+                <Button className="w-full bg-transparent border-3 border-stone-800 text-stone-800 hover:bg-stone-800 hover:text-stone-200 dark:bg-transparent dark:border-3 dark:text-stone-200 dark:border-stone-300/75 dark:hover:bg-stone-200 dark:hover:text-stone-800 cursor-pointer">Close</Button>
             </DrawerClose>
         </DrawerFooter>
     )
@@ -336,13 +350,13 @@ export function EditProfile(): JSX.Element {
                 >
                     {session === "cloud" &&
                             <Drawer>
-                                <DrawerTrigger className="h-30 w-30">
+                                <DrawerTrigger className="h-30 w-30 cursor-pointer">
                                     <img src={userData.attributes.avatar} className="w-full h-full rounded-full object-cover" />
                                     <div className="flex justify-center items-center -translate-y-30 w-full h-full rounded-full bg-neutral-950 opacity-45">
                                         <FontAwesomeIcon icon={faCamera} className="text-5xl text-white" />
                                     </div>
                                 </DrawerTrigger>
-                                <DrawerContent className="w-screen md:w-[50%] md:absolute md:left-0 md:translate-x-[50%]">
+                                <DrawerContent className="w-screen md:w-[50%] md:absolute md:left-0 md:translate-x-[50%] dark:bg-stone-900">
                                     {!profileState && !deleteConfirmation && menuProfileUI}
                                     {deleteConfirmation && deleteConfirmationUI}
                                     {profileState && !deleteConfirmation && changeProfileUI}
@@ -352,27 +366,27 @@ export function EditProfile(): JSX.Element {
                     <div className="flex flex-col gap-3 w-screen px-10 sm:px-0 sm:w-90">
                         <div className="border px-4 py-3 rounded-2xl">
                             <p className="text-base font-normal text-neutral-500">Username</p>
-                            <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0" ref={username} onChange={(e) => {setUsernameUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your username..." defaultValue={session === "cloud" ? userData.attributes.name : userData.name}></Input>
+                            <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0 dark:bg-transparent" ref={username} onChange={(e) => {setUsernameUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your username..." defaultValue={session === "cloud" ? userData.attributes.name : userData.name}></Input>
                         </div>
                         {session === "cloud" &&
                             <div className="border px-4 py-3 rounded-2xl">
                                 <p className="text-base font-normal text-neutral-500">Email</p>
-                                <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0" ref={email} onChange={(e) => {setEmailUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your email..." defaultValue={userData.attributes.email}></Input>
+                                <Input className="font-semibold text-base! p-0 m-0 border-0 shadow-none focus-visible:ring-0 dark:bg-transparent" ref={email} onChange={(e) => {setEmailUsestate(e.target.value); console.log(e.target.value)}} placeholder="fill your email..." defaultValue={userData.attributes.email}></Input>
                                 { session === "cloud" && !userData.attributes.email_verified_at &&
                                     <div className="flex justify-center w-full "> 
                                         <div className="absolute flex gap-3 sm:gap-20 translate-y-5">
                                             <p className="text-sm">Email is unverified.</p>
                                             <Drawer>
-                                                <DrawerTrigger className="text-sm text-right text-blue-500 underline flex sm:flex-col">send verification {verificationCooldown > 0 ? `(${verificationCooldown})` : ""}</DrawerTrigger>
-                                                <DrawerContent className="w-screen md:w-[50%] md:absolute md:left-0 md:translate-x-[50%]">
+                                                <DrawerTrigger className="text-sm text-right text-blue-500 dark:text-blue-400 hover:text-blue-400 dark:hover:text-blue-500 underline flex sm:flex-col cursor-pointer">send verification {verificationCooldown > 0 ? `(${verificationCooldown})` : ""}</DrawerTrigger>
+                                                <DrawerContent className="w-screen md:w-[50%] md:absolute md:left-0 md:translate-x-[50%] dark:bg-stone-900">
                                                     <DrawerHeader>
                                                         <DrawerTitle className="text-xl">Send Verification?</DrawerTitle>
                                                         <DrawerDescription className="text-normal">We'll send you a verification through email. After verification, we can reliably contact the email incase anything bad happens.</DrawerDescription>
                                                     </DrawerHeader>
                                                     <DrawerFooter>
-                                                        <Button onClick={handleSendVerification} className={`${verificationCooldown <= 0 ? "bg-blue-600" : "bg-transparent border-2 border-blue-600 text-blue-600"}`}>Send {verificationLoading ? <Spinner></Spinner> : ""} {verificationCooldown > 0 ? `(${verificationCooldown})` : ""}</Button>
+                                                        <Button onClick={handleSendVerification} className={`${verificationCooldown <= 0 ? "bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400" : "bg-transparent border-3 border-blue-600 text-blue-600 dark:text-blue-500 dark:hover:bg-transparent cursor-not-allowed"}`}>Send {verificationLoading ? <Spinner></Spinner> : ""} {verificationCooldown > 0 ? `(${verificationCooldown})` : ""}</Button>
                                                         <DrawerClose className="w-full">
-                                                            <Button className="w-full bg-transparent border-2 border-neutral-800 text-neutral-800">Close</Button>
+                                                            <Button className="w-full bg-transparent border-2 border-neutral-800 dark:border-stone-200 text-neutral-800 dark:text-stone-200 dark:hover:bg-stone-200 dark:hover:text-stone-700 ">Close</Button>
                                                         </DrawerClose>
                                                     </DrawerFooter>
                                                 </DrawerContent>
