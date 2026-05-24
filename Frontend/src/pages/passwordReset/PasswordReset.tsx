@@ -158,7 +158,7 @@ export function PasswordReset(): JSX.Element {
                     >
                         <FontAwesomeIcon icon={faChainBroken} className="text-6xl"></FontAwesomeIcon>
                         <p className="text-stone-900 text-2xl font-semibold dark:text-background-primary text-center">Link Has Expired</p>
-                        <p onClick={() => transitionTo("/access")} className="text-sm underline text-blue-500">Go back to login page</p>
+                        <p onClick={() => transitionTo("/access")} className="text-sm underline text-blue-500 dark:text-blue-400 dark:hover:text-blue-500 cursor-pointer">Go back to login page</p>
                     </motion.div>
                 )}
                 {render && status === "ok" && (
@@ -194,7 +194,7 @@ export function PasswordReset(): JSX.Element {
                         }}
                     >
                         <div className="flex flex-col items-center gap-3">
-                            <FontAwesomeIcon icon={faPencil} className="text-6xl text-stone-900"></FontAwesomeIcon>
+                            <FontAwesomeIcon icon={faPencil} className="text-6xl text-stone-900 dark:text-stone-300"></FontAwesomeIcon>
                             <h1 className="text-2xl font-bold text-stone-900 dark:text-background-primary">Create New Password</h1>
                             <p className="text-base text-stone-600 dark:text-stone-400">Make sure to remember this one!</p>
                         </div>
@@ -282,7 +282,7 @@ export function PasswordReset(): JSX.Element {
                                                     animate={{ x: 0, opacity: 100 }}
                                                     exit={{ x: -30, opacity: 0 }}
                                                 >
-                                                    <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Save Changes</Button>
+                                                    <Button type="submit" className="text-stone-800 font-semibold [background-image:var(--color-button-primary)] dark:[background-image:var(--color-button-primary-dark)] cursor-pointer w-full">Save Changes</Button>
                                                 </motion.div>
                                             }
                                             {isLoading &&

@@ -139,7 +139,7 @@ export function ChangePassword (): JSX.Element {
                 >
                     <div className="flex flex-col gap-8 sm:w-85 w-full max-w-md">
                         <div className="flex flex-col items-center gap-3">
-                            <FontAwesomeIcon icon={faPencil} className="text-6xl text-stone-900"></FontAwesomeIcon>
+                            <FontAwesomeIcon icon={faPencil} className="text-6xl text-stone-900 dark:text-stone-300"></FontAwesomeIcon>
                             <h1 className="text-2xl font-bold text-stone-900 dark:text-background-primary">Change Your Password</h1>
                             <p className="text-base text-stone-600 dark:text-stone-400">Make sure to remember this one!</p>
                         </div>
@@ -269,7 +269,7 @@ export function ChangePassword (): JSX.Element {
                                                     animate={{ x: 0, opacity: 100 }}
                                                     exit={{ x: -30, opacity: 0 }}
                                                 >
-                                                    <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Update Password</Button>
+                                                    <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] dark:[background-image:var(--color-button-primary-dark)] w-full cursor-pointer">Update Password</Button>
                                                 </motion.div>
                                             }
                                             {isLoading &&
