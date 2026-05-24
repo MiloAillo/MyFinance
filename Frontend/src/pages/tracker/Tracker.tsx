@@ -539,7 +539,7 @@ export function Tracker(): JSX.Element {
                     <motion.div
                         key={"initial-loading"}
                         layout
-                        className="fixed mt-18 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden"
+                        className="fixed mt-18 z-999 shadow my-2 bg-white p-1.5 rounded-full overflow-hidden dark:bg-stone-700" 
                         initial={{
                             y: -30,
                             opacity: 0,
@@ -750,7 +750,7 @@ export function Tracker(): JSX.Element {
                         <div className="flex justify-between w-full gap-5">
                             <Dialog>
                                 <DialogTrigger className="flex-1 w-full" onClick={() => getTimestampNow()}>
-                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-green-400/75 dark:bg-violet-600 dark:border-violet-600 text-neutral-800 font-semibold hover:bg-green-400 dark:hover:bg-violet-500 dark:text-white" onClick={() => setPendapatanUrl(null)} >+ Income</Button></motion.div>
+                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-green-500/80 dark:bg-violet-600 dark:border-violet-600 text-neutral-800 font-semibold hover:bg-green-500/75 dark:hover:bg-violet-500 dark:text-white cursor-pointer" onClick={() => setPendapatanUrl(null)} >+ Income</Button></motion.div>
                                 </DialogTrigger>
                                 <DialogContent className="flex flex-col shadow-green-300/40 dark:shadow-green-300/7 bg-white/80 dark:bg-background-primary-dark/60 backdrop-blur-2xl">
                                     <DialogTitle className="font-medium">Income</DialogTitle>
@@ -760,7 +760,7 @@ export function Tracker(): JSX.Element {
                                             <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" value={pendapatanNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Amount" />
                                             <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanDesc} placeholder="Description (optional)" />
                                             <div className="flex flex-row gap-2 mt-2">
-                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanImage} type="file" onChange={(e) => {
+                                                {/* <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanImage} type="file" onChange={(e) => {
                                                     const file = e.target.files
                                                     console.log(e.target.files)
                                                     if(file?.length === 0) {
@@ -772,18 +772,18 @@ export function Tracker(): JSX.Element {
 
                                                         isAllowed && setPendapatanUrl(URL.createObjectURL(file[0]))
                                                     }
-                                                }} />
+                                                }} /> */}
                                                 <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pendapatanDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
                                             </div>
                                             <img src={pendapatanUrl ? pendapatanUrl : undefined} alt="" className="w-[50%] max-h-40 rounded-md" />
                                         </div>
-                                        <DialogClose onClick={() => addIncome()} className="bg-green-400/75 dark:bg-violet-600 dark:text-white border-2 dark:border-violet-700 border-green-400 text-black font-[Inter] font-semibold py-1.5 rounded-md">Add Income</DialogClose>
+                                        <DialogClose onClick={() => addIncome()} className="bg-green-500/80 dark:bg-violet-600 dark:text-white border-2 dark:border-violet-700 border-green-500/80 text-black font-[Inter] font-semibold py-1.5 rounded-md cursor-pointer">Add Income</DialogClose>
                                     </DialogDescription>
                                 </DialogContent>
                             </Dialog>
                             <Dialog>
                                 <DialogTrigger className="flex-1 w-full" onClick={() => getTimestampNow()}>
-                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-red-400/80 font-semibold text-neutral-800 dark:bg-red-600 dark:border-red-600 hover:bg-red-400 dark:text-white">- Expense</Button></motion.div>
+                                    <motion.div whileTap={{ scale: 0.95 }}><Button className="flex-1 w-full bg-red-500/80 font-semibold text-neutral-800 dark:bg-red-600 dark:border-red-600 hover:bg-red-400 dark:text-white cursor-pointer">- Expense</Button></motion.div>
                                 </DialogTrigger>
                                 <DialogContent className="flex flex-col shadow-red-400/20 dark:shadow-red-400/7 bg-white/80 dark:bg-background-primary-dark/60 backdrop-blur-2xl">
                                     <DialogTitle className="font-medium">Expense</DialogTitle>
@@ -793,7 +793,7 @@ export function Tracker(): JSX.Element {
                                             <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" value={pengeluaranNominal} onChange={(e) => balanceFilter(e.target.value)} placeholder="Amount" />
                                             <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranDesc} placeholder="Description (optional)" />
                                             <div className="flex flex-row gap-2 mt-2">
-                                                <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranImage} type="file" onChange={(e) => {
+                                                {/* <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranImage} type="file" onChange={(e) => {
                                                     const file = e.target.files
                                                     console.log(e.target.files)
                                                     if(file?.length === 0) {
@@ -805,12 +805,12 @@ export function Tracker(): JSX.Element {
 
                                                         isAllowed && setPengeluaranUrl(URL.createObjectURL(file[0]))
                                                     }
-                                                }} />
+                                                }} /> */}
                                                 <Input className="ring bg-white/30 dark:ring ring-black/20 dark:ring-white/20" ref={pengeluaranDate} type="datetime-local" step={1} defaultValue={today ? today : undefined} />
                                             </div>
                                             <img src={pengeluaranUrl ? pengeluaranUrl : undefined} alt="" className="w-[50%] max-h-40 rounded-md" />
                                         </div>
-                                        <DialogClose className="bg-red-400/75 dark:bg-red-600 dark:text-white border-2 border-red-500 text-black font-[Inter] font-semibold py-1.5 rounded-md" onClick={() => addOutcome()}>Add Expense</DialogClose>
+                                        <DialogClose className="bg-red-500/80 dark:bg-red-600 dark:text-white border-2 border-red-500/80 text-black font-[Inter] font-semibold py-1.5 rounded-md cursor-pointer" onClick={() => addOutcome()}>Add Expense</DialogClose>
                                     </DialogDescription>
                                 </DialogContent>
                             </Dialog>

@@ -60,7 +60,7 @@ export function VerifyEmail(): JSX.Element {
     }
 
     return (
-        <section>
+        <section className="bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
                 {render && <motion.div
                     key={"navbar"}
@@ -82,7 +82,7 @@ export function VerifyEmail(): JSX.Element {
                     }}
                 >
                     <div className="flex flex-col items-center gap-3 -mt-5 px-5">
-                        <FontAwesomeIcon icon={faEnvelope} className="text-6xl text-stone-900"></FontAwesomeIcon>
+                        <FontAwesomeIcon icon={faEnvelope} className="text-6xl text-stone-900 dark:text-stone-300"></FontAwesomeIcon>
                         <h1 className="text-2xl font-bold text-stone-900 dark:text-background-primary">Email Verification Request</h1>
                         <p className="text-base text-stone-600 dark:text-stone-400 text-center mb-3">
                             Someone with your email in our app has requested an email verification. <br/>
@@ -113,7 +113,7 @@ export function VerifyEmail(): JSX.Element {
                                         }
                                     }}
                                 >
-                                    <Alert variant="destructive" className="w-fit">
+                                    <Alert variant="destructive" className="w-fit bg-transparent">
                                         <AlertCircleIcon />
                                         <AlertTitle className="font-semibold tracking-normal">Failed to Verify Email</AlertTitle>
                                         <AlertDescription>
@@ -128,7 +128,7 @@ export function VerifyEmail(): JSX.Element {
                                 <motion.button
                                     onClick={handleVerification}
                                     key="button"
-                                    className="text-neutral-800 font-semibold w-40 sm:w-60 rounded-md h-9 flex justify-center items-center [background-image:var(--color-button-primary)]"
+                                    className="text-stone-800 font-semibold w-40 sm:w-60 rounded-md h-9 flex justify-center items-center [background-image:var(--color-button-primary)] dark:[background-image:var(--color-button-primary-dark)]"
                                     type="button"
                                     initial={{
                                         x: 30,
@@ -170,7 +170,7 @@ export function VerifyEmail(): JSX.Element {
                                     }}
                                 >
                                     Verifying email
-                                    <Spinner color="black"/>
+                                    <Spinner className="text-stone-800 dark:text-stone-200"/>
                                 </motion.div>
                             }
                             { status == "ok" &&

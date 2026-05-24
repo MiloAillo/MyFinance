@@ -302,7 +302,7 @@ export function Dashboard(): JSX.Element {
             className="flex flex-col items-center gap-5 min-h-screen md:max-w-[650px]">
             <div className="flex justify-center max-w-[650px]">
                 <AnimatePresence>
-                    { (gettingTracker || deletingTracker || addingTracker) && 
+                    { (gettingTracker || deletingTracker || addingTracker || signingOut) && 
                         <motion.div
                             key={"loading-div"}
                             layout

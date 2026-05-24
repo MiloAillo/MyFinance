@@ -130,7 +130,7 @@ export function Signup(): JSX.Element {
         <section className="w-full h-screen flex flex-col gap-12 justify-center items-center -mt-5 bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
                 { render && <motion.h1
-                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary"
+                    className="text-center justify-start text-stone-900 text-3xl font-bold tracking-wide dark:text-background-primary cursor-default"
                     initial={{
                         x: 30,
                         opacity: 0,
@@ -302,7 +302,7 @@ export function Signup(): JSX.Element {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Checkbox id="tos" onCheckedChange={(e) => setConsent(e as any)} />
-                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline" onClick={() => {transitionTo("/tos")}}>Terms of Services</span></label>
+                                            <label htmlFor="tos" className="font-normal text-sm">I agree to the <span className="font-medium text-blue-500 underline dark:text-blue-400 dark:hover:text-blue-500 hover:text-blue-400 cursor-pointer" onClick={() => {transitionTo("/tos")}}>Terms of Services</span></label>
                                         </div>
                                     </div>
                                     <AnimatePresence mode="popLayout">
@@ -315,7 +315,7 @@ export function Signup(): JSX.Element {
                                                 animate={{ x: 0, opacity: 100 }}
                                                 exit={{ x: -30, opacity: 0 }}
                                             >
-                                                <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] w-full">Create account</Button>
+                                                <Button type="submit" className="text-neutral-800 font-semibold [background-image:var(--color-button-primary)] dark:[background-image:var(--color-button-primary-dark)] w-full">Create account</Button>
                                             </motion.div>
                                         }
                                         {isLoading &&
@@ -326,11 +326,11 @@ export function Signup(): JSX.Element {
                                                 animate={{ x: 0, opacity: 100 }}
                                                 exit={{ x: -30, opacity: 0 }}
                                             >
-                                                <OrbitProgress variant="track-disc" speedPlus={2} easing="ease-in-out" style={{fontSize: 5}} />
+                                                <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Signing in...</p>
                                             </motion.div>
                                         }
                                     </AnimatePresence>
-                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {transitionTo("/access")}} className="text-blue-500 hover:text-blue-400 underline">Sign in</span></p>
+                                    <p className="w-full text-center font-medium text-sm">Already have an account? <span onClick={() => {transitionTo("/access")}} className="text-blue-500 underline dark:text-blue-400 dark:hover:text-blue-500 hover:text-blue-400 cursor-pointer">Sign in</span></p>
                                 </div>
                             </form>
                         </Form>

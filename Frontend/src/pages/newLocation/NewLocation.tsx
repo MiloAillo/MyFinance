@@ -38,7 +38,7 @@ export function NewLocation(): JSX.Element {
 
             if (isAxiosError(err)) {
                 setStatus("error")
-                if (err.status == 403) {
+                if (err.status == 422) {
                     setErrorMsg("Token is expired.")
                 } else {
                     setErrorMsg("Internal server error.")
@@ -51,7 +51,7 @@ export function NewLocation(): JSX.Element {
     }
 
     return (
-        <section>
+        <section className="bg-background-primary dark:bg-background-primary-dark">
             <AnimatePresence>
                 {render && <motion.div
                     key={"navbar"}
@@ -73,7 +73,7 @@ export function NewLocation(): JSX.Element {
                     }}
                 >
                     <div className="flex flex-col items-center gap-3 -mt-5 px-5">
-                        <FontAwesomeIcon icon={faPencil} className="text-6xl text-stone-900"></FontAwesomeIcon>
+                        <FontAwesomeIcon icon={faPencil} className="text-6xl text-stone-900 dark:text-stone-300"></FontAwesomeIcon>
                         <h1 className="text-2xl font-bold text-stone-900 dark:text-background-primary">Device Login Request</h1>
                         <p className="text-base text-stone-600 dark:text-stone-400 text-center mb-3">We receive a new device login request. <br/> If this isn't you, change your password immediately.</p>
 
@@ -100,7 +100,7 @@ export function NewLocation(): JSX.Element {
                                         }
                                     }}
                                 >
-                                    <Alert variant="destructive" className="w-fit">
+                                    <Alert variant="destructive" className="w-fit bg-transparent">
                                         <AlertCircleIcon />
                                         <AlertTitle className="font-semibold tracking-normal">Allow New Device Login Failed</AlertTitle>
                                         <AlertDescription>
@@ -179,7 +179,7 @@ export function NewLocation(): JSX.Element {
                                     }}
                                 >
                                     Allowing request
-                                    <Spinner color="black"/>
+                                    <Spinner className="text-stone-800 dark:text-stone-200"/>
                                 </motion.div>
                             }
                         </AnimatePresence>
