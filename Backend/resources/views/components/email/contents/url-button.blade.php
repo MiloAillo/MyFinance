@@ -16,7 +16,7 @@
           <tr>
             <td align="center" bgcolor="#625EBD" style="border-radius: 4px;">
               <a href="{{ $actionUrl }}" target="_blank" style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 4px; display: inline-block;">
-                @if($slot)
+                @if($slot->isNotEmpty())
                   {{ $slot }}
                 @else
                   Click Here

@@ -15,7 +15,7 @@
 
   <!-- Alternative Link -->
   <x-email.contents.alternative-link :action-url="$actionUrl">
-    <x-email.contents.salulation />
+    <x-email.contents.salutation />
   </x-email.contents.alternative-link>
 
 </x-email.layout>

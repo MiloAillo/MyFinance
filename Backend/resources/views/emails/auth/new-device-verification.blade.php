@@ -3,10 +3,10 @@
   <!-- Heading -->
   <x-email.contents.header>
     <x-email.contents.subject>New Device Login Detected</x-email.contents.subject>
-    <x-email.contents.greeting> Hello, {{ $name }}!</x-email.contents.greeting>
+    <x-email.contents.greeting>Hello@if (!empty($name)), {{ $name }}@endif!</x-email.contents.greeting>
     <x-email.contents.description>
       Tap the button below to verify your new device, this verification link will expire in {{ $expiration }} minutes.<br>
-      If you did not login from another device, no further action is required or you can safely delete this email.
+      If you did not log in from another device, no further action is required or you can safely delete this email.
     </x-email.contents.description>
   </x-email.contents.header>
 
@@ -15,7 +15,7 @@
 
   <!-- Alternative Link -->
   <x-email.contents.alternative-link :action-url="$actionUrl">
-    <x-email.contents.salulation />
+    <x-email.contents.salutation />
   </x-email.contents.alternative-link>
 
 </x-email.layout>
