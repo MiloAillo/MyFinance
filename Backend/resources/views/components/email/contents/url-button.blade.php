@@ -5,7 +5,7 @@
     <td align="center" style="padding-bottom: 40px;">
       <div>
         <!--[if mso]>
-        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" href="{{ $actionUrl }}" style="height:44px;v-text-anchor:middle;width:180px;" arcsize="10%" stroke="f" fillcolor="#625EBD">
+        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" href="{{ $actionUrl }}" style="height:44px;v-text-anchor:middle;width:260px;" arcsize="10%" stroke="f" fillcolor="#625EBD">
           <w:anchorlock/>
           <center style="color:#FFFFFF;font-family:'Inter', Arial, sans-serif;font-size:14px;font-weight:700;">
             @if($slot->isNotEmpty())

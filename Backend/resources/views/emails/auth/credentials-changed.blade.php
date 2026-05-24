@@ -11,7 +11,7 @@
         Your account credentials have been changed.
       @endif
       <br>
-      If you really did this change, no further action is required.
+      If you made this change, no further action is required.
     </x-email.contents.description>
   <x-email.contents.salutation />
   </x-email.contents.header>
