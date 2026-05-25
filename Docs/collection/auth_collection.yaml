@@ -1,0 +1,412 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: MyFinance
+meta:
+  id: wrk_cd5b95d42e8945a3973e0bb16b3d6b87
+  created: 1779003927803
+  modified: 1779003927803
+  description: ""
+collection:
+  - name: Users
+    meta:
+      id: fld_216747267a2444129d4b5fc2fa9e2b01
+      created: 1775348019636
+      modified: 1778319164610
+      sortKey: -1775348048210
+      description: ""
+    children:
+      - name: Auth
+        meta:
+          id: fld_5f56d0ad62084b738e59a109ae02e17d
+          created: 1775348011707
+          modified: 1776763490032
+          sortKey: -1775442143935
+          description: ""
+        children:
+          - url: "{{base_url}}/auth/tokens"
+            name: Sign In
+            meta:
+              id: req_8b4dbe4e78c34312bab17fd4462b76ca
+              created: 1775439998216
+              modified: 1778318949663
+              isPrivate: false
+              description: ""
+              sortKey: -1775439413526
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"email": "{{ signed_up_email }}",
+                	"password": "{{ password }}"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            authentication:
+              type: none
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ base_url }}/users"
+            name: Sign Up
+            meta:
+              id: req_9a8ee7b1cd99454bb582ce29a3567247
+              created: 1775440044349
+              modified: 1776904262364
+              isPrivate: false
+              description: ""
+              sortKey: -1775439413576
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"name": "{{ name }}",
+                	"email": "{{ email }}",
+                	"password": "{{ password }}",
+                	"password_confirmation": "{{ password }}"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ base_url }}/auth/tokens/current"
+            name: Sign Out
+            meta:
+              id: req_21f44587255c4b4fad2d319dc3a1efd6
+              created: 1775440242033
+              modified: 1775788927081
+              isPrivate: false
+              description: ""
+              sortKey: -1775439413176
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            authentication:
+              type: bearer
+              token: "{{ user_token }}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ base_url }}/auth/password-resets"
+            name: Forgot Password
+            meta:
+              id: req_4855ae9aa6aa4ece919b0c8535727da4
+              created: 1775440264467
+              modified: 1776764837000
+              isPrivate: false
+              description: ""
+              sortKey: -1775439413501
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"email": "{{ signed_up_email }}"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ base_url }}/auth/password-resets/{credentials}"
+            name: Reset Password
+            meta:
+              id: req_f828bbcc30e146ba8cdda05052c2073f
+              created: 1775446109626
+              modified: 1777786632291
+              isPrivate: false
+              description: ""
+              sortKey: -1775439413338.5
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"password": "{{ new_password }}",
+                	"password_confirmation": "{{ new_password }}"
+                }
+            parameters:
+              - name: expires
+                value: ""
+                description: ""
+                disabled: false
+              - name: signature
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ base_url }}/auth/password-resets/{credentials}"
+            name: Validate Password Reset Token
+            meta:
+              id: req_e32b0add3a8543dab505f4a9c95834b9
+              created: 1775799664866
+              modified: 1777786602756
+              isPrivate: false
+              description: ""
+              sortKey: -1775439413460.375
+            method: GET
+            parameters:
+              - name: expires
+                value: ""
+                description: ""
+                disabled: false
+              - name: signature
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{base_url}}/auth/tokens/new-device/{key}"
+            name: Sign In New Device
+            meta:
+              id: req_69ae65afb37747fe97697a0f79dd8761
+              created: 1776916477099
+              modified: 1777786585490
+              isPrivate: false
+              description: ""
+              sortKey: -1775439413513.5
+            method: GET
+            parameters:
+              - name: expires
+                value: ""
+                description: ""
+                disabled: false
+              - name: signature
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            authentication:
+              type: none
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - name: Verification
+            meta:
+              id: fld_2e54e5c3def949189bf9bdf6c779edb6
+              created: 1775960005669
+              modified: 1776535564792
+              sortKey: -1775439413138.5
+              description: ""
+            children:
+              - name: Email
+                meta:
+                  id: fld_322c368969e948c08ae0bb7181017b5b
+                  created: 1775962289526
+                  modified: 1775962295043
+                  sortKey: -1775960027919
+                  description: ""
+                children:
+                  - url: "{{ base_url }}/auth/email/verify/{key}"
+                    name: Verify Email
+                    meta:
+                      id: req_a1a3e693c3414a2d8983812808393c09
+                      created: 1775918852817
+                      modified: 1777786653163
+                      isPrivate: false
+                      description: ""
+                      sortKey: -1775962309670
+                    method: GET
+                    parameters:
+                      - name: expires
+                        value: ""
+                        description: ""
+                        disabled: false
+                      - name: signature
+                        value: ""
+                        description: ""
+                        disabled: false
+                    headers:
+                      - name: User-Agent
+                        value: insomnia/12.4.0
+                        description: ""
+                        disabled: false
+                    authentication:
+                      type: none
+                    settings:
+                      renderRequestBody: true
+                      encodeUrl: true
+                      followRedirects: global
+                      cookies:
+                        send: true
+                        store: true
+                      rebuildPath: true
+                  - url: "{{ base_url }}/auth/email/send"
+                    name: Send Verification Email
+                    meta:
+                      id: req_e53ee863dd7c4dc69078071d97e528e7
+                      created: 1775959410532
+                      modified: 1776914383773
+                      isPrivate: false
+                      description: ""
+                      sortKey: -1775962309870
+                    method: POST
+                    headers:
+                      - name: User-Agent
+                        value: insomnia/12.4.0
+                        description: ""
+                        disabled: false
+                    authentication:
+                      type: bearer
+                      disabled: false
+                      token: "{{ user_token }}"
+                    settings:
+                      renderRequestBody: true
+                      encodeUrl: true
+                      followRedirects: global
+                      cookies:
+                        send: true
+                        store: true
+                      rebuildPath: true
+            authentication:
+              type: bearer
+              token: "{{ user_token }}"
+        authentication:
+          type: none
+    authentication:
+      type: bearer
+      token: "{{ user_token }}"
+    environment:
+      name: ""
+      email: ""
+      password: ""
+      new_password: ""
+      signed_up_name: "{% response 'body', 'req_9a8ee7b1cd99454bb582ce29a3567247',
+        'b64::JC5kYXRhLmF0dHJpYnV0ZXMubmFtZQ==::46b', 'never', 60 %}"
+      signed_up_email: "{% response 'body', 'req_9a8ee7b1cd99454bb582ce29a3567247',
+        'b64::JC5kYXRhLmF0dHJpYnV0ZXMuZW1haWw=::46b', 'never', 60 %}"
+    environmentPropertyOrder:
+      "&":
+        - name
+        - email
+        - password
+        - new_password
+        - signed_up_name
+        - signed_up_email
+  - name: Trackers
+    meta:
+      id: fld_7136dd022e5649ca80bbf68c383c077e
+      created: 1775348028272
+      modified: 1778116740499
+      sortKey: -1775348048185
+      description: ""
+    authentication:
+      type: bearer
+      token: "{{ user_token }}"
+    environment:
+      tracker_id: "{% response 'body', 'req_8266c9eee1de4409bb9ab9c65d3d6f19',
+        'b64::JC5kYXRhLjAuaWQ=::46b', 'never', 60 %}"
+      name: "{% faker 'randomCompanyName' %}"
+      description: "{% faker 'randomLoremParagraph' %}"
+      deleted_tracker_id: "{% response 'body', 'req_a4128a6e3e404a439bc0c71081e5d062',
+        'b64::JC5kYXRhLjAuaWQ=::46b', 'never', 60 %}"
+  - name: Others
+    meta:
+      id: fld_eb5b2bf4f46142788f3dbc10d2cd1bac
+      created: 1775439596732
+      modified: 1776842156529
+      sortKey: -1775348048160
+      description: ""
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_ed636d4a21b94f21b52d253a5507b406
+    created: 1775312032828
+    modified: 1775312032828
+environments:
+  name: Base
+  meta:
+    id: env_01db8fe1ea6c4bdf9396aca2f58c6647
+    created: 1775312032769
+    modified: 1775629435509
+    isPrivate: false
+  data:
+    domain: localhost
+    port: :8080
+    base_url: "{{ domain }}{{ port }}/api/v{{ version }}"
+    version: "1"
+  subEnvironments:
+    - name: Development
+      meta:
+        id: env_a00377e360d04e2ea6e4800d4e8988d9
+        created: 1775456406243
+        modified: 1777816307950
+        isPrivate: false
+        sortKey: 1775456406243
+      data:
+        user_token: "{% response 'body', 'req_97f0e9bbae9d48539565140496bc32fd',
+          'b64::JC5kYXRhLm1ldGEudG9rZW4=::46b', 'never', 60 %}"
