@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tracker;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -9,74 +11,43 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    use WithoutModelEvents;
+
     /**
      * Run the database seeds.
      */
- public function run(): void
-    {   
-        $testUsers = [
-            [
-                'name' => 'John Doe',
-                'email' => 'john@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Jane Smith', 
-                'email' => 'jane@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Mavis Vermilion',
-                'email' => 'mavis@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Zeref Dragneel',
-                'email' => 'zeref@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Wendy Marvell',
-                'email' => 'wendy@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Lucy Heartfilia',
-                'email' => 'lucy@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Juvia Lockser',
-                'email' => 'juvia@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Erza Scarlet',
-                'email' => 'erza@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Gray Fullbuster',
-                'email' => 'gray@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Natsu Dragneel',
-                'email' => 'natsu@local.test',
-                'password' => Hash::make('password123'),
-            ],
-            [
-                'name' => 'Happy Cat',
-                'email' => 'happy@local.test',
-                'password' => Hash::make('password123'),
-            ],
-        ];
-        
-        foreach ($testUsers as $userData) {
-            User::create($userData);
-        }
+    public function run(): void
+    {
+        $testUser = User::factory()->create([
+            'name' => 'User',
+            'email' => 'user@myfinance.test',
+            'password' => Hash::make('User123!'),
+            'email_verified_at' => null,
+        ]);
 
-        $totalUsers = User::count();
-        $this->command->info("Successfully seeded {$totalUsers} users.");
+        $randomUsers = User::factory(9)->create();
+
+        $allUsers = $randomUsers->push($testUser);
+
+        foreach ($allUsers as $user) {
+            Tracker::factory(rand(2, 4))->create([
+                'user_id' => $user->id
+            ])->each(function ($tracker) use ($user) {
+                
+                $transactions = Transaction::factory(rand(10, 100))->create([
+                    'tracker_id' => $tracker->id,
+                    'user_id' => $user->id,
+                ]);
+
+                $totalIncome = $transactions->where('type', 'income')->sum('amount');
+                $totalExpense = $transactions->where('type', 'expense')->sum('amount');
+                
+                $calculatedBalance = $totalIncome - $totalExpense;
+
+                $tracker->update([
+                    'current_balance' => $calculatedBalance
+                ]);
+            });
+        }
     }
 }
