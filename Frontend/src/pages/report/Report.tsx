@@ -118,8 +118,8 @@ export function Report(): JSX.Element {
         chartArray = [
             ...present_incomes.map((t: any) => ({...t, type: "income"})),
             ...present_expenses.map((t: any) => ({...t, type: "expense"})),
-            ...old_incomes.map((t: any) => ({...t, type: "income"})),
-            ...old_expenses.map((t: any) => ({...t, type: "expense"}))
+            // ...old_incomes.map((t: any) => ({...t, type: "income"})),
+            // ...old_expenses.map((t: any) => ({...t, type: "expense"}))
         ]
 
         chartArray.forEach(transactions => {
@@ -796,7 +796,7 @@ export function Report(): JSX.Element {
                             </motion.div>
                         </div>
                     </div>}
-                    {session === "cloud" && displayData.transactionsHistory.length >= 3 && <div className="flex flex-col items-center w-[87%] gap-3">
+                    {session === "cloud" && displayData.chartData.length >= 3 && <div className="flex flex-col items-center w-[87%] gap-3">
                         <div className="flex justify-between w-full">
                             <h3 className="text-sm font-regular">Report & Insight</h3>
                         </div>
@@ -958,7 +958,11 @@ export function Report(): JSX.Element {
                             </motion.div>
                         </div>
                     </div>}
-                    {displayData.transactionsHistory.length < 3 && <div className="flex flex-col items-center gap-5 justify-center h-50 px-5">
+                    {session === "local" && displayData.transactionsHistory.length < 3 && <div className="flex flex-col items-center gap-5 justify-center h-50 px-5">
+                        <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40 dark:text-stone-300/65" />
+                        <p className="text-center font-medium text-base text-black/50 dark:text-stone-200/75">You have very few transactions <br /> <span className="font-normal">Unfortunately, we cannot generate your report.</span></p>
+                    </div>}
+                    {session === "cloud" && displayData.chartData.length < 3 && <div className="flex flex-col items-center gap-5 justify-center h-50 px-5">
                         <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40 dark:text-stone-300/65" />
                         <p className="text-center font-medium text-base text-black/50 dark:text-stone-200/75">You have very few transactions <br /> <span className="font-normal">Unfortunately, we cannot generate your report.</span></p>
                     </div>}
