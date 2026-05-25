@@ -20,7 +20,6 @@ return new class extends Migration
             $table->enum('type', ['income', 'expense']);
             $table->decimal('amount', 15, 2);
             $table->text('description')->nullable();
-            $table->json('files')->nullable();
             $table->timestamp('date');
             $table->softDeletes();
             $table->timestamps();
