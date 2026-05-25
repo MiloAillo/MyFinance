@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Http\Helpers\ApiResponseHelper;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -23,103 +22,127 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $errResponse = fn(string $msg) => fn() => ApiResponseHelper::errorResponse(
-            message: $msg,
-            statusCode: 429
-        );
+        // $errResponse = fn(string $msg) => fn() => ApiResponseHelper::errorResponse(
+        //     message: $msg,
+        //     statusCode: 429
+        // );
 
-        RateLimiter::for('api_standard', function (Request $request) use ($errResponse) {
+        RateLimiter::for('api_standard', function (Request $request) {
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+
             [$ip, $subnet, $deviceHash] = $this->getClientFingerprint($request);
             $userId = $request->user()?->id;
             
-            $res = $errResponse('Too many requests. Please try again later.');
+            // $res = $errResponse('Too many requests. Please try again later.');
 
             $limits = [];
             
             if ($userId) {
-                $limits[] = Limit::perMinute(60)->by('user:' . $userId)->response($res);
+                $limits[] = Limit::perMinute(60)->by('user:' . $userId);
             }
 
             return array_merge($limits, [
-                Limit::perMinute(60)->by('ip:' . $ip)->response($res),
-                Limit::perMinute(60)->by('subnet:' . $subnet)->response($res),
-                Limit::perMinute(60)->by('device_hash:' . $deviceHash)->response($res),
+                Limit::perMinute(60)->by('ip:' . $ip),
+                Limit::perMinute(60)->by('subnet:' . $subnet),
+                Limit::perMinute(60)->by('device_hash:' . $deviceHash),
             ]);
         });
 
-        RateLimiter::for('api_heavy', function (Request $request) use ($errResponse) {
+        RateLimiter::for('api_heavy', function (Request $request) {
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+
             [$ip, $subnet, $deviceHash] = $this->getClientFingerprint($request);
             $userId = $request->user()?->id;
             
-            $res = $errResponse('The server is busy. Please try again later.');
+            // $res = $errResponse('The server is busy. Please try again later.');
 
             $limits = [];
             if ($userId) {
-                $limits[] = Limit::perMinutes(15, 3)->by('user:' . $userId)->response($res);
+                $limits[] = Limit::perMinutes(15, 3)->by('user:' . $userId);
             }
 
             return array_merge($limits, [
-                Limit::perMinutes(15, 5)->by('ip:' . $ip)->response($res),
-                Limit::perMinutes(15, 5)->by('subnet:' . $subnet)->response($res),
-                Limit::perMinutes(15, 5)->by('device_hash:' . $deviceHash)->response($res),
+                Limit::perMinutes(15, 5)->by('ip:' . $ip),
+                Limit::perMinutes(15, 5)->by('subnet:' . $subnet),
+                Limit::perMinutes(15, 5)->by('device_hash:' . $deviceHash),
             ]);
         });
 
-        RateLimiter::for('notification_spam', function (Request $request) use ($errResponse) {
+        RateLimiter::for('notification_spam', function (Request $request) {
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+            
             [$ip, $subnet, $deviceHash] = $this->getClientFingerprint($request);
             $userId = $request->user()?->id;
             $email = (string) $request->input('email');
             
-            $res = $errResponse('Too many notification requests. Please try again later.');
+            // $res = $errResponse('Too many notification requests. Please try again later.');
 
             $limits = [
-                Limit::perMinutes(15, 3)->by('ip:' . $ip)->response($res),
-                Limit::perMinute(20)->by('subnet:' . $subnet)->response($res),
-                Limit::perMinute(10)->by('device_hash:' . $deviceHash)->response($res),
+                Limit::perMinutes(15, 3)->by('ip:' . $ip),
+                Limit::perMinute(20)->by('subnet:' . $subnet),
+                Limit::perMinute(10)->by('device_hash:' . $deviceHash),
             ];
 
             if ($userId) {
-                array_unshift($limits, Limit::perMinutes(15, 3)->by('user:' . $userId)->response($res));
+                array_unshift($limits, Limit::perMinutes(15, 3)->by('user:' . $userId));
             }
             if ($email) {
-                array_unshift($limits, Limit::perMinutes(15, 3)->by('email:' . $email)->response($res));
+                array_unshift($limits, Limit::perMinutes(15, 3)->by('email:' . $email));
             }
 
             return $limits;
         });
 
-        RateLimiter::for('register', function (Request $request) use ($errResponse) {
+        RateLimiter::for('register', function (Request $request) {
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+            
             [$ip, $subnet, $deviceHash] = $this->getClientFingerprint($request);
-            $res = $errResponse('Too many registration attempts. Please try again later.');
+            // $res = $errResponse('Too many registration attempts. Please try again later.');
 
             return [
-                Limit::perMinute(10)->by('ip:' . $ip)->response($res),
-                Limit::perMinute(20)->by('subnet:' . $subnet)->response($res),
-                Limit::perMinute(10)->by('device_hash:' . $deviceHash)->response($res),
+                Limit::perMinute(10)->by('ip:' . $ip),
+                Limit::perMinute(20)->by('subnet:' . $subnet),
+                Limit::perMinute(10)->by('device_hash:' . $deviceHash),
             ];
         });
         
-        RateLimiter::for('login', function (Request $request) use ($errResponse) {
+        RateLimiter::for('login', function (Request $request) {
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+            
             [$ip, $subnet, $deviceHash] = $this->getClientFingerprint($request);
             $email = (string) $request->input('email');
-            $res = $errResponse('Too many login attempts. Please try again later.');
+            // $res = $errResponse('Too many login attempts. Please try again later.');
 
             return [
-                Limit::perMinute(5)->by('email:' . $email)->response($res),
-                Limit::perMinute(10)->by('ip:' . $ip)->response($res),
-                Limit::perMinute(20)->by('subnet:' . $subnet)->response($res),
-                Limit::perMinute(10)->by('device_hash:' . $deviceHash)->response($res),
+                Limit::perMinute(5)->by('email:' . $email),
+                Limit::perMinute(10)->by('ip:' . $ip),
+                Limit::perMinute(20)->by('subnet:' . $subnet),
+                Limit::perMinute(10)->by('device_hash:' . $deviceHash),
             ];
         });
 
-        RateLimiter::for('password_reset_update', function (Request $request) use ($errResponse) {
+        RateLimiter::for('password_reset_update', function (Request $request) {
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+
             [$ip, $subnet, $deviceHash] = $this->getClientFingerprint($request);
-            $res = $errResponse('Too many password reset attempts. Please try again later.');
+            // $res = $errResponse('Too many password reset attempts. Please try again later.');
 
             $limits = [
-                Limit::perMinute(10)->by('ip:' . $ip)->response($res),
-                Limit::perMinute(20)->by('subnet:' . $subnet)->response($res),
-                Limit::perMinute(10)->by('device_hash:' . $deviceHash)->response($res),
+                Limit::perMinute(10)->by('ip:' . $ip),
+                Limit::perMinute(20)->by('subnet:' . $subnet),
+                Limit::perMinute(10)->by('device_hash:' . $deviceHash),
             ];
 
             return $limits;
