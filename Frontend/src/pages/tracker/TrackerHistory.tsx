@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, type JSX } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisV, faFilter, faQuestion } from "@fortawesome/free-solid-svg-icons";
-import { Loader2Icon } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -14,7 +13,6 @@ import { ApiUrl } from "@/lib/variable";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
 import useTransition from "@/hooks/useTransition";
-import { Input } from "@/components/ui/input";
 
 export function TrackerHistory(): JSX.Element {
     const { id } = useParams()

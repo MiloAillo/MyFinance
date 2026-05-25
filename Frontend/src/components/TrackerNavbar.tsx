@@ -16,7 +16,7 @@ interface trackerNavbarInterface {
     onBackClick?: () => void
 }
 
-export function TrackerNavbar({ render, backLink, trackerName, getTheme, onBackClick }: trackerNavbarInterface): JSX.Element {
+export function TrackerNavbar({ render, trackerName, getTheme, onBackClick }: trackerNavbarInterface): JSX.Element {
     const [ session, setSession ] = useState<"local" | "cloud" | null>(null)
     const [ userData, setUserData ] = useState<any>()
     const user = useRouteLoaderData("main")

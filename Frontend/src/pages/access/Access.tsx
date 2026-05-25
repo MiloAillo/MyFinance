@@ -14,7 +14,6 @@ import axios, { isAxiosError } from "axios";
 import { ApiUrl } from "@/lib/variable";
 import { DBSupportCheck } from "@/lib/db";
 import useTransition from "@/hooks/useTransition";
-import { OrbitProgress } from "react-loading-indicators";
 
 export function Access(): JSX.Element {
 

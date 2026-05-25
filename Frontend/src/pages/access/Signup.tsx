@@ -13,7 +13,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { spring } from "motion-dom";
 import axios, { isAxiosError } from "axios";
-import { OrbitProgress } from "react-loading-indicators";
 import { ApiUrl } from "@/lib/variable";
 import useTransition from "@/hooks/useTransition";
 

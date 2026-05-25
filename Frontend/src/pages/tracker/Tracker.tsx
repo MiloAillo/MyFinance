@@ -24,7 +24,7 @@ export function Tracker(): JSX.Element {
     const [ chart, setChart ] = useState<any[]>([])
     const [ trackerData, setTrackerData ] = useState<{ name: string; id: number; initialBalance: number, current_balance: number } | null>(null)
     const [ pendapatanUrl, setPendapatanUrl ] = useState<string | null>(null)
-    const [ pengeluaranUrl, setPengeluaranUrl ] = useState<string | null>(null)
+    const [ pengeluaranUrl ] = useState<string | null>(null) // remove set function bcz unused
     const [ today, setToday ] = useState<string | null>(null)
     const [ balance, setBalance ] = useState<number>(0)
     const [ historyBalance, setHistoryBalance ] = useState<any[]>([])
