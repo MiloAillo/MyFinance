@@ -92,8 +92,8 @@ export function Report(): JSX.Element {
         // Step 2. mapping semua variable dari response
         const present_expenses = fetchedData?.present?.expenses.transactions
         const present_incomes = fetchedData?.present?.income.transactions
-        const old_expenses = fetchedData?.old?.expenses.transactions
-        const old_incomes = fetchedData?.old?.income.transactions
+        // const old_expenses = fetchedData?.old?.expenses.transactions
+        // const old_incomes = fetchedData?.old?.income.transactions
 
         const present_expenses_max = fetchedData?.present?.expenses.max
         const present_incomes_max = fetchedData?.present?.income.max
