@@ -44,9 +44,8 @@ class UserSeeder extends Seeder
                 
                 $calculatedBalance = $totalIncome - $totalExpense;
 
-                $tracker->update([
-                    'current_balance' => $calculatedBalance
-                ]);
+                $tracker->current_balance = $calculatedBalance;
+                $tracker->save();
             });
         }
     }
