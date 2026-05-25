@@ -811,28 +811,28 @@ export function Report(): JSX.Element {
                                         <p className="font-normal text-base">Income</p>
                                         <p className="font-medium text-lg">Rp.{displayData.income.toLocaleString("ID")}</p>
                                     </div>
-                                    {Number.isNaN(displayData.incomePercentage) && null}
+                                    {/* {Number.isNaN(displayData.incomePercentage) && null}
                                     {!Number.isNaN(displayData.incomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.incomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
-                                    }
+                                    } */}
                                 </div>
                                 <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
                                         <p className="font-normal text-base">Expense</p>
                                         <p className="font-medium text-lg">Rp.{displayData.outcome.toLocaleString("ID")}</p>
                                     </div>
-                                    {Number.isNaN(displayData.outcomePercentage) && null}
+                                    {/* {Number.isNaN(displayData.outcomePercentage) && null}
                                     {!Number.isNaN(displayData.outcomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.outcomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
-                                    }                                
+                                    }                                 */}
                                 </div>
                             </div>
                         </div>
