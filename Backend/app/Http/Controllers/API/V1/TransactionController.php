@@ -44,9 +44,9 @@ class TransactionController extends Controller
                 'description',
                 AllowedFilter::exact('type'),
                 AllowedFilter::operator('amount', FilterOperator::DYNAMIC),
-                AllowedFilter::scope('starts_before', 'dynamicDateFilter')->default('before'),
-                AllowedFilter::scope('in_between', 'dynamicDateFilter')->default('between'),
-                AllowedFilter::scope('ends_after', 'dynamicDateFilter')->default('after'),
+                AllowedFilter::scope('starts_before', 'dynamicDateFilter'),
+                AllowedFilter::scope('in_between', 'dynamicDateFilter'),
+                AllowedFilter::scope('ends_after', 'dynamicDateFilter'),
             )
             ->allowedSorts('name', 'amount', 'date', 'created_at', 'updated_at')
             ->defaultSort('-date')
@@ -95,9 +95,9 @@ class TransactionController extends Controller
             'description',
             AllowedFilter::exact('type'),
             AllowedFilter::operator('amount', FilterOperator::DYNAMIC),
-            AllowedFilter::scope('starts_before', 'dynamicDateFilter')->default('before'),
-            AllowedFilter::scope('in_between', 'dynamicDateFilter')->default('between'),
-            AllowedFilter::scope('ends_after', 'dynamicDateFilter')->default('after'),
+            AllowedFilter::scope('starts_before', 'dynamicDateFilter'),
+            AllowedFilter::scope('in_between', 'dynamicDateFilter'),
+            AllowedFilter::scope('ends_after', 'dynamicDateFilter'),
             AllowedFilter::exact('tracker.id'),
         )
         ->allowedSorts('name', 'amount', 'date', 'created_at', 'updated_at', 'deleted_at')
