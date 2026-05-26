@@ -40,7 +40,7 @@ class Transaction extends Model
         return $this->belongsTo(Tracker::class);
     }
 
-    public function scopeDynamicDateFilter(Builder $query, string $value, ?string $type = null)
+    public function scopeDynamicDateFilter(Builder $query, string $value)
     {
         // Return early if no value provided
         if (empty($value)) {
@@ -51,9 +51,10 @@ class Transaction extends Model
         $whitelistTypes = ['before', 'after', 'between'];
         $parts = explode(',', $value);
         $paramCount = count($parts);
-        $column = $parts[0] ?? null;
-        $date1 = $parts[1] ?? null;
-        $date2 = $parts[2] ?? null;
+        $type = $parts[0] ?? null;
+        $column = $parts[1] ?? null;
+        $date1 = $parts[2] ?? null;
+        $date2 = $parts[3] ?? null;
 
         if (empty($column) ||
             !in_array($column, $whitelistColumns) ||
