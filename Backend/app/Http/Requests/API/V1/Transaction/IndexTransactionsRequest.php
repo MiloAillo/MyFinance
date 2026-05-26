@@ -56,4 +56,27 @@ class IndexTransactionsRequest extends FormRequest
             'page' => $this->input('page', 1),
         ]);
     }
+
+    protected function passedValidation()
+    {
+        $filter = $this->validated()['filter'] ?? [];
+
+        if (empty($filter)) {
+            return;
+        }
+
+        if (isset($filter['starts_before'])) {
+            $filter['starts_before'] = 'before,' . $filter['starts_before'];
+        }
+
+        if (isset($filter['in_between'])) {
+            $filter['in_between'] = 'between,' . $filter['in_between'];
+        }
+
+        if (isset($filter['ends_after'])) {
+            $filter['ends_after'] = 'after,' . $filter['ends_after'];
+        }
+
+        $this->merge(['filter' => $filter]);
+    }
 }
