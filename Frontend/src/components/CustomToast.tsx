@@ -7,7 +7,7 @@ interface ToastProps {
   title: string
   description?: string
   type: "success"|"error"|"default"|"warning"|"loading"
-}
+} 
 
 
 function toast(toast: Omit<ToastProps, 'id'>) {
