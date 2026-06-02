@@ -92,8 +92,8 @@ export function Report(): JSX.Element {
         // Step 2. mapping semua variable dari response
         const present_expenses = fetchedData?.present?.expenses.transactions
         const present_incomes = fetchedData?.present?.income.transactions
-        const old_expenses = fetchedData?.old?.expenses.transactions
-        const old_incomes = fetchedData?.old?.income.transactions
+        // const old_expenses = fetchedData?.old?.expenses.transactions
+        // const old_incomes = fetchedData?.old?.income.transactions
 
         const present_expenses_max = fetchedData?.present?.expenses.max
         const present_incomes_max = fetchedData?.present?.income.max
@@ -118,8 +118,8 @@ export function Report(): JSX.Element {
         chartArray = [
             ...present_incomes.map((t: any) => ({...t, type: "income"})),
             ...present_expenses.map((t: any) => ({...t, type: "expense"})),
-            ...old_incomes.map((t: any) => ({...t, type: "income"})),
-            ...old_expenses.map((t: any) => ({...t, type: "expense"}))
+            // ...old_incomes.map((t: any) => ({...t, type: "income"})),
+            // ...old_expenses.map((t: any) => ({...t, type: "expense"}))
         ]
 
         chartArray.forEach(transactions => {
@@ -796,7 +796,7 @@ export function Report(): JSX.Element {
                             </motion.div>
                         </div>
                     </div>}
-                    {session === "cloud" && displayData.transactionsHistory.length >= 3 && <div className="flex flex-col items-center w-[87%] gap-3">
+                    {session === "cloud" && displayData.chartData.length >= 3 && <div className="flex flex-col items-center w-[87%] gap-3">
                         <div className="flex justify-between w-full">
                             <h3 className="text-sm font-regular">Report & Insight</h3>
                         </div>
@@ -811,28 +811,28 @@ export function Report(): JSX.Element {
                                         <p className="font-normal text-base">Income</p>
                                         <p className="font-medium text-lg">Rp.{displayData.income.toLocaleString("ID")}</p>
                                     </div>
-                                    {Number.isNaN(displayData.incomePercentage) && null}
+                                    {/* {Number.isNaN(displayData.incomePercentage) && null}
                                     {!Number.isNaN(displayData.incomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.incomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
-                                    }
+                                    } */}
                                 </div>
                                 <div className="bg-white flex flex-col w-full justify-center items-start p-4 rounded-xl gap-1 h-fit dark:dark:bg-black/5 dark:ring dark:ring-white/10">
                                     <div className="flex flex-col">
                                         <p className="font-normal text-base">Expense</p>
                                         <p className="font-medium text-lg">Rp.{displayData.outcome.toLocaleString("ID")}</p>
                                     </div>
-                                    {Number.isNaN(displayData.outcomePercentage) && null}
+                                    {/* {Number.isNaN(displayData.outcomePercentage) && null}
                                     {!Number.isNaN(displayData.outcomePercentage) && 
                                         <div>
                                             <p className="text-sm font-normal text-neutral-600 dark:text-neutral-400">
                                                 {displayData.outcomePercentage}% from {range === 7 ? "last week" : range === 30 ? "last month" : "last year"}
                                             </p>
                                         </div>
-                                    }                                
+                                    }                                 */}
                                 </div>
                             </div>
                         </div>
@@ -958,7 +958,11 @@ export function Report(): JSX.Element {
                             </motion.div>
                         </div>
                     </div>}
-                    {displayData.transactionsHistory.length < 3 && <div className="flex flex-col items-center gap-5 justify-center h-50 px-5">
+                    {session === "local" && displayData.transactionsHistory.length < 3 && <div className="flex flex-col items-center gap-5 justify-center h-50 px-5">
+                        <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40 dark:text-stone-300/65" />
+                        <p className="text-center font-medium text-base text-black/50 dark:text-stone-200/75">You have very few transactions <br /> <span className="font-normal">Unfortunately, we cannot generate your report.</span></p>
+                    </div>}
+                    {session === "cloud" && displayData.chartData.length < 3 && <div className="flex flex-col items-center gap-5 justify-center h-50 px-5">
                         <FontAwesomeIcon icon={faQuestion} className="text-7xl text-black/40 dark:text-stone-300/65" />
                         <p className="text-center font-medium text-base text-black/50 dark:text-stone-200/75">You have very few transactions <br /> <span className="font-normal">Unfortunately, we cannot generate your report.</span></p>
                     </div>}

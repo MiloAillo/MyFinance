@@ -81,7 +81,7 @@ export function TrackerNavbar({ render, trackerName, getTheme, onBackClick }: tr
                                             <motion.div
                                                 key="accountDetailsClosed"
                                                 onClick={() => setIsAccountOpen(true)}
-                                                style={{backgroundImage: `url(${session === "local" ? "" : `${userData?.avatar}`})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "contain"}}
+                                                style={{backgroundImage: `url(${session === "local" ? "" : `${userData?.avatar}`})`, backgroundPosition: "center", backgroundRepeat: "no-repeat", backgroundSize: "cover"}}
                                                 className={`w-8 h-8 rounded-full ${session === "local" ? "flex justify-center items-center border" : "flex justify-center items-center border"}`}
                                                 initial={{
                                                     opacity: 0
@@ -117,7 +117,7 @@ export function TrackerNavbar({ render, trackerName, getTheme, onBackClick }: tr
                         <AnimatePresence>
                             {isAccountOpen && render && <motion.div 
                                 key="accountDetails"
-                                className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 dark:bg-neutral-800/60 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] dark:backdrop-blur-[6px] backdrop-grayscale-50 z-20 md:right-auto md:-translate-x-60 md:w-54"
+                                className="fixed right-0 sm:right-[4%] top-0 mt-18 mr-6 flex flex-col gap-3.5 bg-neutral-50/80 dark:bg-neutral-800/60 border-[0.5px] shadow p-3.5 rounded-xl backdrop-blur-[2px] dark:backdrop-blur-[6px] backdrop-grayscale-50 z-20 md:right-auto md:-translate-x-60 md:w-f"
                                 initial = {{
                                     x: 10,
                                     opacity: 0
