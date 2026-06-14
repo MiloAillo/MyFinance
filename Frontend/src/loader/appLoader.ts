@@ -1,6 +1,6 @@
 import { DBcheck, DBgetname } from "@/lib/db"
-import { ApiUrl } from "@/lib/variable"
-import axios, { isAxiosError } from "axios"
+import { isAxiosError } from "axios"
+import { apiClient } from "@/lib/api"
 
 const appLoader = async () => {
     // get Auth token (MyCloud)
@@ -19,11 +19,7 @@ const appLoader = async () => {
     // =[Output 1: when both exist]=
     if(authToken && localDb) {
         try {
-            await axios.get(`${ApiUrl}/users/profile`, {
-                headers: {
-                    Authorization: `Bearer ${authToken}`
-                }
-            })
+            await apiClient.get('/users/profile')
             window.location.href = "/transfer"
         } catch(err) {
             if(isAxiosError(err)) {
@@ -62,11 +58,7 @@ const appLoader = async () => {
         }
 
         try {
-            const res = await axios.get(`${ApiUrl}/users/profile`, {
-                headers: {
-                    Authorization: `Bearer ${authToken}`
-                }
-            })
+            const res = await apiClient.get('/users/profile')
     
             const data = await res.data.data
 

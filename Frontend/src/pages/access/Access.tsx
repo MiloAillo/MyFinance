@@ -10,8 +10,8 @@ import { faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AnimatePresence, motion, spring } from "motion/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios, { isAxiosError } from "axios";
-import { ApiUrl } from "@/lib/variable";
+import { isAxiosError } from "axios";
+import { apiClient } from "@/lib/api";
 import { DBSupportCheck } from "@/lib/db";
 import useTransition from "@/hooks/useTransition";
 
@@ -43,7 +43,6 @@ export function Access(): JSX.Element {
 
     const login = async (values: z.infer<typeof loginSchema>): Promise<void> => {
         console.log(values)
-        console.log(ApiUrl)
         setIsInternalServerError(false)
         setIsInvalidCredentials(false)
         setIsNewDeviceDetected(false)
@@ -52,7 +51,7 @@ export function Access(): JSX.Element {
         try {
             setIsLoading(true)
 
-            const res = await axios.post(`${ApiUrl}/auth/tokens`, {
+            const res = await apiClient.post('/auth/tokens', {
                 email: values.email,
                 password: values.password
             })
