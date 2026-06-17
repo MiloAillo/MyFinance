@@ -395,6 +395,10 @@ collection:
             value: ""
             description: ""
             disabled: false
+          - name: fields[transactions]
+            value: name,description
+            description: ""
+            disabled: false
         headers:
           - name: User-Agent
             value: insomnia/12.4.0
