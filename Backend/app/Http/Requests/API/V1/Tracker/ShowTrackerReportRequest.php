@@ -25,6 +25,8 @@ class ShowTrackerReportRequest extends FormRequest
         return [
             'range' => 'required|array',
             'range.days' => 'required|integer|min:1|max:365',
+            'fields.transactions' => 'nullable',
+            'fields.transactions.*' => 'nullable|string|in:name,description',
         ];
     }
 

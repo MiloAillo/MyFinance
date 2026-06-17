@@ -237,22 +237,32 @@ class TrackerController extends Controller
         $now = Carbon::now();
         $rangeDataPresent = $now->copy()->subDays($days)->startOfDay()->toDateString();
         $rangeDataOld = $now->copy()->subDays(2 * $days)->startOfDay()->toDateString();
+        $additionalFields = $request->input('fields.transactions', '');
+        $allowedAdditionalFields = ['name', 'description'];
+        $transactionColumns = ['id', 'amount', 'date', 'type'];
 
-        $transactions = $tracker->transactions();
+        if (!empty($additionalFields)) {
+            $transactionColumns = array_intersect(array_merge($transactionColumns, explode(',', $additionalFields)), array_merge($transactionColumns, $allowedAdditionalFields));
+        }
+
+        $optionalTransactionFields = array_values(array_intersect($allowedAdditionalFields, $transactionColumns));
+
+        $transactionsQuery = $tracker->transactions();
         $tracker = $tracker->newQuery()->whereKey($tracker->getKey());
 
-        $report = DB::transaction(function () use ($tracker, $transactions, $rangeDataPresent, $rangeDataOld, $days) {
+        $report = DB::transaction(function () use ($tracker, $transactionsQuery, $rangeDataPresent, $rangeDataOld, $transactionColumns, $optionalTransactionFields, $days, $now) {
             $tracker->sharedLock()->first(['id']);
 
-            $allTransactions = $transactions->sharedLock()
+            $transactions = $transactionsQuery->sharedLock()
                 ->whereIn('type', ['income', 'expense'])
                 ->whereDate('date', '>=', $rangeDataOld)
-                ->get(['id', 'amount', 'date', 'type']);
+                ->whereDate('date', '<=', $now->toDateString())
+                ->get($transactionColumns);
 
             // true = go to $presentTxs, false = go to $oldTxs
             $presentStart = Carbon::parse($rangeDataPresent)->startOfDay();
             
-            [$presentTxs, $oldTxs] = $allTransactions->partition(function ($tx) use ($presentStart) {
+            [$presentTxs, $oldTxs] = $transactions->partition(function ($tx) use ($presentStart) {
                 return Carbon::parse($tx->date)->startOfDay() >= $presentStart;
             });
 
@@ -265,6 +275,9 @@ class TrackerController extends Controller
                 'id'     => (string) $tx->id,
                 'amount' => $tx->amount,
                 'date'   => $tx->date,
+                ...($optionalTransactionFields
+                    ? array_combine($optionalTransactionFields, array_map(fn ($field) => $tx->{$field}, $optionalTransactionFields))
+                    : []),
             ];
 
             $formatAgg = fn($val) => number_format((float) ($val ?? 0), 2, '.', '');
