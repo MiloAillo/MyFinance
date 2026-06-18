@@ -221,7 +221,7 @@ export function Tracker(): JSX.Element {
                     formData.append('amount', cleanedBalance.toString())
                     formData.append('description', desc)
                     if(image) formData.append('image', image)
-                    formData.append('transaction_date', date.toISOString().slice(0, 19).replace('T', ' '))
+                    formData.append('date', date.toISOString().slice(0, 19).replace('T', ' '))
 
                     const res = await axios.post(`${ApiUrl}/trackers/${id}/transactions`, formData, {
                         headers: {
