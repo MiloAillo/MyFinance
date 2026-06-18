@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { TrackerNavbar } from "@/components/TrackerNavbar";
 import { useParams, useSearchParams } from "react-router-dom";
-import { DBgetalltransactions, DBgetonetracker } from "@/lib/db";
 import axios from "axios";
 import { ApiUrl } from "@/lib/variable";
 import useTransition from "@/hooks/useTransition";
@@ -63,7 +62,7 @@ export function ReportCloud(): JSX.Element {
     const [ transactionsDisplay, setTransactionsDisplay ] = useState<any[]>([])
     
     const [ loading, setLoading ] = useState<boolean>(false)
-    const [ historyLoading, setHistoryLoading ] = useState<boolean>(false)
+    const [ historyLoading, _setHistoryLoading ] = useState<boolean>(false)
     
     const [ range, setRange ] = useState<number>(7)
     const [ page, setPage ] = useState<number>(1)
