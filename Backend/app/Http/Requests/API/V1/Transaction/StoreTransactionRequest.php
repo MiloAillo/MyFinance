@@ -26,7 +26,7 @@ class StoreTransactionRequest extends FormRequest
             'tracker_id' => 'required|exists:trackers,id',
             'name' => 'required|string|max:50',
             'type' => 'required|in:income,expense',
-            'amount' => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:0.01|max:9.99e13',
             'description' => 'nullable|string|max:255',
             'date' => 'required|date',
         ];

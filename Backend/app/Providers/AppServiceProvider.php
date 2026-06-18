@@ -66,9 +66,9 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return array_merge($limits, [
-                Limit::perMinutes(15, 5)->by('ip:' . $ip),
-                Limit::perMinutes(15, 5)->by('subnet:' . $subnet),
-                Limit::perMinutes(15, 5)->by('device_hash:' . $deviceHash),
+                Limit::perSecond(15, 5)->by('ip:' . $ip),
+                Limit::perSecond(15, 5)->by('subnet:' . $subnet),
+                Limit::perSecond(15, 5)->by('device_hash:' . $deviceHash),
             ]);
         });
 
