@@ -146,3 +146,13 @@ html {
 html.dark {
   background-color: #211E1E;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #7a7a7aac #00000000;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}

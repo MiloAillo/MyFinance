@@ -843,7 +843,7 @@ export function Tracker(): JSX.Element {
                             <div className="flex flex-col w-full gap-4 h-full">
                                 <div className="flex justify-between items-center w-full">
                                     <p className="font-medium text-base">Report & Insight</p>
-                                    <Button disabled={initialLoad} onClick={() => transitionTo(`/app/tracker/report/${id}?name=${trackerName}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">More</Button>
+                                    <Button disabled={initialLoad} onClick={() => transitionTo(`/app/tracker/${session === "cloud" ? "report-cloud" : "report-local"}/${id}?name=${trackerName}`)} className="bg-background-primary-dark font-medium h-8 dark:bg-background-primar dark:text-black text-white/95 dark:bg-background-primary">More</Button>
                                 </div>
                                 <div className="flex flex-row gap-2 h-full w-full">
                                     <div className="flex flex-row gap-2 overflow-hidden w-full">

@@ -9,7 +9,6 @@ import signupLocal from "./routes/SignupLocal";
 import tracker from "./routes/TrackerRoute";
 import trackerHistory from "./routes/TrackerHistoryRoute";
 import editProfile from "./routes/EditProfile";
-import report from "./routes/ReportRoute";
 import appLoader from "./loader/appLoader";
 import forgotPassword from "./routes/ForgotPasswordRoute";
 import forgotPasswordEmailSent from "./routes/ForgotPasswordEmailSentRoute";
@@ -21,6 +20,8 @@ import privacyPolicy from "./routes/PrivacyPolicyRoute";
 import termsOfService from "./routes/TermsOfServiceRoute";
 import verifyNewEmail from "./routes/VerifyNewEmailRoute";
 import verifyEmail from "./routes/VerifyEmailRoute";
+import reportLocal from "./routes/ReportLocalRoute";
+import reportCloud from "./routes/ReportCloudRoute";
 
 const routes = createBrowserRouter([
     {path: "/app", element: <MainPage />, id: "main", loader: appLoader, children: [
@@ -28,7 +29,8 @@ const routes = createBrowserRouter([
         tracker,
         trackerHistory,
         editProfile,
-        report,
+        reportLocal,
+        reportCloud,
         changePassword
     ]},
     access,

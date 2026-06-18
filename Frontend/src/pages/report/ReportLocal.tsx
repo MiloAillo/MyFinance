@@ -14,9 +14,9 @@ import { ApiUrl } from "@/lib/variable";
 import useTransition from "@/hooks/useTransition";
 import { Loader2Icon } from "lucide-react";
 
-export function Report(): JSX.Element {
+export function ReportLocal(): JSX.Element {
     const { id } = useParams()
-    const [ searchParams ] = useSearchParams()
+    const [ searchParams ] = useSearchParams() 
 
     const { render, transitionTo } = useTransition({initValue: true, transitionDelay: 600})
 
@@ -36,10 +36,11 @@ export function Report(): JSX.Element {
     const [ lastPage, setLastPage ] = useState<number>(1)
     const [ paginatedHistory, setPaginatedHistory ] = useState<any[]>([])
 
-    // fetch name so it doesnt wait for backend response
     useEffect(() => {
+        // fetch name so it doesnt wait for backend response
         setTrackerName(searchParams.get("name") ?? "")
         
+        // get session for identification
         const session = localStorage.getItem("session")
         if(session === null) window.location.href = "/access"
         setSession(session as "cloud" | "local")
