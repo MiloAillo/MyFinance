@@ -40,13 +40,13 @@ class AppServiceProvider extends ServiceProvider
             $limits = [];
             
             if ($userId) {
-                $limits[] = Limit::perMinute(60)->by('user:' . $userId);
+                $limits[] = Limit::perSecond(20, 3)->by('user:' . $userId);
             }
 
             return array_merge($limits, [
-                Limit::perMinute(60)->by('ip:' . $ip),
-                Limit::perMinute(60)->by('subnet:' . $subnet),
-                Limit::perMinute(60)->by('device_hash:' . $deviceHash),
+                Limit::perSecond(20, 3)->by('ip:' . $ip),
+                Limit::perSecond(20, 3)->by('subnet:' . $subnet),
+                Limit::perSecond(20, 3)->by('device_hash:' . $deviceHash),
             ]);
         });
 
@@ -62,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
 
             $limits = [];
             if ($userId) {
-                $limits[] = Limit::perMinutes(15, 3)->by('user:' . $userId);
+                $limits[] = Limit::perSecond(15, 5)->by('user:' . $userId);
             }
 
             return array_merge($limits, [
@@ -84,16 +84,16 @@ class AppServiceProvider extends ServiceProvider
             // $res = $errResponse('Too many notification requests. Please try again later.');
 
             $limits = [
-                Limit::perMinutes(15, 3)->by('ip:' . $ip),
+                Limit::perMinute(15)->by('ip:' . $ip),
                 Limit::perMinute(20)->by('subnet:' . $subnet),
                 Limit::perMinute(10)->by('device_hash:' . $deviceHash),
             ];
 
             if ($userId) {
-                array_unshift($limits, Limit::perMinutes(15, 3)->by('user:' . $userId));
+                array_unshift($limits, Limit::perMinute(15)->by('user:' . $userId));
             }
             if ($email) {
-                array_unshift($limits, Limit::perMinutes(15, 3)->by('email:' . $email));
+                array_unshift($limits, Limit::perMinute(15)->by('email:' . $email));
             }
 
             return $limits;
